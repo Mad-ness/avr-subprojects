@@ -1,4 +1,6 @@
-.INCLUDE "/usr/include/avr/tn2313def.inc"
+;.INCLUDE "/usr/include/avr/tn2313def.inc"
+.INCLUDE "/usr/include/avr/tn13def.inc"
+
 
 .def temp           = r16
 .def r_counter_L    = r17
@@ -10,7 +12,7 @@
 .equ pin_engineLine = PORTB1        ; engine power line
 .equ pin_engineLED  = PORTB2        ; engine power LED
 .equ pin_buttonOFF  = PORTB3        ; button ENGINE_OFF
-.equ runTime_secs   = 5            ; so many seconds engine should run
+.equ runTime_secs   = 55            ; so many seconds engine should run
 .equ overflow_max   = 61
 
 .equ timerOn        = (1<<CS00)|(1<<CS01) ; prescaler/64 for timer0 overflow interrupt
@@ -45,7 +47,7 @@ entry_point:
     ldi temp, LOW(RAMEND)
     out spl, temp
     ldi temp, (1<<TOIE0)            ; enable overflow interrupt of TIMER0
-    out TIMSK, temp
+    out TIMSK0, temp
     ldi temp, (1<<pin_engineLine)|(1<<pin_engineLED)
     out DDRB, temp
     sei
@@ -58,7 +60,7 @@ main_loop:
     rjmp engine_stop
 
     cpi r_secCounter, runTime_secs  ; test if total run seconds matches the runTime_secs
-    brne engine_running  
+    brlo engine_running
 
 engine_stop:
     stop_engine
@@ -83,6 +85,7 @@ check_buttonON:
 ; an engine is running
 ;
 OVF0int_handler:
+    in temp, SREG
     cli                                        ; disable interrupts handling
 ;    sbis PINB, pin_engineLine
 ;    rjmp count_runtime_end
@@ -95,6 +98,7 @@ counter_add_second:
     clr r_counter_L
 counted_less_a_second:
     sei                                        ; enable the interrupts handling
+    out SREG, temp
     reti
 
 

@@ -21,5 +21,5 @@ Target device: attiny2313 (later it migrates in attiny13)
 
 There is used an Arduino Mega as a USBISP programmator:
 
-    bash$ avrdude -p t2313 -P /dev/ttyUSB0 -c avrisp -b 9600 -U flash:w:firmware.as.hex
+    bash$ avrdude -p t13 -P /dev/ttyUSB0 -c avrisp -b 9600 -U flash:w:firmware.as.hex
 

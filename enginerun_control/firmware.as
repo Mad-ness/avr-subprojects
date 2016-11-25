@@ -1,4 +1,5 @@
 ;.INCLUDE "/usr/include/avr/tn2313def.inc"
+#define F_CPU       1000000
 .INCLUDE "/usr/include/avr/tn13def.inc"
 
 
@@ -12,8 +13,8 @@
 .equ pin_engineLine = PORTB1        ; engine power line
 .equ pin_engineLED  = PORTB2        ; engine power LED
 .equ pin_buttonOFF  = PORTB3        ; button ENGINE_OFF
-.equ runTime_secs   = 55            ; so many seconds engine should run
-.equ overflow_max   = 61
+.equ runTime_secs   = 30            ; so many seconds engine should run
+.equ overflow_max   = 61            ; so many TIMER0 overflows counts one second
 
 .equ timerOn        = (1<<CS00)|(1<<CS01) ; prescaler/64 for timer0 overflow interrupt
 
@@ -50,6 +51,8 @@ entry_point:
     out TIMSK0, temp
     ldi temp, (1<<pin_engineLine)|(1<<pin_engineLED)
     out DDRB, temp
+    clr temp
+    out PORTB, temp
     sei
 
 main_loop:
@@ -67,6 +70,8 @@ engine_stop:
     rjmp main_loop 
 
 engine_running:
+;    sbic PINB, pin_buttonOFF        ; test if the button OFF pressed
+;    rjmp engine_stop                ; and stop engine if yes
     rcall engineLED_blink
     rjmp main_loop
 

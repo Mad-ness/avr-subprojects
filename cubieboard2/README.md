@@ -36,5 +36,5 @@ Take a board keeping the ethernet socket at top left corner. GPIO wires should l
            | ... |
 
 
-PB18 - a management line which controls an external transistor like 2N2222. This line gives only +3.3V but I use transistor for passing +5V to a needed me relay through it.
+PB18 - a management line which controls an external transistor like 2N2222. This line gives only +3.3V but I use transistor for passing +5V to a needed me relay through it. In short, transistor is a key which opens a relay.
 

@@ -11,8 +11,9 @@
 
 .equ pin_buttonON   = PORTB0        ; button ENGINE_ON
 .equ pin_engineLine = PORTB1        ; engine power line
-.equ pin_engineLED  = PORTB2        ; engine power LED
-.equ pin_buttonOFF  = PORTB3        ; button ENGINE_OFF
+.equ pin_engineLED  = PORTB3        ; engine power LED
+.equ pin_buttonOFF  = PORTB4        ; button ENGINE_OFF
+.equ pin_relayLine  = PORTB2        ; it behaves same as pin_engineLine but LOW means ON and HIGH means OFF
 .equ runTime_secs   = 30            ; so many seconds engine should run
 .equ overflow_max   = 61            ; so many TIMER0 overflows counts one second
 
@@ -20,7 +21,7 @@
 
 .MACRO start_engine
     sbi PORTB, pin_engineLine
-    nop
+    cbi PORTB, pin_relayLine
     clr r_ovfCounter
     clr r_secCounter
     clr r_ledCounter
@@ -35,6 +36,7 @@
     out PORTB, temp
     nop
     out TCCR0B, temp
+    sbi PORTB, pin_relayLine
 .ENDMACRO
 
 
@@ -49,10 +51,12 @@ entry_point:
     out spl, temp
     ldi temp, (1<<TOIE0)            ; enable overflow interrupt of TIMER0
     out TIMSK0, temp
-    ldi temp, (1<<pin_engineLine)|(1<<pin_engineLED)
+    ldi temp, (1<<pin_engineLine)|(1<<pin_engineLED)|(1<<pin_relayLine)
     out DDRB, temp
     clr temp
     out PORTB, temp
+    nop
+;    sbi PORTB, pin_relayLine
     sei
 
 main_loop:

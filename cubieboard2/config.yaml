@@ -1,8 +1,12 @@
 ---
 pins_configuration:
-    relay2engine:
-        pin_name: PB18
-        pin_id: 50
+  - id: water_pump
+    pin_name: PB18
+    pin_id: 50
+
+  - id: table_lamp
+    pin_name: PH15
+    pin_id: 239
 
 sysfs_gpio:
     root_dir: /sys/class/gpio

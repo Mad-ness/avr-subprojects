@@ -38,3 +38,21 @@ Take a board keeping the ethernet socket at top left corner. GPIO wires should l
 
 PB18 - a management line which controls an external transistor like 2N2222. This line gives only +3.3V but I use transistor for passing +5V to a needed me relay through it. In short, transistor is a key which opens a relay.
 
+## System requirements
+
+In order to start using the GPIO pins they to be configured properly. Because of I use Gentoo Linux, I placed such bash script in file /etc/local.d/50-enable-gpio.start && chmod +x on this script.
+
+    #!/bin/bash
+    
+    out_pins="50 239"
+    pins_path=/sys/class/gpio
+    group=remad
+    
+    for pin in $out_pins; do
+        echo $pin > $pins_path/export
+        echo out > $pins_path/gpio$pin/direction
+    
+        chgrp $group $pins_path/gpio$pin/value
+        chmod g+w $pins_path/gpio$pin/value
+    done
+

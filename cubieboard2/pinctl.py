@@ -16,7 +16,7 @@ def pinGetValue(pin_number, default=-1):
         with open(value_path, 'r') as fd:
             result = fd.readline().strip()
     except IOError as e:
-        logging.error(e.errno + ' ' + e)
+        logging.error("{errmsg}".format(errmsg=e))
     return result
 
 

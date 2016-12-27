@@ -1,0 +1,14 @@
+---
+pins_configuration:
+    relay2engine:
+        pin_name: PB18
+        pin_id: 50
+
+sysfs_gpio:
+    root_dir: /sys/class/gpio
+    abspath: /sys/class/gpio/gpio%s
+    relpath: gpio%s
+    attrs:
+        value: value
+        direction: direction
+

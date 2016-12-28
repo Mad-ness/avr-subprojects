@@ -13,10 +13,56 @@ In my case I need PB18 line, this is activated so way:
 
     echo 50 > /sys/class/gpio/export
 
+### How to get pin a number suitable for linux mainline kernel
+
+In order to map a pin name and a pin interface via sysfs. Pins should be recognized properly.
+
+Most of GPIO ports have similar names starting with "P" letter within one more letter and a pin order number, correct names are PB18, PH9, PE16, PD9, etc.
+
+For example I will use pin named PB18.
+
+Use the formula for getting a mainline kernel suitable number for using it in /sys/class/gpio/export,unexport.
+
+    1. Take the port name and determine its number in alphabetical order
+        A - 1   E - 5
+        B - 2   F - 6
+        C - 3   G - 7
+        D - 4   H - 8
+        Out port number is 8 (H)
+    2. Extract out of the got number 1: 8 - 1
+    3. Multiple the result on 32: (8 - 1)*32
+    4. Add to the result pin order number: (8 - 1)*32 + 18 (PB18) = 242
+ 
+The total number is used for activation (deactivation) appropriate GPIO port line:
+
+    echo 242 > /sys/class/gpio/export
+    and then /sys/class/gpio/gpio242 becomes available for further using
+    echo 242 > /sys/class/gpio/unexport     # makes GPIO unavailable inside OS
+
+If you don't want to calculate the pin numbers then use the link https://linux-sunxi.org/A20/PIO and take ready numbers.
+
+There is also another way to find a correct base, discovered in a kernel source header.
+
+Observe this file https://raw.githubusercontent.com/torvalds/linux/master/drivers/pinctrl/sunxi/pinctrl-sunxi.h and find a section with definitions as listed below. 
+
+    #define PA_BASE 0
+    #define PB_BASE 32
+    #define PC_BASE 64
+    #define PD_BASE 96
+    #define PE_BASE 128
+    #define PF_BASE 160
+    #define PG_BASE 192
+    #define PH_BASE 224
+    #define PI_BASE 256
+    #define PL_BASE 352
+    #define PM_BASE 384
+    #define PN_BASE 416
+
+But according to a line found in the header "Allwinner A1X SoCs pinctrl driver" ensure you have such SoC or even A20 should have same pins layout. Unfortunately I didn't find yet how to map these definitions to a board I use, it is cubieboard2.
 
 ## GPIO connections
 
-Take a board keeping the ethernet socket at top left corner. GPIO wires should look at you. 
+Take a board keeping the ethernet socket at top left corner. GPIO wires should look at you. This is all about Cubieboard2.
 
 
                           =========

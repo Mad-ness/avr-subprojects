@@ -5,8 +5,8 @@ pins_configuration:
     pin_id: 50
 
   - id: table_lamp
-    pin_name: PH15
-    pin_id: 239
+    pin_name: PE11
+    pin_id: 139
 
 sysfs_gpio:
     root_dir: /sys/class/gpio

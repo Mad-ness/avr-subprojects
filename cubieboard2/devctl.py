@@ -4,6 +4,7 @@
 #
 from pinctl import pinSetValue, pinGetValue, pinGetDirection
 from config import load_config, Configuration
+from time import sleep
 
 
 global_config = load_config()
@@ -59,13 +60,14 @@ Access Ok : {pin_ok}""".format(
     def setHigh(self): return pinSetValue(self.m_pin_number, self.STATE_HIGH)
     def setLow(self): return pinSetValue(self.m_pin_number, self.STATE_LOW)
 
+    def shortRun(self, msecs=1000.0):
+        self.on()
+        sleep(msecs/1000)
+        self.off()
 
 
 class GPIOWaterPump(GPIOControl):
     m_pin_type = 'water_pump'
-    def runEngine(self):
-        self.on()
-        self.off()
 
 class GPIOTableLamp(GPIOControl):
     m_pin_type = 'table_lamp'
@@ -76,19 +78,24 @@ class GPIOTableLamp(GPIOControl):
 if __name__ == "__main__":
     import sys
     cfg = load_config()
-    gpio1 = GPIOWaterPump()
-    gpio2 = GPIOTableLamp()
+#    gpio1 = GPIOWaterPump()
+#    gpio2 = GPIOTableLamp()
 
     if len(sys.argv) >= 3:
-        if sys.argv[1] == 'gpio1':   gpio = gpio1
-        elif sys.argv[2] == 'gpio2': gpio = gpio2
+        gpio = None
+        if sys.argv[1] == 'gpio1':   gpio = GPIOWaterPump()
+        elif sys.argv[1] == 'gpio2': gpio = GPIOTableLamp()
 
-        if sys.argv[2] == 'on':
-            gpio.runEngine()
-        elif sys.argv[2] == 'off':
-            gpio.off()
+        if gpio:
+            if sys.argv[2] == 'on':
+                gpio.on()
+            elif sys.argv[2] == 'off':
+                gpio.off()
+            elif sys.argv[2] == 'click':
+                gpio.shortRun(msecs=500)
+            gpio.info()
 
-    gpio1.info()
-    gpio2.info()
+#    gpio1.info()
+#    gpio2.info()
     pass 
 

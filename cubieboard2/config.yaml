@@ -6,7 +6,7 @@ pins_configuration:
     pin_id: 50
 
   - id: table_lamp
-    enabled: false
+    enabled: true
     pin_name: PE11
     pin_id: 139
 

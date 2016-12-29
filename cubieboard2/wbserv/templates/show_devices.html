@@ -1,0 +1,16 @@
+<!doctype html>
+<title>List of found configured GPIO devices</title>
+<html>
+<body>
+<table border=1>
+{% for dev in devices %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td>{{ dev.m_pin_name }}</td>
+    <td>{{ dev.m_pin_ok }}</td>
+    <td>{{ dev.m_pin_number }}</td>
+  </tr>
+{% endfor %}
+</table>
+</body>
+</html>

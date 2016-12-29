@@ -73,11 +73,38 @@ class GPIOTableLamp(GPIOControl):
     m_pin_type = 'table_lamp'
 
 
+Devices_mapping = (
+    ( 'water_pump', GPIOWaterPump ),
+    ( 'table_lamp', GPIOTableLamp ),
+)
+
+
+class GPIODevices:
+    m_gpio_devices = []
+    m_enabled_devices = []
+    def __init__(self):
+        for cfg in global_config['pins_configuration']:
+            if cfg['enabled'] == True:
+                self.m_enabled_devices.append( cfg )
+        self.initDevices()
+
+    def initDevices(self):
+        for dev in self.m_enabled_devices:
+            for label, devclass in Devices_mapping:
+                if label == dev['id']:
+                    self.m_gpio_devices.append(devclass())
+
+    def listDevices(self): return self.m_gpio_devices
+
 
 
 if __name__ == "__main__":
     import sys
     cfg = load_config()
+
+    devs = GPIODevices().listDevices()
+    print(devs)
+#
 #    gpio1 = GPIOWaterPump()
 #    gpio2 = GPIOTableLamp()
 
@@ -93,9 +120,10 @@ if __name__ == "__main__":
                 gpio.off()
             elif sys.argv[2] == 'click':
                 gpio.shortRun(msecs=500)
+            elif sys.argv[2] == 'clicks':
+                for i in range(5):
+                    gpio.shortRun(msecs=1000)
             gpio.info()
 
-#    gpio1.info()
-#    gpio2.info()
     pass 
 

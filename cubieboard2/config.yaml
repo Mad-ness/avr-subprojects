@@ -1,10 +1,12 @@
 ---
 pins_configuration:
   - id: water_pump
+    enabled: true
     pin_name: PB18
     pin_id: 50
 
   - id: table_lamp
+    enabled: false
     pin_name: PE11
     pin_id: 139
 

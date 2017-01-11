@@ -4,7 +4,7 @@
 #
 from pinctl import pinSetValue, pinGetValue, pinGetDirection
 from config import load_config, Configuration
-
+from time import sleep
 
 global_config = load_config()
 
@@ -14,6 +14,7 @@ class GPIOControl:
     m_pin_type = ''
     p_pin_name = ''
     m_pin_ok = False
+    attrs = {}
 
     def __init__(self, on_value = 1, off_value = 0):
         self.on = self.setHigh
@@ -28,6 +29,8 @@ class GPIOControl:
                 self.m_pin_number = cfg['pin_id']
                 self.m_pin_name = cfg['pin_name']
                 self.m_pin_ok = True
+                if 'attrs' in cfg:
+                    self.attrs = cfg['attrs']
                 break
 
     def pinOk(self): return self.m_pin_ok
@@ -63,8 +66,11 @@ Access Ok : {pin_ok}""".format(
 
 class GPIOWaterPump(GPIOControl):
     m_pin_type = 'water_pump'
-    def runEngine(self):
+    def shortRun(self):
+        assert 'running_time_msec' in self.attrs, "Not found attribute 'running_time_msecs'"
+        running_time_msec = int(self.attrs['running_time_msec'])
         self.on()
+        sleep(running_time_msec)
         self.off()
 
 class GPIOTableLamp(GPIOControl):
@@ -87,6 +93,8 @@ if __name__ == "__main__":
             gpio.runEngine()
         elif sys.argv[2] == 'off':
             gpio.off()
+        elif sys.argv[2] == 'shortrun':
+            gpio.shortRun()
 
     gpio1.info()
     gpio2.info()

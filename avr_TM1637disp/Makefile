@@ -10,6 +10,9 @@ INC_PATH = /usr/avr
 
 get_hex: extract_hex
 
+compile_asm:
+		avra $(BASE).as
+
 compile:
 		$(CC) -c -mmcu=$(SOC) -I. -g -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -Wall -Wstrict-prototypes -Wa,-adhlns=$(BASE).lst  -std=gnu99 $(SRC) -o $(OBJECT) -I$(INC_PATH)
 
@@ -25,4 +28,5 @@ flash: extract_hex
 
 clean:
 		rm -f $(OBJECT) $(BASE).elf $(BASE).lst $(BASE).map $(TARGET_HEX)
+		rm -f $(BASE).as.*
 

@@ -45,7 +45,7 @@ main_loop:
 	ldi TM1637_d4, 0
 main_1:
 
-	ldi zl, LOW(TM1637_digits)
+;	ldi zl, LOW(TM1637_digits)
 ;	lpm TM1637_d4, zl
 	
 	sbis PINB, PINB0
@@ -91,9 +91,9 @@ TM1637_display:
     ldi reg_1, 0x8F
     rcall TM1637_writeByte
     rcall TM1637_stop
-    nop
-    ;ldi reg_1, 5
-    ;rcall TM1637_delay
+    ;nop
+    ldi reg_1, 5
+    rcall TM1637_delay
     ret
 
 
@@ -212,5 +212,6 @@ L1_100ms:
 	ret
 
 TM1637_digits:
+	; 0..9
 	.db	0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f
 

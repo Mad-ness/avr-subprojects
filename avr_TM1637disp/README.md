@@ -27,9 +27,9 @@ This details found in disp.as:
     ; - small firware size: 470 bytes. For ATtiny13 is it very good.
     ; 
     ; Notes: 
-    ; - almost same functionality I coded on C language but firmware size weight 700-800 bytes.
+    ; - almost same functionality I coded on C language but firmware size weight 700-800 bytes - it is only the service code without useful functionality.
     ; - if you will do same thing as me (measure soil moisture) then avoid it your device be under current
     ;   all of the time. It 1) saves some power, 2) lets your device working more time because of corrosion, 
-    ;   3) I don't know by maybe something in soil doesn't like current.
+    ;   3) I don't know but may be something in soil doesn't like current.
     ; - all calls use reg_1, reg_2 and so on as input parameters and reg_1 as output parameters.
     

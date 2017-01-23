@@ -121,10 +121,10 @@ main_loop:
      
     ldi TM1637_d4, 11               ; 'H'   fill only _d4, rest digits are filled by ADC_substruct
 
-;    ADC_resume
+    ADC_resume
     ADC_read
 ;    dec reg_1                        ; we had a trouble in a convertion, so 1 point does do not too much
-;    ADC_pause                       ; stop waste current
+    ADC_pause                       ; stop waste current
 
     rcall ADC_dig2perc2             ; comment this call if you want to see analog-digital converted value
 

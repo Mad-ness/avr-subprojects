@@ -3,7 +3,7 @@
 
 ## GPIO activation
 
-In order to start working with GPIO these needed to be activated first. This can be done via sysfs and also a programmable way. As for me I will you sysfs as I don't need to have high speed, handle interrupts or something more. Sysfs interface is fine for me.
+In order to start working with GPIO these needed to be activated first. This can be done via sysfs and also a programmable way. As for me I will use sysfs as I don't need to have high speed, handle interrupts or something more. Sysfs interface is fine for me.
 
 I use the mainline kernel, at the moment it is 4.9.0 release.
 
@@ -30,7 +30,7 @@ Use the formula for getting a mainline kernel suitable number for using it in /s
         D - 4   H - 8
         Out port number is 8 (H)
     2. Extract out of the got number 1: 8 - 1
-    3. Multiple the result on 32: (8 - 1)*32
+    3. Multiply the result on 32: (8 - 1)*32
     4. Add to the result pin order number: (8 - 1)*32 + 18 (PB18) = 242
  
 The total number is used for activation (deactivation) appropriate GPIO port line:

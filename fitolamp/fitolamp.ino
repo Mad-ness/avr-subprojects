@@ -1,8 +1,16 @@
-#include "C:\Users\papa\Documents\Arduino\libraries\OneWire\OneWire.h"
+#include <OneWire.h>
 #include <iarduino_RTC.h>
 #include <SevenSegmentExtended.h>
 #include <DallasTemperature.h>
 
+
+#define PIN_PHOTORESISTOR   A0
+#define PIN_PHTUNER         A1
+#define PIN_DISPLAY_CLK     4
+#define PIN_DISPLAY_DIO     5
+#define PIN_RELAY1          2
+#define PIN_TEMPER_POWER    7
+#define PIN_TEMPER_DATA     6
 
 #define PHOTOR_TUNER_PIN A0
 #define PHOTO_RESTOR_PIN A1
@@ -124,6 +132,10 @@ void displayCurrTime() {
     delay(100);
     count++;
   }
+}
+
+void loop_new() {
+  
 }
 
 void loop(){

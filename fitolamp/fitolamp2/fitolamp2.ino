@@ -85,19 +85,20 @@ DisplayInfo getNextDisplayItem() {
 void loop() {
   word running_time = millis();
 
+  if (running_time % 100 == 0) {
+      phsensor_value = analogRead(pin_PHOTO_SENSOR);
+      phtuner_value = analogRead(pin_PHOTOR_TUNER);
+  }
+
   switch (display_value) {
     case DisplayInfo::Time:
       if (running_time % 1000 == 0) {
-        //Serial.println("  >>> displaying system time");
       } // refresh display every 1000 milliseconds (1 second)
        // display.showNumberDec(/* ... */);
       break;
 
     case DisplayInfo::PhTuner:
       if (running_time % 100 == 0) {
-        //Serial.println("  >>> displaying photo tuner value");
-        //phtuner_value = analogRead(pin_PHOTOR_TUNER);
-        // phtuner_value 
         phtuner_value += 50;
         if (phtuner_value > 1023)
           phtuner_value = 0;
@@ -110,7 +111,6 @@ void loop() {
 
     case DisplayInfo::PhSensor:
       if (running_time % 500 == 0) {
-        // phsensor_value = analogRead(pin_PHOTO_SENSOR);
         phsensor_value += 50;
         if (phsensor_value > 1023)
           phsensor_value = 0;

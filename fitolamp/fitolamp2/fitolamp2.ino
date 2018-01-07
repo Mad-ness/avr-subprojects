@@ -171,8 +171,8 @@ void loop() {
       //Serial.print("Hours "); Serial.print(system_time.hour());
       //Serial.print(", minutes "); Serial.println(system_time.minute());
 
-      new_light_level = phsensor.getValue()/10.23;
-      new_tuner_level = photor_tuner.getValue()/10.23;
+      new_light_level = 100 - phsensor.getValue()/10.23;
+      new_tuner_level = 100 - photor_tuner.getValue()/10.23;
 
     // Enable displaying the Tuner values on a display
     // only when the tuner is rotating
@@ -210,15 +210,18 @@ void loop() {
     LightInfo.tuner_level = new_tuner_level;
     LightInfo.light_level = new_light_level;
   
-//  if ((system_time.hour() > 4 && system_time.hour() < 22) || 
-//      (system_time.hour() == 22 && system_time.minute() < 40)) {
     if (LightInfo.has_crossed_threshold && ((running_time - LightInfo.length_changed_light) > 3000)) {
-      LightInfo.relayState = RELAY_ON ? photor_tuner.getValue() >= phsensor.getValue() : RELAY_OFF;
+      if ((system_time.hour() > 4 && system_time.hour() < 22) ||
+          (system_time.hour() == 22 && system_time.minute() < 40)) {
+        LightInfo.relayState = RELAY_ON ? photor_tuner.getValue() >= phsensor.getValue() : RELAY_OFF;
+        LightInfo.has_crossed_threshold = false;
+        logmsg("Changing relay state to ");
+        logmsgln(LightInfo.relayState);
+      } else {
+        LightInfo.relayState = RELAY_OFF;
+      }
       digitalWrite(pin_RELAY, LightInfo.relayState);
-      LightInfo.has_crossed_threshold = false;
-      logmsg("Changing relay state to ");
-      logmsgln(LightInfo.relayState);
-  }
+    }
       
     if (LightInfo.phototuning_mode != true && (running_time - display_length > display_change_delay)) {
       logmsgln("===[ Next iteration passed ]===");
@@ -260,10 +263,10 @@ void loop() {
     case DisplayInfo::Relay:
       if (running_time % 200 == 0) {
         char data[4] = {SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G | SEG_F, 0x0, 0x0, 0x0};
-        if (LightInfo.relayState == RELAY_ON) {
+        if (LightInfo.relayState == RELAY_OFF) {
           data[2] = SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F;
           data[3] = SEG_E | SEG_G | SEG_C;
-        } else if (LightInfo.relayState == RELAY_OFF) {
+        } else if (LightInfo.relayState == RELAY_ON) {
           data[1] = SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F;
           data[2] = SEG_A | SEG_F | SEG_E | SEG_G;
           data[3] = SEG_A | SEG_F | SEG_E | SEG_G;

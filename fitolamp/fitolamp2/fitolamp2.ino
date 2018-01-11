@@ -1,21 +1,21 @@
 
 #include <Arduino.h>
-#include <OneWire.h> 
+#include <OneWire.h>
 #include <Wire.h>
 #include <TM1637Display.h> // https://github.com/avishorp/TM1637
 #include <DallasTemperature.h>  // https://create.arduino.cc/projecthub/TheGadgetBoy/ds18b20-digital-temperature-sensor-and-arduino-9cc806
 #include <ResponsiveAnalogRead.h> // https://github.com/dxinteractive/ResponsiveAnalogRead
 #include <RTClib.h>
 
- 
-/*      A
+
+/*       A
  *    +----+
  *  F |  G | B
  *    +----+
  *  E |    | C
  *    +----+
  *       D
- *       
+ *
  *       Celsius symbol
  *       SEG_A | SEG_B | SEG_F | SEG_G
  *       The letter "S"
@@ -30,7 +30,7 @@
  *       SEG_G | SEG_E
  *       The letter "o"
  *       SEG_G | SEG_C | SEG_E | SEG_D
- *       
+ *
  *       The letter "O"
  *       SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F
  *       The letter "f"
@@ -39,8 +39,7 @@
  *       SEG_E | SEG_G | SEG_C
  *       The letter "R"
  *       SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G | SEG_F
- */    
-
+ */
 
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
@@ -61,6 +60,8 @@
 
 #define logmsg(x)         Serial.print(x);
 #define logmsgln(x)       Serial.println(x);
+//#define logmsg(x)         ;
+//#define logmsgln(x)       ;
 #define RELAY_ON          HIGH
 #define RELAY_OFF         LOW
 
@@ -82,7 +83,7 @@ uint16_t             tuner_length = 0;
 
 struct LightInfo_st {
   uint8_t            light_level = 0;
-  uint8_t            tuner_level = 0;  
+  uint8_t            tuner_level = 0;
   bool               has_crossed_threshold = false;
   uint16_t           length_changed_light = 0;
   bool               phototuning_mode = false;
@@ -91,6 +92,7 @@ struct LightInfo_st {
 
 
 void setup() {
+  logmsgln("Starting the device ...");
   delay(300);
   Serial.begin(9600);
   display.setBrightness(0x0f);
@@ -98,8 +100,9 @@ void setup() {
   onewire_sensors.begin();
   photor_tuner.update();
   phsensor.update();
-  pinMode(pin_RELAY, OUTPUT);  
+  pinMode(pin_RELAY, OUTPUT);
   pinMode(pin_TEMP_POWER, OUTPUT);  // I use it as a power source +5V
+  digitalWrite(pin_TEMP_POWER, HIGH);
   digitalWrite(pin_RELAY, LightInfo.relayState);
   LightInfo.light_level = phsensor.getValue()/10.23;
   LightInfo.tuner_level = photor_tuner.getValue()/10.23;
@@ -126,6 +129,10 @@ DisplayInfo getNextDisplayItem() {
         logmsgln(" >> Switched to Photo Sensor");
         break;
       case DisplayInfo::PhSensor:
+        result = DisplayInfo::PhTuner;
+        logmsgln(" >> Switched to Light Tuner");
+        break;
+      case DisplayInfo::PhTuner:
         result = DisplayInfo::Time;
         logmsgln(" >> Switched to System Time");
         break;
@@ -135,7 +142,7 @@ DisplayInfo getNextDisplayItem() {
 
 
 /**
- * ch - a symbol that is being displayed as zero position 
+ * ch - a symbol that is being displayed as zero position
  * number - how many digits to display, starting from the end
  * len - how many digits are being displayed
  */
@@ -176,7 +183,7 @@ void loop() {
 
     // Enable displaying the Tuner values on a display
     // only when the tuner is rotating
-    if (photor_tuner.hasChanged() && abs(new_tuner_level - LightInfo.tuner_level) > 1 ) {
+    if (photor_tuner.hasChanged() && abs(new_tuner_level - LightInfo.tuner_level) > 0 ) {
       if (LightInfo.phototuning_mode != true) {
         LightInfo.phototuning_mode = true;
         display_old_value = display_value;
@@ -189,27 +196,28 @@ void loop() {
       logmsgln(new_tuner_level);
     } else if (LightInfo.phototuning_mode && (running_time - tuner_length) > 3000) {
       // If we are currently in the phototuning mode and the tuner_time has already expired
-      // continue displaying interrupted information 
+      // continue displaying interrupted information
       display_value = display_old_value;
       LightInfo.phototuning_mode = false;
       logmsgln("Changed PhotoTuning mode to False because of time expired");
     }
-
-
-
+    if (running_time % 500 == 0) {
+      logmsg("TunerSettings state is ");
+      logmsgln(LightInfo.phototuning_mode);
+    }
 
     // Detecting whether we should switch a relay state
     if ((new_light_level > new_tuner_level) && (LightInfo.light_level <= LightInfo.tuner_level) ||
         (new_light_level <= new_tuner_level) && (LightInfo.light_level > LightInfo.tuner_level)) {
       LightInfo.length_changed_light = running_time;
       LightInfo.has_crossed_threshold = true;
-      logmsgln("Threshold is crossed out");          
+      logmsgln("Threshold is crossed out");
     }
 
 
     LightInfo.tuner_level = new_tuner_level;
     LightInfo.light_level = new_light_level;
-  
+
     if (LightInfo.has_crossed_threshold && ((running_time - LightInfo.length_changed_light) > 3000)) {
       if ((system_time.hour() > 4 && system_time.hour() < 22) ||
           (system_time.hour() == 22 && system_time.minute() < 40)) {
@@ -220,17 +228,17 @@ void loop() {
       } else {
         LightInfo.relayState = RELAY_OFF;
       }
+      logmsg("Write relay state as ");
+      logmsgln(LightInfo.relayState);
       digitalWrite(pin_RELAY, LightInfo.relayState);
     }
-      
+
     if (LightInfo.phototuning_mode != true && (running_time - display_length > display_change_delay)) {
       logmsgln("===[ Next iteration passed ]===");
       display_value = getNextDisplayItem();
       display_length = running_time;
     }
   }
-
-
 
   switch (display_value) {
     case DisplayInfo::Time:
@@ -285,8 +293,8 @@ void loop() {
       if (running_time % 500 == 0) {
         onewire_sensors.requestTemperatures();
         float tempsensor_value = onewire_sensors.getTempCByIndex(0);
-        Serial.print("Read temperature ");
-        Serial.println(tempsensor_value);
+        logmsg("Read temperature ");
+        logmsgln(tempsensor_value);
         displayLabeledNumber(tempsensor_value*10, 3, SEG_A | SEG_B | SEG_F | SEG_G);
       }
       break;
@@ -296,5 +304,3 @@ void loop() {
       break;
   }
 }
-
-

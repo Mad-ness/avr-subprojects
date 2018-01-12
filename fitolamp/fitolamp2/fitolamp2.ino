@@ -58,10 +58,10 @@
 #define pin_RELAY         2
 #define pin_TEMP_POWER    7
 
-#define logmsg(x)         Serial.print(x);
-#define logmsgln(x)       Serial.println(x);
-//#define logmsg(x)         ;
-//#define logmsgln(x)       ;
+//#define logmsg(x)         Serial.print(x);
+//#define logmsgln(x)       Serial.println(x);
+#define logmsg(x)         ;
+#define logmsgln(x)       ;
 #define RELAY_ON          HIGH
 #define RELAY_OFF         LOW
 
@@ -230,8 +230,12 @@ void loop() {
       }
       logmsg("Write relay state as ");
       logmsgln(LightInfo.relayState);
-      digitalWrite(pin_RELAY, LightInfo.relayState);
     }
+
+    // do it once per second just to make sure that 
+    // actual state is applied in a relay
+    if (running_time % 1000 == 0)
+      digitalWrite(pin_RELAY, LightInfo.relayState);
 
     if (LightInfo.phototuning_mode != true && (running_time - display_length > display_change_delay)) {
       logmsgln("===[ Next iteration passed ]===");

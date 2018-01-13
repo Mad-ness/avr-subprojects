@@ -58,12 +58,12 @@
 #define pin_RELAY         2
 #define pin_TEMP_POWER    7
 
-//#define logmsg(x)         Serial.print(x);
-//#define logmsgln(x)       Serial.println(x);
-#define logmsg(x)         ;
-#define logmsgln(x)       ;
-#define RELAY_ON          HIGH
-#define RELAY_OFF         LOW
+#define logmsg(x)         Serial.print(x);
+#define logmsgln(x)       Serial.println(x);
+//#define logmsg(x)         ;
+//#define logmsgln(x)       ;
+#define RELAY_ON          LOW
+#define RELAY_OFF         HIGH
 
 enum class           DisplayInfo { Time, PhTuner, PhSensor, Temperature, Relay };
 DisplayInfo          display_value = DisplayInfo::Time; // Initial value should be set
@@ -173,17 +173,15 @@ void loop() {
       phsensor.update();
       photor_tuner.update();
       system_time = RTC.now();
-      //int num = onewire_sensors.getDeviceCount();
-      //Serial.print("Found DS18xx devices on bus - "); Serial.println(num);
-      //Serial.print("Hours "); Serial.print(system_time.hour());
-      //Serial.print(", minutes "); Serial.println(system_time.minute());
 
+
+      
       new_light_level = 100 - phsensor.getValue()/10.23;
       new_tuner_level = 100 - photor_tuner.getValue()/10.23;
 
-    // Enable displaying the Tuner values on a display
-    // only when the tuner is rotating
-    if (photor_tuner.hasChanged() && abs(new_tuner_level - LightInfo.tuner_level) > 0 ) {
+    // if a tuner is rotating
+    // set that a display should show the changing values
+    if (photor_tuner.hasChanged() && abs(new_tuner_level - LightInfo.tuner_level) > 0) {
       if (LightInfo.phototuning_mode != true) {
         LightInfo.phototuning_mode = true;
         display_old_value = display_value;
@@ -195,15 +193,9 @@ void loop() {
       logmsg("New tuner value is ");
       logmsgln(new_tuner_level);
     } else if (LightInfo.phototuning_mode && (running_time - tuner_length) > 3000) {
-      // If we are currently in the phototuning mode and the tuner_time has already expired
-      // continue displaying interrupted information
       display_value = display_old_value;
       LightInfo.phototuning_mode = false;
       logmsgln("Changed PhotoTuning mode to False because of time expired");
-    }
-    if (running_time % 500 == 0) {
-      logmsg("TunerSettings state is ");
-      logmsgln(LightInfo.phototuning_mode);
     }
 
     // Detecting whether we should switch a relay state
@@ -213,29 +205,43 @@ void loop() {
       LightInfo.has_crossed_threshold = true;
       logmsgln("Threshold is crossed out");
     }
-
-
+        
     LightInfo.tuner_level = new_tuner_level;
     LightInfo.light_level = new_light_level;
 
-    if (LightInfo.has_crossed_threshold && ((running_time - LightInfo.length_changed_light) > 3000)) {
-      if ((system_time.hour() > 4 && system_time.hour() < 22) ||
-          (system_time.hour() == 22 && system_time.minute() < 40)) {
-        LightInfo.relayState = RELAY_ON ? photor_tuner.getValue() >= phsensor.getValue() : RELAY_OFF;
-        LightInfo.has_crossed_threshold = false;
-        logmsg("Changing relay state to ");
-        logmsgln(LightInfo.relayState);
+    if ((system_time.hour() > 4 && system_time.hour() < 23) ||
+        (system_time.hour() == 23 && system_time.minute() < 59)) {
+      if (LightInfo.has_crossed_threshold) {
+        if  ((running_time - LightInfo.length_changed_light) > 3000) {
+          LightInfo.relayState = RELAY_ON ? new_tuner_level >= new_light_level : RELAY_OFF;
+          LightInfo.has_crossed_threshold = false;
+          logmsg("Changing relay state to ");
+          logmsgln(LightInfo.relayState);
+        } else {
+          logmsgln("I'm here");
+          LightInfo.relayState = RELAY_ON ? new_tuner_level >= new_light_level : RELAY_OFF;
+        }
       } else {
-        LightInfo.relayState = RELAY_OFF;
+        LightInfo.relayState = RELAY_ON ? new_tuner_level >= new_light_level : RELAY_OFF;  
+        logmsg("Testing this expression as tuner "); 
+        logmsg(new_tuner_level);     
+        logmsg(", sensor ");
+        logmsgln(new_light_level); 
       }
-      logmsg("Write relay state as ");
-      logmsgln(LightInfo.relayState);
+      //logmsg("Write relay state as ");
+      //logmsgln(LightInfo.relayState);
+    } else {
+      LightInfo.relayState = RELAY_OFF;
+      logmsgln("Time to sleep");
     }
 
     // do it once per second just to make sure that 
     // actual state is applied in a relay
-    if (running_time % 1000 == 0)
+    if (running_time % 3000 == 0) {
+      logmsg("Set relay in a required state ");
+      logmsgln(LightInfo.relayState);
       digitalWrite(pin_RELAY, LightInfo.relayState);
+    }
 
     if (LightInfo.phototuning_mode != true && (running_time - display_length > display_change_delay)) {
       logmsgln("===[ Next iteration passed ]===");
@@ -275,10 +281,10 @@ void loop() {
     case DisplayInfo::Relay:
       if (running_time % 200 == 0) {
         char data[4] = {SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G | SEG_F, 0x0, 0x0, 0x0};
-        if (LightInfo.relayState == RELAY_OFF) {
+        if (LightInfo.relayState == RELAY_ON) {
           data[2] = SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F;
           data[3] = SEG_E | SEG_G | SEG_C;
-        } else if (LightInfo.relayState == RELAY_ON) {
+        } else if (LightInfo.relayState == RELAY_OFF) {
           data[1] = SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F;
           data[2] = SEG_A | SEG_F | SEG_E | SEG_G;
           data[3] = SEG_A | SEG_F | SEG_E | SEG_G;
@@ -287,8 +293,8 @@ void loop() {
           data[2] = SEG_G | SEG_E;
           data[3] = SEG_G | SEG_E;
         }
-        logmsg("Relay state is ");
-        logmsgln(LightInfo.relayState);
+        //logmsg("Relay state is ");
+        //logmsgln(LightInfo.relayState);
         display.setSegments(data, 4, 0);
       }
       break;

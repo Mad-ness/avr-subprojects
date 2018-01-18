@@ -1,4 +1,4 @@
-#define F_CPU 1200000UL
+//#define F_CPU 1200000UL
 #include <stdint.h>
 #include <avr/io.h>
 #include <inttypes.h>
@@ -18,15 +18,15 @@
 #define PIN_LED PB3
 
 void setup(void) {
-    //PORTB = (1<<PIN_LED) | (1<<PB3);
-    DDRB = (1<<PIN_LED) | (1<<DDB3);
+    PORTB = (1<<PIN_LED);
+    DDRB |= (1<<PIN_LED);
 }
 
 void loop(void) {
     sbi(PORTB, PIN_LED);
-    _delay_ms(500);
+    _delay_ms(5000);
     cbi(PORTB, PIN_LED);
-    _delay_ms(500);
+    _delay_ms(5000);
 }
 
 void main(void)

@@ -1,0 +1,205 @@
+#define F_CPU 960000UL
+#include <stdint.h>
+#include <avr/io.h>
+#include <inttypes.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include "tm1637.h" // http://blog.podkalicki.com/attiny13-tm1637-library/
+
+// #define TM1637_DIO_PIN                  PB0
+// #define TM1637_CLK_PIN                  PB1
+
+// PB2 == pinout 3
+#define ADC_IN		PB2
+#define R1_value	500
+#define Vin		5
+
+
+
+/* some vars */
+/* for millis */
+uint64_t _millis = 0;
+uint16_t _1000us = 0;
+uint64_t old_millis = 0;
+
+/* interrupts routines */
+// timer overflow occur every 0.256 ms
+ISR(TIM0_OVF_vect) {
+  _1000us += 256;
+  while (_1000us > 1000) {
+    _millis++;
+    _1000us -= 1000;
+  }
+}
+uint64_t millis() {
+  uint64_t m;
+  cli();
+  m = _millis;
+  sei();
+  return m;
+}
+
+void setup_millis() {
+  /* interrup setup */
+  // prescale timer0 to 1/8th the clock rate
+  // overflow timer0 every 0.256 ms
+  TCCR0B |= (1<<CS01);
+  // enable timer overflow interrupt
+  TIMSK0  |= 1<<TOIE0;
+}
+
+
+
+#define nPulseLength    350
+
+const uint16_t nHighPulses_0 = (nPulseLength * 1);
+const uint16_t nLowPulses_0 = (nPulseLength * 3);
+
+const uint16_t nHighPulses_1 = (nPulseLength * 3);
+const uint16_t nLowPulses_1 = (nPulseLength * 1);
+
+const uint16_t nLowPulses_sync =  (nPulseLength * 31);
+
+#define PIN_TX		(1<<PB3) // PB3 pin, goes to transmitter data pin
+#define PIN_LED		(1<<PB4) // PB4 pin, for led
+
+void send(char* sCodeWord){
+
+	while (*sCodeWord != '\0') {
+  
+		PORTB |= PIN_TX; // same as digitalWrite high
+
+		if(*sCodeWord == '0')
+		{
+			_delay_us(nHighPulses_0);
+			PORTB &= ~PIN_TX; // same as digitalWrite low
+			_delay_us(nLowPulses_0);
+		}else
+		{
+			_delay_us(nHighPulses_1);
+			PORTB &= ~PIN_TX;
+			_delay_us(nLowPulses_1);
+		} 
+
+		++sCodeWord;
+	}
+
+	PORTB |= PIN_TX;
+	_delay_us(nHighPulses_0);
+
+	PORTB &= ~PIN_TX;
+	_delay_us(nLowPulses_sync);
+}
+
+
+int get_r2value(const int adc_value) {
+    return adc_value;
+    float Vout = (Vin*adc_value/1023);
+    //Vout = 1.1954;
+    //return R1_value/((Vin / Vout)-1);
+    return Vout; //R1_value; // / ((Vin - Vout)-1);
+    //§return (int)R1_value/((Vin / Vout) - 1);
+   // return 5324;
+}
+
+void adc_setup (void)
+{
+    // Set the ADC input to PB2/ADC1
+    ADMUX |= (1 << MUX0);
+    ADMUX |= (1 << ADLAR);
+    // Set the prescaler to clock/128 & enable ADC
+    ADCSRA |= (1 << ADPS1) | (1 << ADPS0) | (1 << ADEN);
+}
+
+int adc_read (void)
+{
+    // Start the conversion
+    ADCSRA |= (1 << ADSC);
+    // Wait for it to finish
+    while (ADCSRA & (1 << ADSC));
+    return ADCH;
+}
+
+void display_number(const uint16_t num) {
+  uint16_t num_t = num;
+  uint8_t d0, d1, d2, d3;
+  uint8_t pos = 0;
+
+  while (num_t > 9999) {
+        num_t /= 10;
+        pos++;
+  }
+
+  d0 = (num_t / 1000);
+  d1 = (num_t - d0*1000) / 100;
+  d2 = (num_t - d0*1000 - d1*100) / 10;
+  if (pos == 0) {
+    d3 = (num_t - d0*1000 - d1*100 - d2*10);
+  } else {
+    d3 = ++pos;
+  }
+  TM1637_display_digit(TM1637_SET_ADR_00H, d0);
+  //if (d1 > 0 || (d1 == 0 && d0 > 0)) {
+      TM1637_display_digit(TM1637_SET_ADR_01H, d1);
+  //}
+  //if (d2 > 0 || (d2 == 0 && (d0 + d1) > 0)) {
+      TM1637_display_digit(TM1637_SET_ADR_02H, d2);
+  //}
+  TM1637_display_digit(TM1637_SET_ADR_03H, d3);
+  TM1637_display_colon(pos > 0);
+}
+
+void setup(void) {
+    PORTB = (1<<PB4);
+    DDRB = (1<<DDB4);
+    setup_millis();
+}
+
+void main(void)
+{
+    setup();
+    adc_setup();
+    TM1637_init();
+    millis();
+    while (1) {
+	int adc_value = adc_read();
+        int r1_value  = get_r2value(adc_value);
+        display_number(r1_value);
+	_delay_ms(200);
+    }; 
+    /*
+    uint8_t numbers[] = {3, 5, 11, 12, 17, 233, 51, 66, 87, 150, 230, 150, 47 };
+    while (1) {
+     int i;
+      for (i = 0; i<13; i++) {
+        //TM1637_clear();
+	//TM1637_display_digit(TM1637_SET_ADR_00H, i);
+        display_number(numbers[i]);
+        _delay_ms(1000);
+      }
+    }
+    */
+    return;
+}
+
+void main1(void)
+{
+    uint8_t i = 0;
+
+    /* setup */
+    TM1637_init();
+
+    /* loop */
+    while (1) {
+        TM1637_display_digit(TM1637_SET_ADR_00H, i % 0x10);
+        TM1637_display_digit(TM1637_SET_ADR_01H, (i + 1) % 0x10);
+        TM1637_display_digit(TM1637_SET_ADR_02H, (i + 2) % 0x10);
+        TM1637_display_digit(TM1637_SET_ADR_03H, (i + 3) % 0x10);
+        TM1637_display_colon(true);
+        _delay_ms(200);
+        TM1637_display_colon(false);
+        _delay_ms(200);
+        i++;
+    }
+}
+

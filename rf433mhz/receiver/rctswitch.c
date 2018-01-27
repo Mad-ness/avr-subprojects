@@ -2,26 +2,28 @@
 
 #include "rctswitch.h"
 
+
+const struct protocol_t proto = { 350, {1, 31}, {1, 3}, {3, 1}, false };
+#if defined RCTSWITCH_RECEIVER
+
 #define nReceiveTolerance 	60
 #define RCSWITCH_MAX_CHANGES	67
 #define LISTEN_PIN              PB3
 
-const struct protocol_t proto = { 350, {1, 31}, {1, 3}, {3, 1}, false };
 static unsigned int timings[RCSWITCH_MAX_CHANGES];
 volatile uint8_t nReceivedValue = 0;
 volatile uint8_t nReceivedDelay = 0;
 static int nValueAvalable       = false;
 
-/*
 ISR(PCINT0_vect) {
   //RCTSwitch_interruptHandler();
 }
-*/
  
 static inline unsigned long diff(int A, int B) {
   return abs(A - B);
 }
 
+#if defined RCTSWITCH_RECEIVER
 void RCTSwitch_setup() {
     DDRB &= ~( 1 << LISTEN_PIN );
     PORTB &= ~(1 << LISTEN_PIN );
@@ -32,6 +34,8 @@ void RCTSwitch_setup() {
 //    GIMSK |= ( 1 << PCIE );
     asm("sei");
 }
+#endif // RCTSWITCH_RECEIVER
+
 
 uint8_t RCTSwitch_available() {
     return nValueAvalable;
@@ -102,6 +106,37 @@ void RCTSwitch_interruptHandler() {
   timings[changeCount++] = duration;
   lastTime = time;
 }
+
+#endif // RCTSWITCH_RECEIVER
+
+#if defined RCTSWITCH_TRANSMITTER
+void RCTSwitch_setup(const uint8_t pin) {
+    DDRB |= ( 1 << pin );
+}
+void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, int attempts) {
+    int i = 0;
+    while (attempts-- > 0) {
+        while (i < 8) {
+            if (data & (1L << i) == 0) {
+                _delay_us(proto.zero.high);
+                PORTB |= ( 1 << pin );
+                _delay_us(proto.zero.low);
+                PORTB &= ~( 1 << pin );
+            } else {
+                _delay_us(proto.one.high);
+                PORTB |= ( 1 << pin );
+                _delay_us(proto.one.low);
+                PORTB &= ~( 1 << pin );
+            }
+            i++;
+        }
+        PORTB |= ( 1 << pin );
+        _delay_us(proto.sync_factor.high);
+        PORTB &= ~( 1 << pin );
+        _delay_us(proto.sync_factor.low);
+    } 
+}
+#endif // RCTSWITCH_TRANSMITTER
 
 
 

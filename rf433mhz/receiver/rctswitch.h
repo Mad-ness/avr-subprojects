@@ -43,12 +43,17 @@ struct protocol_t {
   struct pulse_t one;
   bool inverted;
 };
-
+#if defined RCTSWITCH_RECEIVER
 uint8_t RCTSwitch_getValue();
-void RCTSwitch_setup();
+void RCTSwitch_setup(); /* for receiver */
 void RCTSwitch_reset();
 void RCTSwitch_interruptHandler();
 uint8_t RCTSwitch_available();
+#endif
 
+#if defined RCTSWITCH_TRANSMITTER
+void RCTSwitch_setup(const uint8_t pin); /* for transmitter */
+void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, int attempts);
+#endif 
 #endif // __RCTSWITCH_H__
 

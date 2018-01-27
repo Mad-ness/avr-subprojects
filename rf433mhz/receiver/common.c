@@ -13,7 +13,9 @@ void attiny_init() {
         //Setup timer interrupt and PWM pins
         TCCR0B |= _BV(CS00);
         TCCR0A |= _BV(WGM00)|_BV(WGM01);
-#if __AVR__ == __AVR_ATtiny13a__ || __AVR__ == __AVR_ATtiny13__ || __AVR_ATtiny85__
+#if __AVR__ == __AVR_ATtiny13a__ || __AVR__ == __AVR_ATtiny13__ 
+        TIMSK0 |= 2;
+#elif  __AVR__ == __AVR_ATtiny85__
         TIMSK |= 2;
 #else
         TIMSK0 |= 2;

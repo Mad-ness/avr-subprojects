@@ -1,6 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
-#include <avr/pgmspace.h>
+//#include <avr/pgmspace.h>
 #include <avr/power.h>
 #include "tm1637.h" // Pins CLK and DIO are predefined, see the tm1637.h file
 #include "rctswitch.h"
@@ -15,13 +15,17 @@
 
 
 #define PIN_LED PB4
+// PB0 is the PCINT0 interrupt is allocated to RF433 receiver
+// PB1 & PB2 occupied by TM1637 display
 #define PIN_TRANSMITTER PB4
 
 static uint8_t i = 0;
 
+/*
 ISR(PCINT0_vect) {
   RCTSwitch_interruptHandler();
 }
+*/
 
 void display_test(const uint8_t number) {
     int d1 = number / 100;
@@ -57,9 +61,12 @@ void loop(void) {
     if (millis() % 1000 == 0) { 
         display_test(counter);        
 	sbi(PORTB, PIN_LED);
-	_delay_ms(100);
+	_delay_ms(200);
 	cbi(PORTB, PIN_LED);
 	counter -= 10;
+	if (counter < 10) { 
+            counter = 250;
+        }
     }
 }
 

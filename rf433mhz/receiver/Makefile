@@ -1,6 +1,6 @@
 BINPATH=/Applications/Arduino.app/Contents/Java/hardware/tools/avr/bin
 OBJCOPY=${BINPATH}/avr-objcopy 
-CC=${BINPATH}/avr-gcc -Iinclude -DF_CPU=16000000UL
+CC=${BINPATH}/avr-gcc -Iinclude -DF_CPU=8000000UL -DRCTSWITCH_RECEIVER
 DUDE=${BINPATH}/avrdude
 SRC=main
 TARGET=attiny85
@@ -51,7 +51,7 @@ hex: bin
 
 flash: hex
 #	${DUDE} -p ${TARGET} -v -c avrisp -P /dev/cu.wchusbserial14110 -C ${CFG} -U flash:w:${SRC}.hex
-	${DUDE} -p ${TARGET} -v -c avrisp -P /dev/cu.usbmodem14111 -C ${CFG} -b 19200 -U flash:w:${SRC}.hex
+	${DUDE} -p ${TARGET} -v -c avrisp -P /dev/cu.usbmodem14411 -C ${CFG} -b 19200 -U flash:w:${SRC}.hex
 clean:
 	rm -f *.elf *.hex *.o *.bin
 

@@ -33,30 +33,6 @@ void RF433_sendbyte(const int pin, const int num) {
     RF433_send(pin, digit2char(num));
 }
 
-void RF433_sendbyte2(const int pin, const int data, const int attempts) {
-     int i = 7, k = 0;
-     for (k = 0; k < attempts; k++) {
-         while (i+1 > 0) {
-             if ( data & (1L << i) == 0 ) {
-                 PORTB |= (1 << pin);
-                 _delay_us(nHighPulses_0);
-                 PORTB &= ~(1 << pin);
-                 _delay_us(nLowPulses_0); 
-             } else {
-                 PORTB |= (1 << pin);
-                 _delay_us(nHighPulses_1);
-                 PORTB &= ~(1 << pin);
-                 _delay_us(nLowPulses_1);
-             }
-             i--;
-         } 
-         PORTB |= (1 << pin);
-         _delay_us(nHighPulses_0);
-     } // make the attempts times to send a byte
-     PORTB &= ~(1 << pin);
-    _delay_us(nLowPulses_sync);
-}
-
 void RF433_send(const int pin, char* sCodeWord){
 
 	while (*sCodeWord != '\0') {

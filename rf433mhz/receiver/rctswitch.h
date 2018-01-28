@@ -53,7 +53,7 @@ uint8_t RCTSwitch_available();
 
 #if defined RCTSWITCH_TRANSMITTER
 void RCTSwitch_setup(const uint8_t pin); /* for transmitter */
-void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, int attempts);
+void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, const int attempts);
 #endif 
 #endif // __RCTSWITCH_H__
 

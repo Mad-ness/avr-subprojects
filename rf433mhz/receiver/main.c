@@ -28,12 +28,14 @@ ISR(PCINT0_vect) {
 */
 
 void display_test(const uint8_t number) {
-    int d1 = number / 100;
-    int d2 = (number - d1*100)/10;
-    int d3 = (number - d1*100 - d2*10);
-    TM1637_display_digit(TM1637_SET_ADR_00H, d1);
-    TM1637_display_digit(TM1637_SET_ADR_01H, d2);
-    TM1637_display_digit(TM1637_SET_ADR_02H, d3);
+    int d0 = number / 1000;
+    int d1 = (number - d0*1000) / 100;
+    int d2 = (number - d0*1000 - d1*100)/10;
+    int d3 = (number - d0*1000 - d1*100 - d2*10);
+    TM1637_display_digit(TM1637_SET_ADR_00H, d0);
+    TM1637_display_digit(TM1637_SET_ADR_01H, d1);
+    TM1637_display_digit(TM1637_SET_ADR_02H, d2);
+    TM1637_display_digit(TM1637_SET_ADR_03H, d3);
 
     //TM1637_display_colon(true);
     //_delay_ms(200);
@@ -51,22 +53,21 @@ void setup(void) {
 
 uint8_t counter = 250;
 void loop(void) {
-/*
     if ( RCTSwitch_available() ) {
         uint8_t value = RCTSwitch_getValue();
         RCTSwitch_reset();
         display_test(value);
     }
-*/    
+    
     if (millis() % 1000 == 0) { 
-        display_test(counter);        
+    //    display_test(counter);        
 	sbi(PORTB, PIN_LED);
 	_delay_ms(200);
 	cbi(PORTB, PIN_LED);
-	counter -= 10;
-	if (counter < 10) { 
-            counter = 250;
-        }
+//	counter -= 10;
+//	if (counter < 10) { 
+//           counter = 250;
+//        }
     }
 }
 

@@ -1,7 +1,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
 //#include <tm1637.h> // doesn't fit into the attiny13 flash memory
-#include <common.h>
+//#include <common.h>
+#include <rctswitch.h>
 
 #define PIN_LED_SEND PB0
 #define PIN_TRANSMITTER PB4
@@ -22,21 +23,20 @@ void display_test(const uint8_t number) {
 
 */
 
-uint8_t value = 0;
+uint8_t value = 95;
 
 int main() {
-  //TM1637_init();
+  TM1637_init();
   RCTSwitch_setup(PIN_TRANSMITTER);
   sbi(DDRB, PIN_LED_SEND);
   while ( 1 ) {
     sbi(PORTB, PIN_LED_SEND);
-    RCTSwitch_sendbyte(value);
+    RCTSwitch_sendbyte(PIN_TRANSMITTER, value, 10);
     _delay_ms(100);
     cbi(PORTB, PIN_LED_SEND);
-    _delay_ms(1400);
-    value += 2;
-    if (value > 254) 
-      value = 0;
+    _delay_ms(900);
+    value += 1;
   } 
   return 0;
 }
+

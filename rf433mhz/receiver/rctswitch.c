@@ -113,30 +113,26 @@ void RCTSwitch_interruptHandler() {
 void RCTSwitch_setup(const uint8_t pin) {
     DDRB |= ( 1 << pin );
 }
-void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, int attempts) {
-    int i = 0;
-    while (attempts-- > 0) {
-        while (i < 8) {
-            if (data & (1L << i) == 0) {
-                _delay_us(proto.zero.high);
-                PORTB |= ( 1 << pin );
-                _delay_us(proto.zero.low);
-                PORTB &= ~( 1 << pin );
+void RCTSwitch_sendbyte(const uint8_t pin, const uint8_t data, const int attempts) {
+    int i = 7, k = 0;
+    for (k = 0; k < attempts; k++) {
+        for (i = sizeof(data)*8-1; i >= 0; i--) {
+            sbi(PORTB, pin);
+            if (( data & (1 << i)) == 0) {
+                _delay_us( proto.zero.high*proto.pulse_length );
+                cbi(PORTB, pin);
+                _delay_us( proto.zero.low*proto.pulse_length );
             } else {
-                _delay_us(proto.one.high);
-                PORTB |= ( 1 << pin );
-                _delay_us(proto.one.low);
-                PORTB &= ~( 1 << pin );
+                _delay_us( proto.one.high*proto.pulse_length );
+                cbi(PORTB, pin);
+                _delay_us( proto.one.low*proto.pulse_length );
             }
-            i++;
         }
-        PORTB |= ( 1 << pin );
-        _delay_us(proto.sync_factor.high);
-        PORTB &= ~( 1 << pin );
-        _delay_us(proto.sync_factor.low);
+        sbi(PORTB, pin);
+        _delay_us( proto.sync_factor.high*proto.pulse_length );
+        cbi(PORTB, pin);
+        _delay_us( proto.sync_factor.low*proto.pulse_length );
     } 
 }
 #endif // RCTSWITCH_TRANSMITTER
-
-
 

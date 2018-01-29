@@ -11,9 +11,9 @@
 #include <avr/interrupt.h>
 #include <inttypes.h>
 #include <stddef.h>
-#include "../include/ds18b20/onewire.h"
-#include "../include/ds18b20/ds18b20.h"
-#include "../include/ds18b20/romsearch.h"
+#include "onewire.h"
+#include "ds18b20.h"
+#include "romsearch.h"
 
 static inline uint8_t arrbitr( uint8_t *arr, uint8_t n )
 {

@@ -23,7 +23,7 @@
 #include <stdbool.h>
 
 // Main Settings
-#define	TM1637_DIO_PIN			PB2
+#define	TM1637_DIO_PIN			PB3
 #define	TM1637_CLK_PIN			PB1
 #define	TM1637_DELAY_US			(50)
 #define	TM1637_DEFAULT_BRIGHTNESS	(7)

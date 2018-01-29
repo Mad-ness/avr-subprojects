@@ -11,7 +11,7 @@
 #include <util/delay.h>
 #include <inttypes.h>
 
-#include "../include/ds18b20/onewire.h"
+#include "onewire.h"
 
 uint8_t onewireInit( volatile uint8_t *port, volatile uint8_t *direction, volatile uint8_t *portin, uint8_t mask )
 {

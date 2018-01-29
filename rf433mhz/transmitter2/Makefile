@@ -19,20 +19,9 @@ main.o:
 	${CC} -g -Os -mmcu=${TARGET} -c -o main.o main.c
 common.o:
 	${CC} -g -Os -mmcu=${TARGET} -c -o common.o ${C_DIR}/common.c
-rctswitch.o:
-	${CC} -g -Os -mmcu=${TARGET} -c -o rctswitch.o ${C_DIR}/rctswitch.c
-tm1637.o:
-	${CC} -g -Os -mmcu=${TARGET} -c -o tm1637.o ${C_DIR}/tm1637.c
-romsearch.o:
-	${CC} -g -Os -mmcu=${TARGET} -c -o romsearch.o romsearch.c
-ds18b20.o:
-	${CC} -g -Os -mmcu=${TARGET} -c -o ds18b20.o ds18b20.c
-onewire.o:
-	${CC} -g -Os -mmcu=${TARGET} -c -o onewire.o onewire.c
 
-
-bin: main.o common.o rctswitch.o tm1637.o onewire.o ds18b20.o romsearch.o
-	${CC} -g -Os -mmcu=${TARGET} -o ${SRC}.bin main.o common.o tm1637.o
+bin: main.o 
+	${CC} -g -Os -mmcu=${TARGET} -o ${SRC}.bin main.o
 
 
 object:

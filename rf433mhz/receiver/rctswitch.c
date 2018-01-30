@@ -1,5 +1,5 @@
 #include <avr/io.h>
-
+#include <avr/interrupt.h>
 #include "rctswitch.h"
 
 
@@ -8,7 +8,7 @@ const struct protocol_t proto = { 350, {1, 31}, {1, 3}, {3, 1}, false };
 
 #define nReceiveTolerance 	60
 #define RCSWITCH_MAX_CHANGES	67
-#define LISTEN_PIN              PB3
+#define LISTEN_PIN              PB0
 
 static unsigned int timings[RCSWITCH_MAX_CHANGES];
 volatile uint8_t nReceivedValue = 0;
@@ -16,20 +16,20 @@ volatile uint8_t nReceivedDelay = 0;
 static int nValueAvalable       = false;
 
 ISR(PCINT0_vect) {
-  //RCTSwitch_interruptHandler();
+  RCTSwitch_interruptHandler();
 }
- 
+
 static inline unsigned long diff(int A, int B) {
   return abs(A - B);
 }
 
 #if defined RCTSWITCH_RECEIVER
 void RCTSwitch_setup() {
-    DDRB &= ~( 1 << LISTEN_PIN );
-    PORTB &= ~(1 << LISTEN_PIN );
-    GIMSK = (1<<PCIE); //|(1<<INT0);
-    PCMSK = (1<<PCINT0);
-    MCUCR = (1<<ISC00);
+//    DDRB &= ~( 1 << LISTEN_PIN );
+//    PORTB &= ~( 1 << LISTEN_PIN );
+    GIMSK |= ( 1 << PCIE ); //|(1<<INT0);
+    PCMSK |= ( 1 << PCINT0 );
+    MCUCR |= ( 1 << ISC00 );
 //    PCMSK |= ( 1 << PCINT0 );
 //    GIMSK |= ( 1 << PCIE );
     asm("sei");

@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 //#include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 #include <avr/power.h>
 #include "tm1637.h" // Pins CLK and DIO are predefined, see the tm1637.h file
 #include "rctswitch.h"
@@ -14,19 +15,17 @@
 #endif
 
 
-#define PIN_LED PB4
+#define PIN_LED PB1
+// #define PIN_PB0 PB0 // PCINT0 vector uses it
+#define PIN_BUTTON PB2
 // PB0 is the PCINT0 interrupt is allocated to RF433 receiver
-// PB1 & PB2 occupied by TM1637 display
-#define PIN_TRANSMITTER PB4
+// PB3 & PB4 occupied by TM1637 display
+// #define PIN_TRANSMITTER PB4
 
-static uint8_t i = 0;
+#define led_on()     sbi(PORTB, PIN_LED)
+#define led_off()    cbi(PORTB, PIN_LED)
 
-/*
-ISR(PCINT0_vect) {
-  RCTSwitch_interruptHandler();
-}
-*/
-
+//static uint8_t i = 0;
 void display_test(const uint8_t number) {
     int d0 = number / 1000;
     int d1 = (number - d0*1000) / 100;
@@ -44,35 +43,36 @@ void display_test(const uint8_t number) {
 
 
 void setup(void) {
-    if ( F_CPU == 16000000 ) clock_prescale_set(clock_div_1);
+//    if ( F_CPU == 16000000 ) clock_prescale_set(clock_div_1);
     attiny_init();
-    RCTSwitch_setup();
     TM1637_init();
-    DDRB |= (1 << PIN_LED);
+    RCTSwitch_setup();
+    DDRB |= (1 << PIN_LED) | ( 1 << PB2 );
+    PORTB &= ~( 1 << PB2 );
 }
 
 uint8_t counter = 250;
+static uint8_t rec_data = 0;
 void loop(void) {
-    if ( RCTSwitch_available() ) {
-        uint8_t value = RCTSwitch_getValue();
-        RCTSwitch_reset();
-        display_test(value);
-    }
-    
-    if (millis() % 1000 == 0) { 
-    //    display_test(counter);        
-	sbi(PORTB, PIN_LED);
-	_delay_ms(200);
-	cbi(PORTB, PIN_LED);
-//	counter -= 10;
-//	if (counter < 10) { 
-//           counter = 250;
-//        }
+    if (millis() % 1000) {
+        if ( RCTSwitch_available() ) {
+            uint8_t value = RCTSwitch_getValue();
+            display_test(value);
+            RCTSwitch_reset();
+            if (value == 0) {
+               rec_data = 1;
+	       PORTB |= ( 1 << PB2 );
+            } else { 
+               rec_data = 0;
+	       PORTB &= ~( 1 << PB2 );
+            }
+        }
     }
 }
 
 void main(void) {
     setup();
+    asm("sei");
     for (;;) {
         loop();
     }

@@ -1,0 +1,35 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+ 
+volatile int value=0;
+
+#define PIN   PB1
+ 
+void setup()
+{
+    //GIMSK = 0b00100000;    // turns on pin change interrupts
+    //PCMSK = 0b00010011;    // turn on interrupts on pins PB0, PB1, &amp;amp; PB4
+    DDRB &= ~( 1 << PB2 ) | ( 1 << PB0 );
+    DDRB |= ( 1 << PB1 );
+    PORTB &= ~( 1 << PB2 ) | ( 1 << PB0 );
+    MCUCR |= ( 1 << ISC00 );
+    GIMSK |= ( 1 << PCIE );
+    PCMSK |= ( 1 << PCINT0 );
+    sei();                 // enables interrupts
+}
+ 
+ISR(PCINT0_vect) {
+    if (value > 0) {
+	value = 0;
+        PORTB |= ( 1 << PIN );
+    } else {
+	value = 1;
+        PORTB &= ~( 1 << PIN );
+    }
+}
+
+int main(void) { 
+  setup();
+  for (;;) {};
+  return 0;
+}

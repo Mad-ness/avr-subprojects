@@ -1,6 +1,6 @@
 /****
 
-Sources is taken from here http://forum.sources.ru/index.php?showtopic=381077
+Source is taken from here http://forum.sources.ru/index.php?showtopic=381077
 
 ****/
 
@@ -15,6 +15,14 @@ Sources is taken from here http://forum.sources.ru/index.php?showtopic=381077
 #define ONEWIRE_DDRReg      DDRB
 #define ONEWIRE_PINReg      PINB
 #define ONEWIRE_PIN         PB0
+
+
+// SENDER_ID some value that identifies a sender
+// so before sending any data, the transmitter sends 
+// the SENDER_ID first
+// 0x50 (left 4 bits) means that this byte contains a SENDER_ID.
+// Right 4 bits contains a sender_id
+#define SENDER_ID           (0x50 | 0x0E);
 
 
 #define TX_PORTReg          PORTB
@@ -251,16 +259,19 @@ int main() {
         // --- Get 8-bit temperature
         // - Construct 16-bit register value from 0 and 1 bytes of ROM.
         // - Remove float part (4 right bits) to get interger value
-        uint8_t     Temperature     =  ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
+        // uint8_t     Temperature     =  ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
+        data = SENDER_ID;
+        sendbyte(TX_PIN);
+        data = ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
         
         
-        if( Temperature > 30 ){
+        if( data > 30 ){
             PORTB |= ( 1 << PB1 );
         } else {
             PORTB &= ~( 1 << PB1 );
         }
 
-        data = Temperature;
+        //data = Temperature;
         PORTB |= ( 1 << PB3 );
         sendbyte(TX_PIN);
         _delay_ms(200);

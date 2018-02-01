@@ -8,18 +8,6 @@
 #define PIN_TRANSMITTER PB4
 #define pulse_len 350
 
-void adc_setup(void) {
-    ADMUX |= ( 1 << MUX0 ) | ( 1 << ADLAR ); // PB2/ADC1
-    ADCSRA |= ( 1 << ADPS1 ) | ( 0 << ADPS0 ) | ( 1 << ADEN );
-    DDRB |= ( 1 << PB2 );
-}
-
-int adc_read(void) {
-    ADCSRA |= ( 1 << ADSC );
-    while ( ADCSRA & ( 1 << ADSC ));
-    return ADCH;
-}
-
 static uint8_t data;
 /*
 void sendbyte(const int pin) {
@@ -63,7 +51,6 @@ int main() {
   //RCTSwitch_setup(PIN_TRANSMITTER);
 
   while ( 1 ) {
-    //int val = (uint8_t)(adc_read()/10);
     display_test(adc_read());
   }
 

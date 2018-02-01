@@ -41,6 +41,16 @@ void display_test(const uint8_t number) {
     //TM1637_display_colon(false);
 }
 
+void display_error() {
+    uint8_t letter_E = 1 + 20 + 10 + 40 + 8;
+    uint8_t letter_r = 40 + 10 + 8;
+    uint8_t letter_o = 10 + 40 + 4 + 8; 
+    TM1637_display_digit(TM1637_SET_ADR_00H, letter_E);
+    TM1637_display_digit(TM1637_SET_ADR_01H, letter_r);
+    TM1637_display_digit(TM1637_SET_ADR_02H, letter_r);
+    TM1637_display_digit(TM1637_SET_ADR_03H, letter_o);
+}
+
 
 void setup(void) {
 //    if ( F_CPU == 16000000 ) clock_prescale_set(clock_div_1);
@@ -52,21 +62,44 @@ void setup(void) {
 }
 
 uint8_t counter = 250;
+uint8_t sender_id = 0x0E;
 static uint8_t rec_data = 0;
+//uint16_t seconds = 0;
+//uint16_t with_data = 0;
 void loop(void) {
     if (millis() % 1000) {
         if ( RCTSwitch_available() ) {
-            uint8_t value = RCTSwitch_getValue();
-            display_test(value);
-            RCTSwitch_reset();
-            if (value == 0) {
+            uint8_t sender_byte = RCTSwitch_getValue();
+
+            // checking whether this byte is a SENDER_ID byte
+	    if ((0xF0 & sender_byte) == 0x50 && (0x0F & sender_byte) == sender_id) {
+                RCTSwitch_reset();
+                while ( ! RCTSwitch_available() ) { }
+		uint8_t data = RCTSwitch_getValue();
+                // ensure that is not a sender_id
+		if (( 0xF0 & data ) != 0x50 ) {
+                    RCTSwitch_reset(); 
+                    display_test(data);
+                }
+            }
+
+
+            if (rec_data == 0) {
                rec_data = 1;
 	       PORTB |= ( 1 << PB2 );
             } else { 
                rec_data = 0;
 	       PORTB &= ~( 1 << PB2 );
             }
+//            with_data += 1;
+        } 
+/*
+        if ((seconds - with_data) > 60) {
+	    display_error();
+            seconds = with_data = 0;
         }
+	seconds += 1;
+*/
     }
 }
 

@@ -1,6 +1,6 @@
 BINPATH=/Applications/Arduino.app/Contents/Java/hardware/tools/avr/bin
 OBJCOPY=${BINPATH}/avr-objcopy 
-CC=${BINPATH}/avr-gcc -Iinclude -DF_CPU=8000000UL -DRCTSWITCH_RECEIVER
+CC=${BINPATH}/avr-gcc -Iinclude -DF_CPU=1000000UL -DRCTSWITCH_RECEIVER
 AVRSIZE=${BINPATH}/avr-size
 DUDE=${BINPATH}/avrdude
 SRC=main
@@ -40,8 +40,8 @@ tm1637.o:
 	${CC} -g -Os -mmcu=${TARGET} -c -o tm1637.o tm1637.c
 
 
-bin: main.o tm1637.o rctswitch.o common.o
-	${CC} -g -Os -mmcu=${TARGET} -o ${SRC}.bin main.o tm1637.o rctswitch.o common.o
+bin: main.o tm1637.o common.o rctswitch.o
+	${CC} -g -Os -mmcu=${TARGET} -o ${SRC}.bin main.o tm1637.o common.o rctswitch.o
 
 
 object:
@@ -52,6 +52,9 @@ hex: bin firmware_size
 
 firmware_size: bin
 	${AVRSIZE} -C --mcu=${TARGET} ${SRC}.bin
+
+read_fuses:
+	${DUDE} -p ${TARGET} -v -c avrisp -P /dev/cu.usbmodem14111 -C ${CFG} -b 19200 -U lfuse:r:-:i
 
 flash: hex
 #	${DUDE} -p ${TARGET} -v -c avrisp -P /dev/cu.usbmodem14411 -C ${CFG} -b 19200 -U flash:w:${SRC}.hex

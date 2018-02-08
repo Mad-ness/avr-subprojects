@@ -9,6 +9,7 @@ Source is taken from here http://forum.sources.ru/index.php?showtopic=381077
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
  
 // --- Configuration for OneWire
 #define ONEWIRE_PORTReg     PORTB
@@ -16,13 +17,44 @@ Source is taken from here http://forum.sources.ru/index.php?showtopic=381077
 #define ONEWIRE_PINReg      PINB
 #define ONEWIRE_PIN         PB0
 
+static uint8_t sender_id = 0x5;
+
+uint8_t temp_fracpart = 0;
+uint8_t temp_intpart = 0;
+char temp_minus = 0;
+uint16_t packed_temp = 0;
+
+/**
+  Format of the value variable:
+  - bits 0-5 - an integer part of temperature (max is 63)
+  - bits 6-9 - a real part of temperature (0-10 values)
+  - bit 10 - if set to 1, the temperature is below zero
+  - bits 11-13 - Sender ID
+  - bit 14 - a control bit
+  - bit 15 - not used
+**/
+
+void process_temp() {
+    packed_temp = ( temp_intpart ) | ( temp_fracpart << 6 ) | ( temp_minus << 10 ) | (sender_id << 11 ); 
+    uint16_t n = packed_temp;
+    uint8_t c = 0;
+    for ( c = 0; n; n = n & ( n-1 )) 
+        c++;
+    // if number of bits is even
+    if ( c % 2 == 0 ) {
+        // nothing to do
+    } else {
+        packed_temp |= ( 1 << 14 );
+    }
+}
+
 
 // SENDER_ID some value that identifies a sender
 // so before sending any data, the transmitter sends 
 // the SENDER_ID first
 // 0x50 (left 4 bits) means that this byte contains a SENDER_ID.
 // Right 4 bits contains a sender_id
-#define SENDER_ID           (0x50 | 0x0E);
+// #define SENDER_ID           (0x50 | 0x0E);
 
 
 #define TX_PORTReg          PORTB
@@ -70,7 +102,7 @@ uint8_t PWM         = 0;
 */
 
 
-static uint8_t data; 
+static uint16_t data; 
  
 //! Calculate CRC-8
 uint8_t crc8(const uint8_t * addr, uint8_t len){
@@ -198,9 +230,10 @@ inline void OneWire_write(const uint8_t * Buffer, uint8_t Size, uint8_t Power ){
 }
 
 
-void sendbyte(const int pin) {
+void sendword(const int pin) {
     uint8_t k = 10;
     int i;
+    data = packed_temp;
     while (k-- > 0) {
         for (i = sizeof(data)*8 - 1; i >= 0; i--) {
             sbi(PORTB, pin);
@@ -259,24 +292,32 @@ int main() {
         // --- Get 8-bit temperature
         // - Construct 16-bit register value from 0 and 1 bytes of ROM.
         // - Remove float part (4 right bits) to get interger value
-        // uint8_t     Temperature     =  ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
-        data = SENDER_ID;
-        sendbyte(TX_PIN);
-        data = ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
-        
-        
-        if( data > 30 ){
-            PORTB |= ( 1 << PB1 );
-        } else {
-            PORTB &= ~( 1 << PB1 );
-        }
+        //uint8_t     Temperature     =  ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
+        temp_intpart = ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]) >> 4);
+        //float f_temp = ((( ROM[ 1 ] << 8 ) | ROM[ 0 ]));
 
-        //data = Temperature;
+        // temp_minus = (int32_t)f_temp & 0x80000000 != 0;
+        //temp_intpart = ((uint16_t)f_temp) >> 31;
+        // if uncomment this, a compiler makes too large code
+        //temp_fracpart = 10*(f_temp - temp_intpart);
+
+
+	// instead of fraction it will contain a sequence number
+        // only 4 bits allocated for that.
+        temp_fracpart++;
+        if ( temp_fracpart > 9 )
+          temp_fracpart = 0;
+
+ 	// fill the packed_temp variable;
+	process_temp();
+       
         PORTB |= ( 1 << PB3 );
-        sendbyte(TX_PIN);
-        _delay_ms(200);
+        // send the packed_temp value
+        sendword(TX_PIN);
+         _delay_ms(50);
         PORTB &= ~( 1 << PB3 );
-        _delay_ms(900);
+        _delay_ms(4700);
+        _delay_ms(5000);
     }
 }
  

@@ -9,12 +9,13 @@
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-#define mem_address           0x04
+#define mem_address           0x06
 #define PIN_RECEIVER          PB0
 #define PIN_LED               PB1
+#define PIN_RELAY             PIN_LED
 #define PIN_BUTTON            PB2
-#define PIN_CLK               PB3
-#define PIN_DIO               PB4
+#define PIN_CLK               PB4
+#define PIN_DIO               PB3
 #define RCSWITCH_MAX_CHANGES  67
 #define nReceiveTolerance     60
 #define sender_id             0x5
@@ -169,17 +170,18 @@ bool DebounceButton::hasPressed() {
 }
 
 enum DisplayMode { MTemp = 1, MSetup = 2 };
+enum class LedMode { Off = 1, ReceivedPacket = 2, Alert = 3, PressedButton = 4, WriteSetup = 5 };
 class Logistic {
     private:
         unsigned long m_timeStamp;
         struct {
-            uint8_t state = LOW;
-            bool blinkOnly = false;
+            bool on = false;
             unsigned long lastTime;
+            LedMode ledMode = LedMode::Off;
         } m_ledState;
         struct {
             int8_t writtenValue = 0xff;
-            int8_t currentValue = 0x1;
+            int8_t currentValue = 0;
             unsigned long lastTime;
             DebounceButton button = DebounceButton( PIN_BUTTON );
         } m_button;
@@ -188,7 +190,7 @@ class Logistic {
             DisplayMode current = MTemp;
             bool needUpdate;
             bool showCounter = true;
-            bool showColon = true;
+            bool showColon = false;
             unsigned long lastTime;
             unsigned long colonLastBlinkingTime;
         } m_display;
@@ -197,40 +199,108 @@ class Logistic {
             uint16_t current;
             unsigned long lastTime;
         } m_receivedValue;
-        void ledBlinkOff();
         void updateDisplay();
+        void readSetupThreshold();
     public:
         Logistic(void);
         void ledOff();
-        void ledOn(const bool blinkOnly=true);
+        void ledOn();
         void beginIter(void);
         void postButtonPressed(void);
         void endIter();
         bool hasButtonPressed();
         bool hasDataReceived();
+        bool hasThresholdReached();
+        int8_t getRelayThreshold();
+        void ledBlink();
+        void setLedMode(const LedMode mode);
 };
 Logistic::Logistic(void) {
     this->m_display.current = MTemp;
     this->m_display.needUpdate = true;
+    pinMode( PIN_LED, OUTPUT );
+    this->getRelayThreshold();
 }
-void Logistic::ledOn(const bool blinkOnly) {
-    led_on();
-    this->m_ledState.state = HIGH;
-    this->m_ledState.blinkOnly = blinkOnly;
-    this->m_ledState.lastTime = this->m_timeStamp;
+int8_t Logistic::getRelayThreshold() {
+    if ( this->m_button.writtenValue != this->m_button.currentValue ) {
+         this->m_button.writtenValue = EEPROM_read( mem_address );
+         this->m_button.currentValue = this->m_button.writtenValue;
+    }
+    return this->m_button.currentValue;
 }
-void Logistic::ledBlinkOff() {
-    if ( this->m_ledState.state == HIGH && this->m_timeStamp - this->m_ledState.lastTime > 100 ) {
-        led_off();
+bool Logistic::hasThresholdReached() {
+    int8_t current_temp = unpack_intpart( this->m_receivedValue.current );
+    if ( unpack_minus( this->m_receivedValue.current ) > 0 ) {
+        current_temp *= -1;
+    }
+    if ( this->m_receivedValue.current != 0 && current_temp <= this->m_button.currentValue ) {
+        this->setLedMode( LedMode::Alert );
+        return true;
+    } else {
+        this->setLedMode( LedMode::Off );
+        return false;
+    }
+}
+void Logistic::ledBlink() {
+    switch ( this->m_ledState.ledMode ) {
+        case LedMode::Off:
+            if ( this->m_ledState.ledMode != LedMode::Alert ) {
+                 this->ledOff();
+            }
+            break;
+        case LedMode::WriteSetup:
+        case LedMode::ReceivedPacket:
+        case LedMode::PressedButton:
+            if ( this->m_timeStamp - this->m_ledState.lastTime > 200 ) {
+                this->ledOff();
+                this->setLedMode( LedMode::Off );
+            } else {
+                this->ledOn();
+            }
+            break;
+        case LedMode::Alert:
+            if ( this->m_timeStamp - this->m_ledState.lastTime > 200 ) {
+                if ( this->m_ledState.on ) {
+                    this->ledOff();
+                } else {
+                    this->ledOn();
+                }
+            }
+            break;
     }
 }
 void Logistic::ledOff() {
-    this->m_ledState.state = LOW;
-    led_off();
+    if ( this->m_ledState.on == true ) {
+        led_off();
+        this->m_ledState.on = false;
+        this->m_ledState.lastTime = this->m_timeStamp;
+    }
+}
+void Logistic::ledOn() {
+    if ( this->m_ledState.on == false ) {
+        led_on();
+        this->m_ledState.on = true;
+        this->m_ledState.lastTime = this->m_timeStamp;
+    }
+}
+void Logistic::setLedMode( const LedMode mode ) {
+    switch ( mode ) {
+        case LedMode::WriteSetup:
+        case LedMode::PressedButton:
+        case LedMode::ReceivedPacket:
+            if ( this->m_ledState.ledMode != LedMode::Alert )
+                this->m_ledState.ledMode = mode;
+            break;
+        case LedMode::Alert:
+        case LedMode::Off:
+            this->m_ledState.ledMode = mode;
+            break;
+    }
+    //this->m_ledState.lastTime = this->m_timeStamp;
 }
 bool Logistic::hasDataReceived() {
-    bool result = false;
-    if ( RCTSwitch_available() ) {
+    bool result = RCTSwitch_available();
+    if ( result ) {
         uint16_t recv_data = RCTSwitch_getValue();
         RCTSwitch_reset();
         if ( this->m_receivedValue.current != recv_data ) {
@@ -240,7 +310,7 @@ bool Logistic::hasDataReceived() {
                 this->m_receivedValue.lastTime = this->m_timeStamp;              
                 this->m_display.needUpdate = true;
                 this->m_display.showCounter = true;
-                result = true; // to indicate that a packet arrives
+                this->setLedMode( LedMode::ReceivedPacket );
             }
         }
     }
@@ -253,17 +323,15 @@ bool Logistic::hasButtonPressed() {
              this->m_display.previous = this->m_display.current;
              this->m_display.current = MSetup;
              this->m_display.colonLastBlinkingTime = this->m_timeStamp;
-             if ( this->m_button.writtenValue != this->m_button.currentValue ) {
-                 this->m_button.writtenValue = EEPROM_read( mem_address );
-                 this->m_button.currentValue = this->m_button.writtenValue;
-             }
+             //this->getRelayThreshold();
         } else {
             this->m_button.currentValue++;
-            if ( this->m_button.currentValue > setup_max_value ) {
+            if ( this->m_button.currentValue > setup_max_value || this->m_button.currentValue < setup_min_value ) {
                  this->m_button.currentValue = setup_min_value;
             }
         }
         this->m_display.needUpdate = true;
+        this->setLedMode( LedMode::PressedButton );
         return true;
     }
     return false;
@@ -276,7 +344,7 @@ void Logistic::postButtonPressed(void) {
         if ( this->m_button.writtenValue != this->m_button.currentValue ) {
             this->m_button.writtenValue = this->m_button.currentValue;
             EEPROM_write( mem_address, this->m_button.writtenValue );
-            this->ledOn();
+            this->setLedMode( LedMode::WriteSetup );
         }
         this->m_display.previous = this->m_display.current;
         this->m_display.current = MTemp;
@@ -285,11 +353,11 @@ void Logistic::postButtonPressed(void) {
 }
 void Logistic::endIter() {
     this->postButtonPressed();
+    this->ledBlink();
     this->updateDisplay();
-    this->ledBlinkOff();
 }
 void Logistic::updateDisplay() {
-
+  
     if ( this->m_display.current == MTemp && this->m_display.showCounter == true ) {
         if ( this->m_timeStamp - this->m_receivedValue.lastTime > 500 ) {
             this->m_display.needUpdate = true;
@@ -325,8 +393,9 @@ static Logistic mind;
 void loop() {
     mind.beginIter();
     if ( mind.hasDataReceived() || mind.hasButtonPressed() ) {
-        mind.ledOn(true);
+        // do whatever you want
     }
+    mind.hasThresholdReached();
     mind.endIter();
 }
 
@@ -352,6 +421,22 @@ void displayTemp(const uint16_t value, const bool show_colon=false) {
     display.setSegments(seg_data, 1, 3);
 }
 
+void displayTemp2(const uint16_t value) {
+    bool temp_below_0 = unpack_minus(value);
+    uint8_t temp_value = unpack_intpart(value);
+//    uint8_t frac_value = unpack_fracpart(value);
+
+    uint8_t degree_letter[1] = { SEG_A | SEG_B | SEG_F | SEG_G };
+    
+    uint8_t minus_letter[1] = { 0 };
+    if ( temp_below_0 == 1 ) 
+        minus_letter[0] = SEG_D;
+    display.showNumberDecEx(temp_value, 0x0, false, 2, 1);
+//    display.showNumberDecEx(frac_value, dots, true, 1, 2);
+    display.setSegments(degree_letter, 1, 3);
+    display.setSegments(minus_letter, 1, 0);
+}
+
 void RCTSwitch_setup() {
     GIMSK |= ( 1 << PCIE ); //|(1<<INT0);
     PCMSK |= ( 1 << PCINT0 );
@@ -361,7 +446,7 @@ void RCTSwitch_setup() {
 void setup(void) {
     RCTSwitch_setup();
     display.setBrightness(0x04);
-    DDRB |= ( 1 << PIN_LED );
+    DDRB |= ( 1 << PIN_LED ) | ( 1 << PIN_RELAY );
     DDRB &= ~( 1 << PIN_BUTTON );
     PORTB &= ~( 1 << PIN_BUTTON );
     pinMode(PIN_BUTTON, OUTPUT);

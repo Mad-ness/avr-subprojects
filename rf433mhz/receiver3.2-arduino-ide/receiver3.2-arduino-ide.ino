@@ -169,16 +169,142 @@ bool DebounceButton::hasPressed() {
     return false;
 }
 
+
+
+enum class LedModeEx { Off, On, Alert, PacketNotReceived,
+                       PacketReceived, ButtonPressed, ConfWritten,
+                       PacketWrong };
+struct ModeItem {
+    LedModeEx mode;
+    int repeats;
+    int16_t impulseLength;
+};
+typedef struct ModeItem ModeItem_t;
+const ModeItem LedModeInfo[] = {
+    { LedModeEx::Off, 0, 0 },
+    { LedModeEx::On, -1, 150 },
+    { LedModeEx::Alert, -1, 150 },
+    { LedModeEx::PacketNotReceived, 1, 150 },
+    { LedModeEx::PacketReceived, 3, 150 },
+    { LedModeEx::ButtonPressed, 1, 250 },
+    { LedModeEx::ConfWritten, 2, 150 },
+    { LedModeEx::PacketWrong, 3, 100 },
+};
+const int LedModeInfoLen() { return sizeof(LedModeInfo) / sizeof(ModeItem); };
+// if you pass the two below lines in a single line, the GCC compiler gives an error
+const ModeItem
+getModeItem( const LedModeEx mode ) {
+    for ( int i = 0; i < LedModeInfoLen(); i++ ) {
+        if ( LedModeInfo[i].mode == mode )
+            return LedModeInfo[i];
+    }
+    return LedModeInfo[0];
+};
+class AlertLed {
+    private:
+        int8_t m_pin;
+        //int8_t m_state = LOW;
+        unsigned long m_lastTime;
+        ModeItem m_mode;
+        ModeItem m_prevMode;
+        void on();
+        void off();
+        inline void swapLedState();
+        int8_t digitalRead( const int pin );
+    public:
+        AlertLed( const int8_t pin );
+        void setMode( const LedModeEx mode );
+        inline bool isLedOn();
+        void printState();
+        const ModeItem& mode() { return this->m_mode; };
+        void blink();
+};
+AlertLed::AlertLed( const int8_t pin ) {
+    this->m_pin = pin;
+    this->m_mode = getModeItem( LedModeEx::Off );
+    pinMode( this->m_pin, OUTPUT );
+    this->off();
+} /*
+int8_t AlertLed::digitalRead( const int pin ) {
+    return this->m_state;
+} */
+inline void AlertLed::swapLedState() {
+    this->isLedOn() ? this->off() : this->on();
+}
+inline bool AlertLed::isLedOn() {
+    //return ( digitalRead( this->m_pin ) == HIGH );
+    return (( 1 << this->m_pin ) & PINB != 0 );
+}
+void AlertLed::blink() {
+    if ( this->m_mode.mode == LedModeEx::Off ) this->off();
+    if ( this->m_mode.mode != LedModeEx::On && this->m_mode.mode != LedModeEx::Off ) {
+        if ( this->m_mode.repeats < 0 ) {
+            if (( millis() - this->m_lastTime ) > this->m_mode.impulseLength ) {
+                this->isLedOn() ? this->off() : this->on();
+            }
+        } else if ( this->m_mode.repeats > 0 ) {
+            //std::printf( " >>> left repeats %d\n", this->m_mode.repeats );
+            if ( ! this->isLedOn() && this->m_mode.repeats == getModeItem( this->m_mode.mode ).repeats ) {
+                this->on();
+            }
+            if (( millis() - this->m_lastTime ) > this->m_mode.impulseLength ) {
+               if ( this->isLedOn() ) {
+                    this->off();
+                    if ( getModeItem( this->m_mode.mode ).repeats > 0 )
+                        this->m_mode.repeats--;
+                } else {
+                    this->on();
+                }
+                this->m_lastTime = millis();
+            }
+        } else if ( this->m_mode.repeats == 0 ) {
+            this->m_mode = this->m_prevMode;
+        }
+    }
+}
+/**
+ * Sets the correct mode according to the passed mode value.
+ * Call this function when you need to change the led status
+ */
+void AlertLed::setMode( const LedModeEx mode ) {
+    if ( this->m_prevMode.mode != this->m_mode.mode ) {
+        this->m_prevMode = this->m_mode;
+    }
+    this->m_mode = getModeItem( mode );
+    this->m_lastTime = millis();
+}
+void AlertLed::on() {
+    //if ( PINB & digitalRead( this->m_pin ) != HIGH ) {
+    if (( 1 << this->m_pin ) & PINB == 0 ) {
+        led_on();
+    }
+    this->m_lastTime = millis();
+}
+void AlertLed::off() {
+    //if ( digitalRead( this->m_pin ) != LOW ) {
+    if (( 1 << this->m_pin ) & PINB != 0 ) {
+        led_off();
+    }
+    this->m_lastTime = millis();
+}
+
+
+
+
+
 enum DisplayMode { MTemp = 1, MSetup = 2 };
 enum class LedMode { Off = 1, ReceivedPacket = 2, Alert = 3, PressedButton = 4, WriteSetup = 5 };
 class Logistic {
     private:
         unsigned long m_timeStamp;
+        /*
         struct {
             bool on = false;
             unsigned long lastTime;
             LedMode ledMode = LedMode::Off;
         } m_ledState;
+        */
+        AlertLed m_led = AlertLed( PIN_LED );
         struct {
             int8_t writtenValue = 0xff;
             int8_t currentValue = 0;
@@ -203,8 +329,8 @@ class Logistic {
         void readSetupThreshold();
     public:
         Logistic(void);
-        void ledOff();
-        void ledOn();
+        //void ledOff();
+        //void ledOn();
         void beginIter(void);
         void postButtonPressed(void);
         void endIter();
@@ -212,8 +338,8 @@ class Logistic {
         bool hasDataReceived();
         bool hasThresholdReached();
         int8_t getRelayThreshold();
-        void ledBlink();
-        void setLedMode(const LedMode mode);
+        //void ledBlink();
+        //void setLedMode(const LedMode mode);
 };
 Logistic::Logistic(void) {
     this->m_display.current = MTemp;
@@ -234,69 +360,14 @@ bool Logistic::hasThresholdReached() {
         current_temp *= -1;
     }
     if ( this->m_receivedValue.current != 0 && current_temp <= this->m_button.currentValue ) {
-        this->setLedMode( LedMode::Alert );
+        //this->setLedMode( LedMode::Alert );
+        this->m_led.setMode( LedModeEx::Alert );
         return true;
     } else {
-        this->setLedMode( LedMode::Off );
+        //this->setLedMode( LedMode::Off );
+        this->m_led.setMode( LedModeEx::Off );
         return false;
     }
-}
-void Logistic::ledBlink() {
-    switch ( this->m_ledState.ledMode ) {
-        case LedMode::Off:
-            if ( this->m_ledState.ledMode != LedMode::Alert ) {
-                 this->ledOff();
-            }
-            break;
-        case LedMode::WriteSetup:
-        case LedMode::ReceivedPacket:
-        case LedMode::PressedButton:
-            if ( this->m_timeStamp - this->m_ledState.lastTime > 200 ) {
-                this->ledOff();
-                this->setLedMode( LedMode::Off );
-            } else {
-                this->ledOn();
-            }
-            break;
-        case LedMode::Alert:
-            if ( this->m_timeStamp - this->m_ledState.lastTime > 200 ) {
-                if ( this->m_ledState.on ) {
-                    this->ledOff();
-                } else {
-                    this->ledOn();
-                }
-            }
-            break;
-    }
-}
-void Logistic::ledOff() {
-    if ( this->m_ledState.on == true ) {
-        led_off();
-        this->m_ledState.on = false;
-        this->m_ledState.lastTime = this->m_timeStamp;
-    }
-}
-void Logistic::ledOn() {
-    if ( this->m_ledState.on == false ) {
-        led_on();
-        this->m_ledState.on = true;
-        this->m_ledState.lastTime = this->m_timeStamp;
-    }
-}
-void Logistic::setLedMode( const LedMode mode ) {
-    switch ( mode ) {
-        case LedMode::WriteSetup:
-        case LedMode::PressedButton:
-        case LedMode::ReceivedPacket:
-            if ( this->m_ledState.ledMode != LedMode::Alert )
-                this->m_ledState.ledMode = mode;
-            break;
-        case LedMode::Alert:
-        case LedMode::Off:
-            this->m_ledState.ledMode = mode;
-            break;
-    }
-    //this->m_ledState.lastTime = this->m_timeStamp;
 }
 bool Logistic::hasDataReceived() {
     bool result = RCTSwitch_available();
@@ -310,9 +381,14 @@ bool Logistic::hasDataReceived() {
                 this->m_receivedValue.lastTime = this->m_timeStamp;              
                 this->m_display.needUpdate = true;
                 this->m_display.showCounter = true;
-                this->setLedMode( LedMode::ReceivedPacket );
+                // this->setLedMode( LedMode::ReceivedPacket );
+                this->m_led.setMode( LedModeEx::PacketReceived );
             }
+        } else {
+            this->m_led.setMode( LedModeEx::PacketWrong );
         }
+    } else if ( this->m_timeStamp - this->m_receivedValue.lastTime > 60*1000 ) {
+        this->m_led.setMode( LedModeEx::PacketNotReceived );
     }
     return result;
 }
@@ -323,6 +399,7 @@ bool Logistic::hasButtonPressed() {
              this->m_display.previous = this->m_display.current;
              this->m_display.current = MSetup;
              this->m_display.colonLastBlinkingTime = this->m_timeStamp;
+             this->m_led.setMode( LedModeEx::ConfWritten );
              //this->getRelayThreshold();
         } else {
             this->m_button.currentValue++;
@@ -331,7 +408,8 @@ bool Logistic::hasButtonPressed() {
             }
         }
         this->m_display.needUpdate = true;
-        this->setLedMode( LedMode::PressedButton );
+        //this->setLedMode( LedMode::PressedButton );
+        this->m_led.setMode( LedModeEx::ButtonPressed );
         return true;
     }
     return false;
@@ -344,7 +422,6 @@ void Logistic::postButtonPressed(void) {
         if ( this->m_button.writtenValue != this->m_button.currentValue ) {
             this->m_button.writtenValue = this->m_button.currentValue;
             EEPROM_write( mem_address, this->m_button.writtenValue );
-            this->setLedMode( LedMode::WriteSetup );
         }
         this->m_display.previous = this->m_display.current;
         this->m_display.current = MTemp;
@@ -353,8 +430,9 @@ void Logistic::postButtonPressed(void) {
 }
 void Logistic::endIter() {
     this->postButtonPressed();
-    this->ledBlink();
+    //this->ledBlink();
     this->updateDisplay();
+    this->m_led.blink();
 }
 void Logistic::updateDisplay() {
   
@@ -424,7 +502,6 @@ void displayTemp(const uint16_t value, const bool show_colon=false) {
 void displayTemp2(const uint16_t value) {
     bool temp_below_0 = unpack_minus(value);
     uint8_t temp_value = unpack_intpart(value);
-//    uint8_t frac_value = unpack_fracpart(value);
 
     uint8_t degree_letter[1] = { SEG_A | SEG_B | SEG_F | SEG_G };
     
@@ -432,7 +509,6 @@ void displayTemp2(const uint16_t value) {
     if ( temp_below_0 == 1 ) 
         minus_letter[0] = SEG_D;
     display.showNumberDecEx(temp_value, 0x0, false, 2, 1);
-//    display.showNumberDecEx(frac_value, dots, true, 1, 2);
     display.setSegments(degree_letter, 1, 3);
     display.setSegments(minus_letter, 1, 0);
 }

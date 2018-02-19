@@ -33,7 +33,7 @@ Features:
 #define PIN_ADC PB3
 #define PIN_LED PB4
 
-#define OPER_HOURS_FROM    04
+#define OPER_HOURS_FROM    05
 #define OPER_MINUTES_FROM  30
 #define OPER_HOURS_TO      22
 #define OPER_MINUTES_TO    30

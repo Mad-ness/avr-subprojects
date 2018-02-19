@@ -12,6 +12,12 @@ SENSOR <--- +        + ---> RTC CLK
    GND <--- +        + ---> RTC CE
             +--------+
 
+Features:
+- works with DS1302 RTC
+- checks if the current time is the operational time
+- goes into the power down mode for 8 seconds
+- takes into account the current lighting
+- manages a relay (PBB3/LED)
  */
 
 #include <avr/io.h>

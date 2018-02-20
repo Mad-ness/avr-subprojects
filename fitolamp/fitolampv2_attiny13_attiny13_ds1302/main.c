@@ -30,8 +30,8 @@ Features:
 #define PIN_CE  PB0 // rst
 #define PIN_IO  PB1 // dat
 #define PIN_CLK PB2 // clk
-#define PIN_ADC PB3
-#define PIN_LED PB4
+#define PIN_ADC PB4
+#define PIN_LED PB3
 
 #define OPER_HOURS_FROM    05
 #define OPER_MINUTES_FROM  30
@@ -45,7 +45,7 @@ int main( void ) {
     PORTB &= ~( 1 << PIN_LED );
 
     // adc_setup
-    ADMUX |= ( 1 << MUX0 ) | ( 1 << MUX1 ) | ( 1 << ADLAR );  //ADC3/PB3
+    ADMUX |= ( 1 << MUX1 ) | ( 1 << ADLAR );  //ADC2/PB4
     ADCSRA |= ( 1 << ADPS2 ) | ( 1 << ADEN ); 
  
     wdt_reset();

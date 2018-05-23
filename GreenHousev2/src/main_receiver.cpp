@@ -1,26 +1,8 @@
-#ifndef AIR_RECEIVER_DEBUG
-#ifndef AIR_SENDER_DEBUG
+#ifdef AIR_RECEIVER_DEBUG
+#define DEBUG_AIR
+
 #include <Arduino.h>
-#ifndef DEBUG_AIR
-#include <manager.h>
-#include <ghdisplay.h>
-#else // DEBUG_AIR
 #include <ghair.h>
-#endif // DEBUG_AIR
-
-#ifndef DEBUG_AIR
-
-Manager manager;
-
-void setup(void) {
-    manager.setup();
-    manager.display().showWelcomePage();
-}
-void loop(void) {
-    manager.loop();
-}
-
-#else // DEBUG_AIR
 
 GHAir air(7, 8, "00001");
 void setup(void) {
@@ -51,6 +33,4 @@ void loop(void) {
     }
 }
 
-#endif // DEBUG_AIR
-#endif // AIR_SENDER_DEBUG
 #endif // AIR_RECEIVER_DEBUG

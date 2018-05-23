@@ -37,6 +37,8 @@ void Manager::loop() {
                 m_display.setEnableBL(false);
             }
         }
+        this->m_display.showKeysPage(m_buttonSet.buttons().getRaw());
+        delay(2000);
     }
     m_rtc.loop();
     m_1wire.loop();
@@ -44,5 +46,4 @@ void Manager::loop() {
     if ( millis() % 2000 == 0) {
         this->m_display.displayMainPage();
     }
-
 }

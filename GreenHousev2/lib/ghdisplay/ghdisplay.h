@@ -8,6 +8,7 @@
 class GH1Wire;
 class GHRTC;
 class GHRelay;
+class GHButtonSet;
 
 /*
 
@@ -26,6 +27,7 @@ private:
     GHRTC *m_rtc;
     GH1Wire *m_1wire;
     GHRelay *m_relays[1];
+    GHButtonSet *m_button_set;
 public:
     GHDisplay(const int8_t SCLK, const int8_t DIN, const int8_t DC, const int8_t CS, const int8_t RST, const int8_t BL);
     void displayMainPage();
@@ -33,9 +35,11 @@ public:
     bool getBLState();
     void setup(void);
     void setRTC(GHRTC *rtc);
+    void setButtonSet(GHButtonSet *button_set);
     void set1Wire(GH1Wire *onewire);
     void setRelay(GHRelay *relay, const int8_t index);
     void showWelcomePage();
+    void showKeysPage(const int key_value);
 };
 
 #endif // __GHDISPLAY_H__

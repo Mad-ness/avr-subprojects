@@ -8,6 +8,7 @@
 #include <ghrelay.h>
 #include <gh1wire.h>
 #include <ghbuttonset.h>
+#include <ghair.h>
 
 const int8_t pin_DISP_SID  = 5; /* Serial Data In (Din) */
 const int8_t pin_DISP_SCLK = 6; /* SCLK, clock (SCK, CLK) */

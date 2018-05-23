@@ -2,6 +2,8 @@
 #include <ghrtc.h>
 #include <gh1wire.h>
 #include <ghrelay.h>
+#include <ghbuttonset.h>
+#include <ButtonSet.h>
 
 
 GHDisplay::GHDisplay(const int8_t SCLK, const int8_t DIN, const int8_t DC, const int8_t CS, const int8_t RST, const int8_t BL)
@@ -53,10 +55,25 @@ void GHDisplay::set1Wire(GH1Wire *onewire) {
     this->m_1wire = onewire;
 }
 
+void GHDisplay::setButtonSet(GHButtonSet *button_set) {
+    this->m_button_set = button_set;
+}
+
 void GHDisplay::setRelay(GHRelay *relay, const int8_t index) {
     this->m_relays[index] = relay;
 }
 
+void GHDisplay::showKeysPage(const int key_value) {
+    if ( this->m_button_set->buttons().update() ) {
+        this->clearDisplay();
+        this->setTextSize(1);
+        this->setCursor(0, 0);
+        char str[20];
+        sprintf(str, "Key value: %d", key_value);
+        this->print(str);
+        this->display();
+    }
+}
 
 void GHDisplay::displayMainPage() {
     this->clearDisplay();

@@ -56,7 +56,7 @@ void ping_pong_game(AirPacket *pkt) {
     int8_t length = pkt->length;
 
     char str[80];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length;
+    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
     printlog(str);
 
     switch ( pkt->command ) {

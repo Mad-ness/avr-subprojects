@@ -4,6 +4,8 @@
 uint8_t cycles_cnt = 0;
 
 GHAir air(7, 8, "1Node", "2Node");
+long long last_flash_on = 0;
+
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -13,7 +15,7 @@ void handleData(AirPacket *pkt) {
     char str[40];
     sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
     Serial.print(str);
-    air.packet().flush();
+//    air.packet().flush();
     char msg[50];
     switch ( cmd ) {
         case AIR_CMD_UNDEF:
@@ -36,8 +38,7 @@ void handleData(AirPacket *pkt) {
     }
     Serial.println(msg);
     digitalWrite(13, HIGH);
-    delay(200);
-    digitalWrite(13, LOW);
+    last_flash_on = millis();
 }
 
 void setup(void) {
@@ -54,6 +55,9 @@ long cnt = 0;
 
 void loop(void) {
     air.loop();
+    if ( digitalRead(13) == HIGH && millis() - last_flash_on > 500 ) {
+        digitalWrite(13, LOW);
+    }
     if ( millis() - old_time > 1000 ) {
         Serial.println("Time to send a ping packet");
         if ( air.cmdPing() ) {

@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ghair.h>
 
-static uint8_t cycles_cnt = 0;
+uint8_t cycles_cnt = 0;
 
 GHAir air(7, 8, "2Node", "1Node");
 
@@ -17,12 +17,30 @@ void handleData(AirPacket *pkt) {
     sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
     Serial.print(str);
     air.packet().flush();
-    if ( pkt->command == AIR_CMD_PING ) {
-        Serial.print("Received a Ping\n");
-        digitalWrite(13, HIGH);
-        delay(150);
-        digitalWrite(13, LOW);
+    char msg[50];
+    switch ( cmd ) {
+        case AIR_CMD_UNDEF:
+            sprintf(msg, "Undefined command is received. Do nothing");
+            break;
+        case AIR_CMD_PING:
+            if ( air.cmdPong() ) {
+                sprintf(msg, "Ping received and Pong is sent");
+            } else {
+                sprintf(msg, "Ping received and Pong failed to send");
+            }
+            break;
+        case AIR_CMD_PONG:
+            if ( air.cmdPing() ) {
+                sprintf(msg, "Pong received and Ping is sent");
+            } else {
+                sprintf(msg, "Pong received and Pong failed to send");
+            }
+            break;
     }
+    Serial.println(msg);
+    digitalWrite(13, HIGH);
+    delay(200);
+    digitalWrite(13, LOW);
 }
 
 void setup(void) {
@@ -36,13 +54,7 @@ void setup(void) {
 
 void loop(void) {
     air.loop();
-    if ( millis() % 5000 == 0 ) {
-        if ( air.cmdPing() ) {
-            Serial.println("Ping command is sent successfully.");
-        } else {
-            Serial.println("Ping command failed to send.");
-        }
-    }
+    delay(3000);
 }
 
 #endif // AIR_SENDER_DEBUG

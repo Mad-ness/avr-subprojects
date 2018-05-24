@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ghair.h>
 
-static uint8_t cycles_cnt = 0;
+uint8_t cycles_cnt = 0;
 
 
 GHAir air(7, 8, "1Node", "2Node");
@@ -22,7 +22,7 @@ void handleData(AirPacket *pkt) {
     if ( pkt->command == AIR_CMD_PING ) {
         Serial.print("Received a Ping\n");
         digitalWrite(13, HIGH);
-        delay(150);
+        delay(200);
         digitalWrite(13, LOW);
     }
 }

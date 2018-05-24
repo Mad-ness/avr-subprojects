@@ -90,13 +90,11 @@ uint8_t GHAir::readEEPROM(const int8_t addr) {
 
 bool GHAir::cmdPong() {
     char greenhouse[] = "Pong:GreenHouse";
-    bool result = this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
-    return result;
+    return this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
 }
 
 bool GHAir::cmdPing() {
-    bool result = this->sendPacket(AIR_CMD_PING, 0x0, 0x0, 0x0);
-    return result;
+    return this->sendPacket(AIR_CMD_PING, 0x0, 0x0, 0x0);
 }
 
 /*

@@ -32,6 +32,8 @@ public:
     // Air commands
     bool sendPing();
     bool sendPong();
+    bool sendResetBoard();
+    void resetBoard();
     bool sendData(void *data, uint8_t len);
     void sendWriteEEPROM(const int8_t addr, const uint8_t value);
     uint8_t sendReadEEPROM(const int8_t addr);

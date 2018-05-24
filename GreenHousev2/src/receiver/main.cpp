@@ -7,16 +7,15 @@ uint8_t cycles_cnt = 0;
 #ifdef DEBUG_AIR
 #define printlog(msg) Serial.print(msg)
 #define printlogln(msg) Serial.println(msg)
+#define printflush() Serial.flush()
 #else
-#define printlog(msg) ;
+#define printlog(msg)   ;
 #define printlogln(msg) ;
+#define printflush()    ;
 #endif
 
 GHAir air(7, 8, "2Node", "1Node");
 long long last_flash_on = 0;
-
-void (*resetBoard)(void) = 0;
-
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -73,7 +72,8 @@ void ping_pong_game(AirPacket *pkt) {
             break;
         case AIR_CMD_RESET:
             printlogln("Getting the Reset command. Executing it");
-            resetBoard();
+            printflush();
+            air.resetBoard();
             break;
     }
 }

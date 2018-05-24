@@ -67,10 +67,11 @@ void ping_pong_game(AirPacket *pkt) {
             sprintf(str, "Received value: %03d", data++);
             printlogln(str);
             delay(1000);
-            air.sendData(&data, pkt->length);
             if ( data > 15 ) {
-                air.sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+                air.sendResetBoard();
                 data = 0;
+            } else {
+                air.sendData(&data, pkt->length);
             }
             break;
     }

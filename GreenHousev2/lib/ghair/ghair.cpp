@@ -1,6 +1,7 @@
 #include <EEPROM.h>
 #include <ghair.h>
 
+void (*resetBoardVector)(void) = 0;
 
 GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe)
 : m_rf24(ce_pin, csn_pin)
@@ -136,4 +137,12 @@ void GHAir::loop() {
 
 bool GHAir::sendData(void *data, uint8_t len) {
     return this->sendPacket(AIR_CMD_DATA, AIR_ADDR_NULL, len, data);
+}
+
+bool GHAir::sendResetBoard() {
+    return this->sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+}
+
+void GHAir::resetBoard() {
+    resetBoardVector();
 }

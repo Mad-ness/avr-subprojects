@@ -7,25 +7,33 @@
 
 class GHAir {
 private:
+    typedef void(*on_packet_handler_t)(AirPacket*);
     RF24 m_rf24;
-    byte m_address[AIR_ADDRESS_SIZE];
-    bool m_hasData;
+    struct {
+        byte read[AIR_ADDRESS_SIZE];
+        byte write[AIR_ADDRESS_SIZE];
+    } m_pipes;
+    //byte m_address[AIR_ADDRESS_SIZE][2];
+    on_packet_handler_t m_handler;
     void writeEEPROM(const int8_t addr, const uint8_t value);
     uint8_t readEEPROM(const int8_t addr);
     AirPacket m_packet;
+    inline void startListening();
+    inline void stopListening();
 public:
-    GHAir(const int ce_pin, const int csn_pin, const uint8_t *address);
+    GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();
     void setup();
     void loop();
-    void startListening();
-    void stopListening();
-    // after calling this function, next call returns false;
+    void handleRequest();
     bool hasData();
+    // returns True if a packet is delivered
     bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);
     // Air commands
     bool cmdPing();
-    void cmdPong();
+    bool cmdPong();
+    // void onGetData(void (*func)(AirPacket *packet));
+    void onGetData(on_packet_handler_t handler);
     AirPacket &packet();
 };
 

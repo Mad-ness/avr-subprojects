@@ -2,11 +2,13 @@
 #include <ghair.h>
 
 
-GHAir::GHAir(const int ce_pin, const int csn_pin, const uint8_t *address)
+GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe)
 : m_rf24(ce_pin, csn_pin)
 {
-    memcpy(&this->m_address, address, AIR_ADDRESS_SIZE);
-    this->m_hasData = false;
+    //this->m_pipes.read[0] = read_pipe;
+    //this->m_pipes.write[0] = write_pipe;
+    memcpy(this->m_pipes.read, read_pipe, AIR_ADDRESS_SIZE);
+    memcpy(this->m_pipes.write, write_pipe, AIR_ADDRESS_SIZE);
 }
 
 RF24 *GHAir::rf24() {
@@ -15,17 +17,17 @@ RF24 *GHAir::rf24() {
 
 void GHAir::setup() {
     this->m_rf24.begin();
+    this->m_rf24.openReadingPipe(1, this->m_pipes.read);
+    this->m_rf24.openWritingPipe(this->m_pipes.write);
     this->startListening();
 }
 
-void GHAir::startListening() {
-    this->m_rf24.openReadingPipe(0, &this->m_address);
+inline void GHAir::startListening() {
     this->m_rf24.startListening();
 }
 
-void GHAir::stopListening() {
+inline void GHAir::stopListening() {
     this->m_rf24.stopListening();
-    this->m_rf24.openWritingPipe(this->m_address);
 }
 
 AirPacket &GHAir::packet() {
@@ -41,14 +43,15 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
         pkt.length = AIR_MAX_DATA_SIZE;
     memcpy(&pkt.data, data, pkt.length);
     this->stopListening();
-    return this->m_rf24.write(&pkt, pkt.length);
+    bool result = this->m_rf24.write(&pkt, pkt.size());
+    this->startListening();
+    return result;
 }
 
-void GHAir::loop() {
+void GHAir::handleRequest() {
     if ( this->m_rf24.available() ) {
         memset(&this->m_packet, 0, sizeof(this->m_packet));
         this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
-        this->m_hasData = true;
 
         int8_t cmd = this->m_packet.command;
         int8_t address = this->m_packet.address;
@@ -74,9 +77,7 @@ void GHAir::loop() {
 }
 
 bool GHAir::hasData() {
-    bool result = this->m_hasData;
-    if ( result ) this->m_hasData = false;
-    return result;
+    return this->m_rf24.available();
 }
 
 void GHAir::writeEEPROM(const int8_t addr, uint8_t value) {
@@ -87,14 +88,28 @@ uint8_t GHAir::readEEPROM(const int8_t addr) {
     return EEPROM.read(addr);
 }
 
-void GHAir::cmdPong() {
-    char greenhouse[] = "Pong:GreenHouse\0";
-    this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
-    this->startListening();
+bool GHAir::cmdPong() {
+    char greenhouse[] = "Pong:GreenHouse";
+    bool result = this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
+    return result;
 }
 
 bool GHAir::cmdPing() {
     bool result = this->sendPacket(AIR_CMD_PING, 0x0, 0x0, 0x0);
-    this->startListening();
     return result;
+}
+
+/*
+void GHAir::onGetData(void (*func)(AirPacket *packet)) {
+    func(&this->packet());
+}
+*/
+void GHAir::onGetData(on_packet_handler_t handler) {
+    this->m_handler = handler;
+}
+
+void GHAir::loop() {
+    if ( this->m_rf24.available() && this->m_handler != NULL ) {
+        this->m_handler(&this->m_packet);
+    }
 }

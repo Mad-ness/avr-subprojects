@@ -114,3 +114,7 @@ void GHAir::loop() {
         this->m_handler(&this->m_packet);
     }
 }
+
+bool GHAir::cmdSendData(void *data, uint8_t len) {
+    return this->sendPacket(AIR_CMD_DATA, AIR_ADDR_NULL, len, data);
+}

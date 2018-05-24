@@ -50,11 +50,23 @@ void handleData(AirPacket *pkt) {
     last_flash_on = millis();
 }
 
+void ping_pong_game(AirPacket *pkt) {
+    switch ( pkt->command ) {
+        case AIR_CMD_DATA:
+            char str[30];
+            uint16_t data;
+            memcpy(&data, pkt->data, pkt->length);
+            sprintf(str, "Received value: %03d", data++);
+            while ( ! air.cmdSendData(&data, sizeof(pkt->length)) );
+            break;
+    }
+}
+
 void setup(void) {
     Serial.begin(115200);
     printf_begin();
     air.setup();
-    air.onGetData(&handleData);
+    air.onGetData(&ping_pong_game);
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
     printlogln("  ====[ Started working (receiver) ]====");
@@ -65,6 +77,8 @@ long long old_time = 0;
 
 void loop(void) {
     air.loop();
+
+    return;
     if ( digitalRead(LED_BUILTIN) == HIGH && millis() - last_flash_on > 500 ) {
         digitalWrite(LED_BUILTIN, LOW);
     }

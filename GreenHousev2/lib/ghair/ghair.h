@@ -31,6 +31,7 @@ public:
     // Air commands
     bool cmdPing();
     bool cmdPong();
+    bool cmdSendData(void *data, uint8_t len);
     // void onGetData(void (*func)(AirPacket *packet));
     void onGetData(on_packet_handler_t handler);
     AirPacket &packet();

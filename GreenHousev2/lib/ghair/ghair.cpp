@@ -108,6 +108,7 @@ void GHAir::onGetData(on_packet_handler_t handler) {
 
 void GHAir::loop() {
     if ( this->m_rf24.available() && this->m_handler != NULL ) {
+        this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
         this->m_handler(&this->m_packet);
     }
 }

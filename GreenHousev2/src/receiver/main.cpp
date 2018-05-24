@@ -21,8 +21,8 @@ void handleData(AirPacket *pkt) {
     int8_t address = pkt->address;
     int8_t length = pkt->length;
 
-    char str[40];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
+    char str[80];
+    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes), Msg: %s\n", cycles_cnt++, cmd, address, length, (char*)pkt->data);
     Serial.print(str);
 //    air.packet().flush();
     char msg[50];
@@ -32,20 +32,20 @@ void handleData(AirPacket *pkt) {
             break;
         case AIR_CMD_PING:
             if ( air.cmdPong() ) {
-                sprintf(msg, "Ping received and Pong is sent");
+                sprintf(msg, "[ OK ] Ping received and Pong is sent");
             } else {
-                sprintf(msg, "Ping received and Pong failed to send");
+                sprintf(msg, "[FAIL] Ping received and Pong failed to send");
             }
             break;
         case AIR_CMD_PONG:
             if ( air.cmdPing() ) {
-                sprintf(msg, "Pong received and Ping is sent");
+                sprintf(msg, "[ OK ] Pong received and Ping is sent");
             } else {
-                sprintf(msg, "Pong received and Pong failed to send");
+                sprintf(msg, "[FAIL] Pong received and Pong failed to send");
             }
             break;
     }
-    printlogln(msg);
+    Serial.println(msg);
     digitalWrite(LED_BUILTIN, HIGH);
     last_flash_on = millis();
 }

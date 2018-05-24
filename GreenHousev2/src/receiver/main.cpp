@@ -70,6 +70,7 @@ void ping_pong_game(AirPacket *pkt) {
             while ( ! air.sendData(&data, pkt->length) );
             if ( data > 15 ) {
                 air.sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+                data = 0;
             }
             break;
     }}

@@ -22,7 +22,7 @@ void handleData(AirPacket *pkt) {
     char msg[50];
     switch ( cmd ) {
         case AIR_CMD_UNDEF:
-            sprintf(msg, "Undefined command received. Do nothing");
+            sprintf(msg, "     Undefined command received. Do nothing");
             break;
         case AIR_CMD_PING:
             if ( air.cmdPong() ) {
@@ -55,8 +55,9 @@ void setup(void) {
 
 void loop(void) {
     air.loop();
-    delay(3000);
-    air.cmdPing();
+    if ( millis() % 3000 == 0 ) {
+        air.cmdPing();
+    }
 }
 
 #endif // AIR_RECEIVER_DEBUG

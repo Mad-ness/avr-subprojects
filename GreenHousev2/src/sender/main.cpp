@@ -58,7 +58,7 @@ void setup(void) {
     Serial.begin(115200);
     printf_begin();
     air.setup();
-    air.onGetData(&handleData);
+    air.onGetData(&ping_pong_game);
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
     Serial.println("  ====[ Started working (sender) ]====");

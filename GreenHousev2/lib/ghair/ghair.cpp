@@ -61,7 +61,7 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
     this->stopListening();
 
 #ifdef DEBUG_AIR
-    Serial.println("  >> Stopped to listening to the air");
+    Serial.println("  >> Stopped to listen to the air");
 #endif
 
     bool result = this->m_rf24.write(&pkt, sizeof(pkt));

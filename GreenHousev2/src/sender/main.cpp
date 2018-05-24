@@ -13,8 +13,8 @@ void handleData(AirPacket *pkt) {
     int8_t address = pkt->address;
     int8_t length = pkt->length;
 
-    char str[40];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
+    char str[80];
+    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes), Msg: %s\n", cycles_cnt++, cmd, address, length, (char*)pkt->data);
     Serial.print(str);
 //    air.packet().flush();
     char msg[50];
@@ -61,8 +61,7 @@ void loop(void) {
     if ( digitalRead(LED_BUILTIN) == HIGH && millis() - last_flash_on > 500 ) {
         digitalWrite(LED_BUILTIN, LOW);
     }
-    if ( millis() - old_time > 1000 ) {
-        Serial.println("Time to send a ping packet");
+    if ( millis() - old_time > 3000 ) {
         if ( air.cmdPing() ) {
             Serial.println("[   OK  ] Regular Ping command is sent.");
         } else {

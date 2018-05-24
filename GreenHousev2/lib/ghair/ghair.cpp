@@ -47,7 +47,7 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
 #ifdef DEBUG_AIR
     Serial.println("  >>> Prepare a package for sending");
     char info[40];
-    sprintf(info, "  >>> Packet length is %d (byes), Msg: %s", pkt.length, pkt.data);
+    sprintf(info, "  >>> Packet length is %d (bytes), Msg: %s", pkt.length, pkt.data);
     Serial.println(info);
     Serial.println();
 #endif
@@ -90,13 +90,13 @@ uint8_t GHAir::readEEPROM(const int8_t addr) {
 }
 
 bool GHAir::cmdPong() {
-    char greenhouse[] = "Pong:GreenHouse";
-    return this->sendPacket(AIR_CMD_PONG, 0x0, strlen(greenhouse), &greenhouse);
+    char greenhouse[] = "Pong:GreenHouse\0";
+    return this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
 }
 
 bool GHAir::cmdPing() {
-    char msg[] = "Hello, bro";
-    return this->sendPacket(AIR_CMD_PING, 0x0, strlen(msg), msg);
+    char msg[] = "Hello, bro\0";
+    return this->sendPacket(AIR_CMD_PING, 0x0, sizeof(msg), msg);
 }
 
 /*

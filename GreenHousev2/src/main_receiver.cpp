@@ -53,10 +53,13 @@ void setup(void) {
     digitalWrite(13, LOW);
 }
 
+long long old_time = 0;
+
 void loop(void) {
     air.loop();
-    if ( millis() % 3000 == 0 ) {
+    if ( millis() - old_time > 3000 ) {
         air.cmdPing();
+        old_time = millis();
     }
 }
 

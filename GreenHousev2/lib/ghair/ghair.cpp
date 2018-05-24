@@ -41,39 +41,38 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
     pkt.length = len;
     if ( len > AIR_MAX_DATA_SIZE )
         pkt.length = AIR_MAX_DATA_SIZE;
+
+#ifdef DEBUG_AIR
+    Serial.println("  >>> Prepare a package for sending");
+    char info[40];
+    sprintf(info, "  >>> Packet length is %d (byes), Msg: %s", pkt.length, pkt.data);
+    Serial.println(info);
+    Serial.println();
+#endif
+
     memcpy(&pkt.data, data, pkt.length);
+
+#ifdef DEBUG_AIR
+    Serial.println("  >> Copied data to the packet buffer");
+#endif
+
     this->stopListening();
+
+#ifdef DEBUG_AIR
+    Serial.println("  >> Stopped to listening to the air");
+#endif
+
     bool result = this->m_rf24.write(&pkt, sizeof(pkt));
+
+#ifdef DEBUG_AIR
+    if ( result ) {
+        Serial.println("  >>> Packet sending OK");
+    } else {
+        Serial.println("  >>> Packet sending FAIL");
+    }
+#endif
     this->startListening();
     return result;
-}
-
-void GHAir::handleRequest() {
-    if ( this->m_rf24.available() ) {
-        memset(&this->m_packet, 0, sizeof(this->m_packet));
-        this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
-
-        int8_t cmd = this->m_packet.command;
-        int8_t address = this->m_packet.address;
-        int8_t length = this->m_packet.length;
-        void *data = &this->m_packet.data;
-
-        switch ( cmd ) {
-            case AIR_CMD_PING: this->cmdPong(); break;
-            case AIR_CMD_PONG: break;
-            // writing byte(s) in EEPROM starting from the specified address
-            case AIR_CMD_WRITE_EEPROM:
-                for (int i = 0; i < length; i++) {
-                    this->writeEEPROM(address+i, (uint8_t)(data+i));
-                }
-                break;
-            case AIR_CMD_READ_EEPROM:
-                for (int i = 0; i < length; i++) {
-
-                }
-                break;
-        }
-    }
 }
 
 bool GHAir::hasData() {
@@ -90,11 +89,12 @@ uint8_t GHAir::readEEPROM(const int8_t addr) {
 
 bool GHAir::cmdPong() {
     char greenhouse[] = "Pong:GreenHouse";
-    return this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse), &greenhouse);
+    return this->sendPacket(AIR_CMD_PONG, 0x0, strlen(greenhouse), &greenhouse);
 }
 
 bool GHAir::cmdPing() {
-    return this->sendPacket(AIR_CMD_PING, 0x0, 0x0, 0x0);
+    char msg[] = "Hello, bro!";
+    return this->sendPacket(AIR_CMD_PING, 0x0, strlen(msg), &msg);
 }
 
 /*

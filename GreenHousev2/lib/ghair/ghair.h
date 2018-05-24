@@ -25,7 +25,6 @@ public:
     RF24 *rf24();
     void setup();
     void loop();
-    void handleRequest();
     bool hasData();
     // returns True if a packet is delivered
     bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);

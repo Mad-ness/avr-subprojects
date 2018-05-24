@@ -50,14 +50,14 @@ void setup(void) {
     air.onGetData(&handleData);
     pinMode(13, OUTPUT);
     digitalWrite(13, LOW);
-    Serial.println("Started working");
+    Serial.println("  ====[ Started working (receiver) ]====");
 }
 
 long long old_time = 0;
 
 void loop(void) {
     air.loop();
-    if ( millis() - old_time > 3000 ) {
+    if ( millis() - old_time > 1100 ) {
         if ( air.cmdPing() ) {
             Serial.println("Regular Ping command is sent.");
         } else {

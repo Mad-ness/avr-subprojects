@@ -92,6 +92,7 @@ void loop() {
     air.loop();
     if ( is_sent ) return;
     uint16_t ball = 0;
+    printlogln("Kicking off a ball...");
     while ( ! air.cmdSendData(&ball, sizeof(ball)) );
     is_sent = true;
 }

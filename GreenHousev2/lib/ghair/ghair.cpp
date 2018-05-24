@@ -47,9 +47,8 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
 #ifdef DEBUG_AIR
     Serial.println("  >>> Prepare a package for sending");
     char info[40];
-    sprintf(info, "  >>> Packet length is %d (bytes), Msg: %s", pkt.length, pkt.data);
+    sprintf(info, "  >>> Cmd: %0x, Addr: %0x, Length %d (bytes)", cmd, addr, pkt.length);
     Serial.println(info);
-    Serial.println();
 #endif
 
     memcpy(&pkt.data, data, pkt.length);

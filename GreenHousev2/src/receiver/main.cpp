@@ -15,7 +15,7 @@ void handleData(AirPacket *pkt) {
     int8_t length = pkt->length;
 
     char str[40];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
+    sprintf(&str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
     Serial.print(str);
     air.packet().flush();
     char msg[50];

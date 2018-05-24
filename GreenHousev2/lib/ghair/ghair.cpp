@@ -80,20 +80,20 @@ bool GHAir::hasData() {
     return this->m_rf24.available();
 }
 
-void GHAir::writeEEPROM(const int8_t addr, uint8_t value) {
+void GHAir::sendWriteEEPROM(const int8_t addr, uint8_t value) {
     EEPROM.write(addr, value);
 }
 
-uint8_t GHAir::readEEPROM(const int8_t addr) {
+uint8_t GHAir::sendReadEEPROM(const int8_t addr) {
     return EEPROM.read(addr);
 }
 
-bool GHAir::cmdPong() {
+bool GHAir::sendPong() {
     char greenhouse[] = "Pong:GreenHouse\0";
     return this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
 }
 
-bool GHAir::cmdPing() {
+bool GHAir::sendPing() {
     char msg[] = "Hello, bro\0";
     return this->sendPacket(AIR_CMD_PING, 0x0, sizeof(msg)+1, msg);
 }
@@ -114,6 +114,6 @@ void GHAir::loop() {
     }
 }
 
-bool GHAir::cmdSendData(void *data, uint8_t len) {
+bool GHAir::sendData(void *data, uint8_t len) {
     return this->sendPacket(AIR_CMD_DATA, AIR_ADDR_NULL, len, data);
 }

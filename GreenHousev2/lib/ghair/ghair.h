@@ -15,8 +15,6 @@ private:
     } m_pipes;
     //byte m_address[AIR_ADDRESS_SIZE][2];
     on_packet_handler_t m_handler;
-    void writeEEPROM(const int8_t addr, const uint8_t value);
-    uint8_t readEEPROM(const int8_t addr);
     AirPacket m_packet;
     void startListening();
     void stopListening();
@@ -29,9 +27,11 @@ public:
     // returns True if a packet is delivered
     bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);
     // Air commands
-    bool cmdPing();
-    bool cmdPong();
-    bool cmdSendData(void *data, uint8_t len);
+    bool sendPing();
+    bool sendPong();
+    bool sendData(void *data, uint8_t len);
+    void sendWriteEEPROM(const int8_t addr, const uint8_t value);
+    uint8_t sendReadEEPROM(const int8_t addr);
     // void onGetData(void (*func)(AirPacket *packet));
     void onGetData(on_packet_handler_t handler);
     AirPacket &packet();

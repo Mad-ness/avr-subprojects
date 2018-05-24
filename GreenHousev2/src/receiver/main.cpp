@@ -31,14 +31,14 @@ void handleData(AirPacket *pkt) {
             sprintf(msg, "     Undefined command received. Do nothing");
             break;
         case AIR_CMD_PING:
-            if ( air.cmdPong() ) {
+            if ( air.sendPong() ) {
                 sprintf(msg, "[ OK ] Ping received and Pong is sent");
             } else {
                 sprintf(msg, "[FAIL] Ping received and Pong failed to send");
             }
             break;
         case AIR_CMD_PONG:
-            if ( air.cmdPing() ) {
+            if ( air.sendPing() ) {
                 sprintf(msg, "[ OK ] Pong received and Ping is sent");
             } else {
                 sprintf(msg, "[FAIL] Pong received and Pong failed to send");
@@ -67,7 +67,10 @@ void ping_pong_game(AirPacket *pkt) {
             sprintf(str, "Received value: %03d", data++);
             printlogln(str);
             delay(1000);
-            while ( ! air.cmdSendData(&data, pkt->length) );
+            while ( ! air.sendData(&data, pkt->length) );
+            if ( data > 15 ) {
+                air.sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+            }
             break;
     }}
 
@@ -92,7 +95,7 @@ void loop(void) {
         digitalWrite(LED_BUILTIN, LOW);
     }
     if ( millis() - old_time > 1100 ) {
-        if ( air.cmdPing() ) {
+        if ( air.sendPing() ) {
             printlogln("Regular Ping command is sent.");
         } else {
             printlogln("Failed to sent a regular Ping packet");

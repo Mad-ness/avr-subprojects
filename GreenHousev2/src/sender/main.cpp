@@ -15,7 +15,7 @@ long long last_flash_on = 0;
 #define printlogln(msg) ;
 #endif
 
-
+void (*resetBoard)(void) = 0;
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -32,14 +32,14 @@ void handleData(AirPacket *pkt) {
             sprintf(msg, "     Undefined command received. Do nothing");
             break;
         case AIR_CMD_PING:
-            if ( air.cmdPong() ) {
+            if ( air.sendPong() ) {
                 sprintf(msg, "[ OK ] Ping received and Pong is sent");
             } else {
                 sprintf(msg, "[FAIL] Ping received and Pong failed to send");
             }
             break;
         case AIR_CMD_PONG:
-            if ( air.cmdPing() ) {
+            if ( air.sendPing() ) {
                 sprintf(msg, "[ OK ] Pong received and Ping is sent");
             } else {
                 sprintf(msg, "[FAIL] Pong received and Pong failed to send");
@@ -68,7 +68,11 @@ void ping_pong_game(AirPacket *pkt) {
             sprintf(str, "Received value: %03d", data++);
             printlogln(str);
             delay(1000);
-            while ( ! air.cmdSendData(&data, pkt->length) );
+            while ( ! air.sendData(&data, pkt->length) );
+            break;
+       case AIR_CMD_RESET:
+            printlogln("Getting the Reset command. Executing it");
+            resetBoard();
             break;
     }
 }
@@ -94,7 +98,7 @@ void loop() {
     if ( is_sent ) return;
     uint16_t ball = 0;
     printlogln("Kicking off a ball...");
-    while ( ! air.cmdSendData(&ball, sizeof(ball)) );
+    while ( ! air.sendData(&ball, sizeof(ball)) );
     is_sent = true;
 }
 
@@ -104,7 +108,7 @@ void loop2(void) {
         digitalWrite(LED_BUILTIN, LOW);
     }
     if ( millis() - old_time > 3000 ) {
-        if ( air.cmdPing() ) {
+        if ( air.sendPing() ) {
             Serial.println("[   OK  ] Regular Ping command is sent.");
         } else {
             Serial.println("[  FAIL ] Failed to sent a regular Ping packet");

@@ -21,14 +21,14 @@ void GHAir::setup() {
     this->m_rf24.setDataRate(RF24_250KBPS);
     this->m_rf24.openReadingPipe(1, this->m_pipes.read);
     this->m_rf24.openWritingPipe(this->m_pipes.write);
-    this->startListening();
-}
-
-inline void GHAir::startListening() {
     this->m_rf24.startListening();
 }
 
-inline void GHAir::stopListening() {
+void GHAir::startListening() {
+    this->m_rf24.startListening();
+}
+
+void GHAir::stopListening() {
     this->m_rf24.stopListening();
 }
 

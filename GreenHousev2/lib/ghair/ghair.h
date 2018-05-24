@@ -18,8 +18,8 @@ private:
     void writeEEPROM(const int8_t addr, const uint8_t value);
     uint8_t readEEPROM(const int8_t addr);
     AirPacket m_packet;
-    inline void startListening();
-    inline void stopListening();
+    void startListening();
+    void stopListening();
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();

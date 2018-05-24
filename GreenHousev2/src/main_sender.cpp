@@ -6,7 +6,7 @@
 
 uint8_t cycles_cnt = 0;
 
-GHAir air(7, 8, "1Node", "2Node");
+GHAir air(7, 8, "2Node", "1Node");
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;

@@ -17,7 +17,7 @@ RF24 *GHAir::rf24() {
 
 void GHAir::setup() {
     this->m_rf24.begin();
-    this->m_rf24.setPALevel(RF24_PA_MIN);
+    this->m_rf24.setPALevel(RF24_PA_LOW);
     this->m_rf24.setDataRate(RF24_250KBPS);
     this->m_rf24.openReadingPipe(1, this->m_pipes.read);
     this->m_rf24.openWritingPipe(this->m_pipes.write);

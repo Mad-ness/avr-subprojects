@@ -56,7 +56,11 @@ long long old_time = 0;
 void loop(void) {
     air.loop();
     if ( millis() - old_time > 3000 ) {
-        air.cmdPing();
+        if ( air.cmdPing() ) {
+            Serial.println("Regual Ping command is sent.");
+        } else {
+            Serial.println("Failed to sent a regular Ping packet");
+        }
         old_time = millis();
     }
 }

@@ -22,8 +22,8 @@ void handleData(AirPacket *pkt) {
     int8_t length = pkt->length;
 
     char str[80];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes), Msg: %s\n", cycles_cnt++, cmd, address, length, (char*)pkt->data);
-    Serial.print(str);
+    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
+    printlog(str);
 //    air.packet().flush();
     char msg[50];
     switch ( cmd ) {
@@ -56,7 +56,7 @@ void ping_pong_game(AirPacket *pkt) {
     int8_t length = pkt->length;
 
     char str[80];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes), Msg: %s\n", cycles_cnt++, cmd, address, length, (char*)pkt->data);
+    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length;
     printlog(str);
 
     switch ( pkt->command ) {
@@ -66,6 +66,7 @@ void ping_pong_game(AirPacket *pkt) {
             memcpy(&data, pkt->data, pkt->length);
             sprintf(str, "Received value: %03d", data++);
             printlogln(str);
+            delay(1000);
             while ( ! air.cmdSendData(&data, pkt->length) );
             break;
     }}

@@ -1,6 +1,3 @@
-#ifdef AIR_SENDER_DEBUG
-#define DEBUG_AIR
-
 #include <Arduino.h>
 #include <ghair.h>
 
@@ -44,11 +41,12 @@ void handleData(AirPacket *pkt) {
 }
 
 void setup(void) {
-    Serial.begin(115200);
+    Serial.begin(57600);
     air.setup();
     air.onGetData(&handleData);
     pinMode(13, OUTPUT);
     digitalWrite(13, LOW);
+    Serial.println("Started working");
 }
 
 long long old_time = 0;
@@ -57,12 +55,10 @@ void loop(void) {
     air.loop();
     if ( millis() - old_time > 3000 ) {
         if ( air.cmdPing() ) {
-            Serial.println("Regual Ping command is sent.");
+            Serial.println("Regular Ping command is sent.");
         } else {
             Serial.println("Failed to sent a regular Ping packet");
         }
         old_time = millis();
     }
 }
-
-#endif // AIR_SENDER_DEBUG

@@ -1,5 +1,3 @@
-#ifndef AIR_RECEIVER_DEBUG
-#ifndef AIR_SENDER_DEBUG
 #include <Arduino.h>
 #ifndef DEBUG_AIR
 #include <manager.h>
@@ -52,5 +50,3 @@ void loop(void) {
 }
 
 #endif // DEBUG_AIR
-#endif // AIR_SENDER_DEBUG
-#endif // AIR_RECEIVER_DEBUG

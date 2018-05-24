@@ -15,6 +15,8 @@ uint8_t cycles_cnt = 0;
 GHAir air(7, 8, "2Node", "1Node");
 long long last_flash_on = 0;
 
+void (*resetBoard)(void) = 0;
+
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -68,16 +70,13 @@ void ping_pong_game(AirPacket *pkt) {
             printlogln(str);
             delay(1000);
             air.sendData(&data, pkt->length);
-            if ( data > 15 ) {
-                air.sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
-                data = 0;
-            }
             break;
         case AIR_CMD_RESET:
             printlogln("Getting the Reset command. Executing it");
             resetBoard();
             break;
     }
+}
 
 void setup(void) {
     Serial.begin(115200);

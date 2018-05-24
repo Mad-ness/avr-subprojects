@@ -15,7 +15,6 @@ long long last_flash_on = 0;
 #define printlogln(msg) ;
 #endif
 
-void (*resetBoard)(void) = 0;
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;

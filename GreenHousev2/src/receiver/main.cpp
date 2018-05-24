@@ -57,7 +57,8 @@ void ping_pong_game(AirPacket *pkt) {
             uint16_t data;
             memcpy(&data, pkt->data, pkt->length);
             sprintf(str, "Received value: %03d", data++);
-            while ( ! air.cmdSendData(&data, sizeof(pkt->length)) );
+            printlogln(str);
+            while ( ! air.cmdSendData(&data, pkt->length) );
             break;
     }
 }

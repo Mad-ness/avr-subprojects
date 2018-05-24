@@ -7,6 +7,15 @@ uint8_t cycles_cnt = 0;
 GHAir air(7, 8, "1Node", "2Node");
 long long last_flash_on = 0;
 
+#ifdef DEBUG_AIR
+#define printlog(msg) Serial.print(msg)
+#define printlogln(msg) Serial.println(msg)
+#else
+#define printlog(msg) ;
+#define printlogln(msg) ;
+#endif
+
+
 
 void handleData(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -49,7 +58,8 @@ void ping_pong_game(AirPacket *pkt) {
             uint16_t data;
             memcpy(&data, pkt->data, pkt->length);
             sprintf(str, "Received value: %03d", data++);
-            while ( ! air.cmdSendData(&data, sizeof(pkt->length)) );
+            printlogln(str);
+            while ( ! air.cmdSendData(&data, pkt->length) );
             break;
     }
 }

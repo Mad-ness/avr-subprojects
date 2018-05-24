@@ -22,7 +22,7 @@ void Manager::setup() {
     this->m_display.setRTC(&this->m_rtc);
     this->m_display.set1Wire(&this->m_1wire);
     this->m_display.setRelay(&this->m_relay1, 0);
-    this->m_relay1.setOperationalTime(20, 00, 90);
+    this->m_relay1.setOperationalTime(19, 00, 150);
     this->m_display.displayMainPage();
     this->m_rtc.setup();
     this->m_display.setEnableBL(false);

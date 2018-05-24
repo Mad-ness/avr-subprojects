@@ -1,6 +1,5 @@
-#define DEBUG_AIR
-
 #include <Arduino.h>
+#include <printf.h>
 #include <ghair.h>
 
 uint8_t cycles_cnt = 0;
@@ -40,25 +39,27 @@ void handleData(AirPacket *pkt) {
             break;
     }
     Serial.println(msg);
-    digitalWrite(13, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
     last_flash_on = millis();
 }
 
 void setup(void) {
     Serial.begin(57600);
+    printf_begin();
     air.setup();
     air.onGetData(&handleData);
-    pinMode(13, OUTPUT);
-    digitalWrite(13, LOW);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
     Serial.println("  ====[ Started working (receiver) ]====");
+    air.rf24()->printDetails();
 }
 
 long long old_time = 0;
 
 void loop(void) {
     air.loop();
-    if ( digitalRead(13) == HIGH && millis() - last_flash_on > 500 ) {
-        digitalWrite(13, LOW);
+    if ( digitalRead(LED_BUILTIN) == HIGH && millis() - last_flash_on > 500 ) {
+        digitalWrite(LED_BUILTIN, LOW);
     }
     if ( millis() - old_time > 1100 ) {
         if ( air.cmdPing() ) {

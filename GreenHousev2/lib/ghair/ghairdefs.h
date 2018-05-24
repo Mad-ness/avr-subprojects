@@ -20,8 +20,11 @@ typedef struct AirPacket {
     int8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
     // size of a entire packet
-    uint8_t size() {
+    uint8_t size_ext() {
         return sizeof(command) + sizeof(address) + sizeof(length) + length;
+    }
+    uint8_t size() {
+        return sizeof(this);
     }
     void flush() {
         command = 0x0; address = 0x0; length = 0x0;

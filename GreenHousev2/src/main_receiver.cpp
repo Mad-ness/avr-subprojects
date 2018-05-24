@@ -53,8 +53,6 @@ void setup(void) {
     digitalWrite(13, LOW);
 }
 
-
-
 void loop(void) {
     air.loop();
     delay(3000);

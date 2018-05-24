@@ -43,7 +43,7 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
         pkt.length = AIR_MAX_DATA_SIZE;
     memcpy(&pkt.data, data, pkt.length);
     this->stopListening();
-    bool result = this->m_rf24.write(&pkt, pkt.size());
+    bool result = this->m_rf24.write(&pkt, sizeof(pkt));
     this->startListening();
     return result;
 }

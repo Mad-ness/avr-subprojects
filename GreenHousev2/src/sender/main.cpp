@@ -43,7 +43,7 @@ void handleData(AirPacket *pkt) {
 }
 
 void setup(void) {
-    Serial.begin(57600);
+    Serial.begin(115200);
     printf_begin();
     air.setup();
     air.onGetData(&handleData);

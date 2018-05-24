@@ -7,8 +7,8 @@ GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_p
 {
     //this->m_pipes.read[0] = read_pipe;
     //this->m_pipes.write[0] = write_pipe;
-    memcpy(this->m_pipes.read, read_pipe, AIR_ADDRESS_SIZE);
-    memcpy(this->m_pipes.write, write_pipe, AIR_ADDRESS_SIZE);
+    memcpy(&this->m_pipes.read, read_pipe, AIR_ADDRESS_SIZE);
+    memcpy(&this->m_pipes.write, write_pipe, AIR_ADDRESS_SIZE);
 }
 
 RF24 *GHAir::rf24() {

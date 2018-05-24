@@ -67,13 +67,17 @@ void ping_pong_game(AirPacket *pkt) {
             sprintf(str, "Received value: %03d", data++);
             printlogln(str);
             delay(1000);
-            while ( ! air.sendData(&data, pkt->length) );
+            air.sendData(&data, pkt->length);
             if ( data > 15 ) {
                 air.sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
                 data = 0;
             }
             break;
-    }}
+        case AIR_CMD_RESET:
+            printlogln("Getting the Reset command. Executing it");
+            resetBoard();
+            break;
+    }
 
 void setup(void) {
     Serial.begin(115200);

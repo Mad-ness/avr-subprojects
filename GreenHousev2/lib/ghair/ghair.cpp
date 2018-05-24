@@ -16,12 +16,21 @@ RF24 *GHAir::rf24() {
 }
 
 void GHAir::setup() {
+    this->setNumAttemps(10);
     this->m_rf24.begin();
     this->m_rf24.setPALevel(RF24_PA_LOW);
     this->m_rf24.setDataRate(RF24_250KBPS);
     this->m_rf24.openReadingPipe(1, this->m_pipes.read);
     this->m_rf24.openWritingPipe(this->m_pipes.write);
     this->m_rf24.startListening();
+}
+
+void GHAir::setNumAttemps(uint8_t num) {
+    this->m_numAttempts = num;
+}
+
+uint8_t GHAir::getNumAttempts() {
+    return this->m_numAttempts;
 }
 
 void GHAir::startListening() {
@@ -60,10 +69,21 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
     this->stopListening();
 
 #ifdef DEBUG_AIR
-    Serial.println("  >> Stopped to listen to the air");
+    Serial.println("  >> Stopped listen to the air");
 #endif
 
-    bool result = this->m_rf24.write(&pkt, sizeof(pkt));
+    uint8_t attempts = 0;
+    bool result = false;
+    while ( attempts++ < this->m_numAttempts ) {
+        if ( this->m_rf24.write(&pkt, sizeof(pkt)) ) {
+            result = true;
+            break;
+        }
+#ifdef DEBUG_AIR
+        Serial.print("  >>>> Used "); Serial.print(attempts);
+        Serial.println(" attempts.");
+#endif
+    }
 
 #ifdef DEBUG_AIR
     if ( result ) {

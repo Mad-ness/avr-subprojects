@@ -13,6 +13,7 @@ private:
         byte read[AIR_ADDRESS_SIZE];
         byte write[AIR_ADDRESS_SIZE];
     } m_pipes;
+    uint8_t m_numAttempts;
     //byte m_address[AIR_ADDRESS_SIZE][2];
     on_packet_handler_t m_handler;
     AirPacket m_packet;
@@ -23,6 +24,8 @@ public:
     RF24 *rf24();
     void setup();
     void loop();
+    void setNumAttemps(uint8_t);
+    uint8_t getNumAttempts();
     bool hasData();
     // returns True if a packet is delivered
     bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);

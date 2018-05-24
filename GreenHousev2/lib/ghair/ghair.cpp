@@ -96,7 +96,7 @@ bool GHAir::cmdPong() {
 
 bool GHAir::cmdPing() {
     char msg[] = "Hello, bro";
-    return this->sendPacket(AIR_CMD_PING, 0x0, strlen(msg), &msg);
+    return this->sendPacket(AIR_CMD_PING, 0x0, strlen(msg), msg);
 }
 
 /*

@@ -24,16 +24,16 @@ void handleData(AirPacket *pkt) {
             break;
         case AIR_CMD_PING:
             if ( air.cmdPong() ) {
-                sprintf(msg, "Ping received and Pong is sent");
+                sprintf(msg, "[ OK ] Ping received and Pong is sent");
             } else {
-                sprintf(msg, "Ping received and Pong failed to send");
+                sprintf(msg, "[FAIL] Ping received and Pong failed to send");
             }
             break;
         case AIR_CMD_PONG:
             if ( air.cmdPing() ) {
-                sprintf(msg, "Pong received and Ping is sent");
+                sprintf(msg, "[ OK ] Pong received and Ping is sent");
             } else {
-                sprintf(msg, "Pong received and Pong failed to send");
+                sprintf(msg, "[FAIL] Pong received and Pong failed to send");
             }
             break;
     }
@@ -64,9 +64,9 @@ void loop(void) {
     if ( millis() - old_time > 1000 ) {
         Serial.println("Time to send a ping packet");
         if ( air.cmdPing() ) {
-            Serial.println("Regular Ping command is sent.");
+            Serial.println("[   OK  ] Regular Ping command is sent.");
         } else {
-            Serial.println("Failed to sent a regular Ping packet");
+            Serial.println("[  FAIL ] Failed to sent a regular Ping packet");
         }
         old_time = millis();
     }

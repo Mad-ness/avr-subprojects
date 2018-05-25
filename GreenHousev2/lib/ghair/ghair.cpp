@@ -123,7 +123,7 @@ void GHAir::onGetDataStandard() {
         const AirPacket &pkt = this->m_packet;
 #ifdef DEBUG_AIR
         char str[80];
-        sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, pkt.command, pkt.address, pkt.length);
+        sprintf(str, "%03d. InCommand 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, pkt.command, pkt.address, pkt.length);
         Serial.print(str);
 #endif // DEBUG_AIR
         switch ( pkt.command ) {

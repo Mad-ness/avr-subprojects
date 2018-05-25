@@ -19,27 +19,31 @@ private:
     AirPacket m_packet;
     void startListening();
     void stopListening();
+    void onReceiveCmd();
+    // handle requests
+    bool onWriteEEPROM(uint8_t address, int8_t value);
+    bool onReadEEPROM(uint8_t address);
+    void onGetDataStandard();
+    void onResetBoard();
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();
+    AirPacket &packet();
+    void setHandler(on_packet_handler_t handler);
     void setup();
     void loop();
     void setNumAttemps(uint8_t);
     uint8_t getNumAttempts();
-    bool hasData();
     // returns True if a packet is delivered
     bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);
     // Air commands
     bool sendPing();
     bool sendPong();
     bool sendResetBoard();
-    void resetBoard();
     bool sendData(void *data, uint8_t len);
-    void sendWriteEEPROM(const int8_t addr, const uint8_t value);
-    uint8_t sendReadEEPROM(const int8_t addr);
-    // void onGetData(void (*func)(AirPacket *packet));
-    void onGetData(on_packet_handler_t handler);
-    AirPacket &packet();
+    // responses to requests
+    bool sendWriteEEPROM(uint8_t address, int8_t value);
+    bool sendReadEEPROM(uint8_t address);
 };
 
 #endif // __GH_AIR_H__

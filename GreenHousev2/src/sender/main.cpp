@@ -1,8 +1,7 @@
 #include <Arduino.h>
+#include <EEPROM.h>
 #include <printf.h>
 #include <ghair.h>
-
-uint8_t cycles_cnt = 0;
 
 GHAir air(7, 8, "1Node", "2Node");
 long long last_flash_on = 0;
@@ -16,39 +15,11 @@ long long last_flash_on = 0;
 #endif
 
 
-void handleData(AirPacket *pkt) {
-    int8_t cmd = pkt->command;
-    int8_t address = pkt->address;
-    int8_t length = pkt->length;
+uint8_t memaddr = 0;
+int8_t memval = 0;
+int8_t buffer = 0;
 
-    char str[80];
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes), Msg: %s\n", cycles_cnt++, cmd, address, length, (char*)pkt->data);
-    Serial.print(str);
-//    air.packet().flush();
-    char msg[50];
-    switch ( cmd ) {
-        case AIR_CMD_UNDEF:
-            sprintf(msg, "     Undefined command received. Do nothing");
-            break;
-        case AIR_CMD_PING:
-            if ( air.sendPong() ) {
-                sprintf(msg, "[ OK ] Ping received and Pong is sent");
-            } else {
-                sprintf(msg, "[FAIL] Ping received and Pong failed to send");
-            }
-            break;
-        case AIR_CMD_PONG:
-            if ( air.sendPing() ) {
-                sprintf(msg, "[ OK ] Pong received and Ping is sent");
-            } else {
-                sprintf(msg, "[FAIL] Pong received and Pong failed to send");
-            }
-            break;
-    }
-    Serial.println(msg);
-    digitalWrite(LED_BUILTIN, HIGH);
-    last_flash_on = millis();
-}
+
 
 void ping_pong_game(AirPacket *pkt) {
     int8_t cmd = pkt->command;
@@ -56,24 +27,36 @@ void ping_pong_game(AirPacket *pkt) {
     int8_t length = pkt->length;
 
     char str[80];
+    /*
     sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
     printlog(str);
+    */
+    int ee_cell;
 
     switch ( pkt->command ) {
-        case AIR_CMD_DATA:
-            char str[30];
-            uint16_t data;
-            memcpy(&data, pkt->data, pkt->length);
-            sprintf(str, "Received value: %03d", data++);
-            printlogln(str);
-            delay(1000);
-            if ( data > 15 ) {
-                air.sendResetBoard();
-                data = 0;
-            } else {
-                air.sendData(&data, pkt->length);
-            }
+        case AIR_CMD_OUT_PONG:
+            printlogln("Pong received, remote node  alive");
             break;
+        case AIR_CMD_OUT_GET_EEPROM:
+            memcpy(&ee_cell, pkt->data, pkt->length);
+            sprintf(str, "Received EEPROM data %d from %2x address\0", ee_cell, address);
+            printlogln(str);
+            break;
+        case AIR_CMD_OUT_WRITE_EEPROM_OK:
+            printlogln("EEPROM updating OK");
+            break;
+        case AIR_CMD_OUT_WRITE_EEPROM_FAIL:
+            printlogln("EEPROM updating FAIL");
+            break;
+        case AIR_CMD_OUT_CMD1:
+            struct {
+                uint8_t hour;
+                uint8_t minute;
+                uint8_t second;
+            } t;
+            memcpy(&t, pkt->data, pkt->length);
+            sprintf(str, "Remote time: %02d:%02d:%02d\n", t.hour, t.minute, t.second);
+            printlog(str);
     }
 }
 
@@ -81,7 +64,7 @@ void setup(void) {
     Serial.begin(115200);
     printf_begin();
     air.setup();
-    air.onGetData(&ping_pong_game);
+    air.setHandler(&ping_pong_game);
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
     Serial.println("  ====[ Started working (sender) ]====");
@@ -93,28 +76,38 @@ long cnt = 0;
 
 bool is_sent = false;
 
-void loop() {
+void loop2() {
     air.loop();
-    if ( is_sent ) return;
-    uint16_t ball = 0;
     printlogln("Kicking off a ball...");
-    while ( ! air.sendData(&ball, sizeof(ball)) );
-    is_sent = true;
 }
 
-void loop2(void) {
+void script() {
+    long long mls = millis();
+    if ( mls % 3000 == 0 ) {
+        printlogln("  >> requesting remote time ...");
+        air.sendPacket(AIR_CMD_IN_CMD1, AIR_ADDR_NULL, 0x0, 0x0);
+    }
+    else if ( mls % 4000 == 0 ) {
+        printlogln("  >> sending PING ...");
+        air.sendPing();
+    } else if ( mls % 7000 == 0 ) {
+        memaddr++;
+        memval += 5;
+        printlogln("  >> sending WRITE_EEPROM ...");
+        air.sendWriteEEPROM(memaddr, memval);
+    } else if ( mls % 11000 == 0 ) {
+        printlogln("  >> sending READ_EEPROM ...");
+        air.sendReadEEPROM(memaddr);
+    }
+
+    if ( memval > 200 ) {
+        air.sendResetBoard();
+        memval = 0;
+    }
+}
+
+void loop(void) {
     air.loop();
-    if ( digitalRead(LED_BUILTIN) == HIGH && millis() - last_flash_on > 500 ) {
-        digitalWrite(LED_BUILTIN, LOW);
-    }
-    if ( millis() - old_time > 3000 ) {
-        if ( air.sendPing() ) {
-            Serial.println("[   OK  ] Regular Ping command is sent.");
-        } else {
-            Serial.println("[  FAIL ] Failed to sent a regular Ping packet");
-        }
-        old_time = millis();
-    }
-//    if ( ++cnt % 100 == 0 )
-//        Serial.println(cnt);
+    script();
+    return ;
 }

@@ -1,13 +1,20 @@
 #include <EEPROM.h>
+#include <avr/wdt.h>
 #include <ghair.h>
 
-void (*resetBoardVector)(void) = 0;
+// void (*resetBoardVector)(void) = 0;
+#ifdef DEBUG_AIR
+uint16_t cycles_cnt = 0;
+#endif
+
+void resetBoardVector() {
+    wdt_enable(WDTO_15MS);
+    while (1); // wait until the reset
+}
 
 GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe)
 : m_rf24(ce_pin, csn_pin)
 {
-    //this->m_pipes.read[0] = read_pipe;
-    //this->m_pipes.write[0] = write_pipe;
     memcpy(&this->m_pipes.read, read_pipe, AIR_ADDRESS_SIZE);
     memcpy(&this->m_pipes.write, write_pipe, AIR_ADDRESS_SIZE);
 }
@@ -55,13 +62,13 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
         pkt.length = AIR_MAX_DATA_SIZE;
 
 #ifdef DEBUG_AIR
-    Serial.println("  >>> Prepare a package for sending");
     char info[40];
-    sprintf(info, "  >>> Cmd: %0x, Addr: %0x, Length %d (bytes)", cmd, addr, pkt.length);
+    sprintf(info, ">>> SENDing Cmd: 0x%0x, Addr: 0x%0x, Length %d (bytes)", cmd, addr, pkt.length);
     Serial.println(info);
 #endif
-
-    memcpy(&pkt.data, data, pkt.length);
+    if ( pkt.length > 0 ) {
+        memcpy(&pkt.data, data, pkt.length);
+    }
 
 #ifdef DEBUG_AIR
     Serial.println("  >> Copied data to the packet buffer");
@@ -97,52 +104,97 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
     return result;
 }
 
-bool GHAir::hasData() {
-    return this->m_rf24.available();
-}
-
-void GHAir::sendWriteEEPROM(const int8_t addr, uint8_t value) {
-    EEPROM.write(addr, value);
-}
-
-uint8_t GHAir::sendReadEEPROM(const int8_t addr) {
-    return EEPROM.read(addr);
-}
-
 bool GHAir::sendPong() {
     char greenhouse[] = "Pong:GreenHouse\0";
-    return this->sendPacket(AIR_CMD_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
+    return this->sendPacket(AIR_CMD_OUT_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
 }
 
 bool GHAir::sendPing() {
     char msg[] = "Hello, bro\0";
-    return this->sendPacket(AIR_CMD_PING, 0x0, sizeof(msg)+1, msg);
+    return this->sendPacket(AIR_CMD_IN_PING, 0x0, sizeof(msg)+1, msg);
 }
 
-/*
-void GHAir::onGetData(void (*func)(AirPacket *packet)) {
-    func(&this->packet());
-}
-*/
-void GHAir::onGetData(on_packet_handler_t handler) {
+void GHAir::setHandler(on_packet_handler_t handler) {
     this->m_handler = handler;
 }
 
+void GHAir::onGetDataStandard() {
+    if ( 1 ) {
+        const AirPacket &pkt = this->m_packet;
+#ifdef DEBUG_AIR
+        char str[80];
+        sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, pkt.command, pkt.address, pkt.length);
+        Serial.print(str);
+#endif // DEBUG_AIR
+        switch ( pkt.command ) {
+            case AIR_CMD_IN_PING:
+                this->sendPong();
+                break;
+            case AIR_CMD_IN_RESET:
+                this->onResetBoard();
+                break;
+            case AIR_CMD_IN_GET_EEPROM:
+                this->onReadEEPROM(pkt.address);
+                break;
+            case AIR_CMD_IN_WRITE_EEPROM:
+                this->onWriteEEPROM(pkt.address, pkt.data[0]);
+                break;
+            default:
+                if ( this->m_handler != NULL ) {
+                    this->m_handler(&this->m_packet);
+                }
+                break;
+        }
+    }
+}
+
 void GHAir::loop() {
-    if ( this->m_rf24.available() && this->m_handler != NULL ) {
+    if ( this->m_rf24.available() ) {
         this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
-        this->m_handler(&this->m_packet);
+        this->onGetDataStandard();
     }
 }
 
 bool GHAir::sendData(void *data, uint8_t len) {
-    return this->sendPacket(AIR_CMD_DATA, AIR_ADDR_NULL, len, data);
+    return this->sendPacket(AIR_CMD_IN_PING, AIR_ADDR_NULL, len, data);
 }
 
 bool GHAir::sendResetBoard() {
-    return this->sendPacket(AIR_CMD_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, 0x0);
 }
 
-void GHAir::resetBoard() {
+void GHAir::onResetBoard() {
     resetBoardVector();
+}
+
+bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {
+    bool result = false;
+    int8_t buf = EEPROM.read(address);
+    if ( buf != value ) {
+        EEPROM.write(address, value);
+        if ( EEPROM.read(address) == value ) {
+            result = true;
+        }
+    } else {
+        result = true;
+    }
+    if ( result ) {
+        result = this->sendPacket(AIR_CMD_OUT_WRITE_EEPROM_OK, address, 0x0, 0x0);
+    } else {
+        result = this->sendPacket(AIR_CMD_OUT_WRITE_EEPROM_FAIL, address, 0x0, 0x0);
+    }
+    return result;
+}
+
+bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
+    return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, address, sizeof(value), &value);
+}
+
+bool GHAir::sendReadEEPROM(uint8_t address) {
+    return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, 0x0);
+}
+
+bool GHAir::onReadEEPROM(uint8_t address) {
+    int8_t buf = EEPROM.read(address);
+    return this->sendPacket(AIR_CMD_OUT_GET_EEPROM, address, sizeof(buf), &buf);
 }

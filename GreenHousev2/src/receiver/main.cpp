@@ -83,9 +83,9 @@ long long old_time = 0;
 void loop(void) {
     air.loop();
     if ( millis() % 1000 == 0 ) {
-        if ( (++time_second) > 60 ) {
+        if ( (++time_second) >= 60 ) {
             time_second = 0;
-            if ( (++time_minute) > 60 ) {
+            if ( (++time_minute) >= 60 ) {
                 time_minute = 0;
                 time_hour++;
             }

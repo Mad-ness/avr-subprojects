@@ -22,9 +22,9 @@ int8_t buffer = 0;
 
 
 void ping_pong_game(AirPacket *pkt) {
-    int8_t cmd = pkt->command;
-    const int8_t address = pkt->address;
-    const int8_t length = pkt->length;
+    uint8_t cmd = pkt->command;
+    const uint8_t address = pkt->address;
+    const uint8_t length = pkt->length;
 
     char str[80];
     /*

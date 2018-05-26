@@ -36,7 +36,7 @@ public:
     void setNumAttemps(uint8_t);
     uint8_t getNumAttempts();
     // returns True if a packet is delivered
-    bool sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data);
+    bool sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, void *data);
     // Air commands
     bool sendPing();
     bool sendPong();

@@ -53,7 +53,7 @@ AirPacket &GHAir::packet() {
     return this->m_packet;
 }
 
-bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, void *data) {
+bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, void *data) {
     AirPacket pkt;
     pkt.command = cmd;
     pkt.address = addr;

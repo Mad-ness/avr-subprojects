@@ -80,8 +80,8 @@ static uint8_t AirResponseFail(const uint8_t cmd) {
 struct AirPacket {
     uint8_t command;
     //AirCommand command;
-    int8_t address;
-    int8_t length;      // length of the data
+    uint8_t address;
+    uint8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
     // size of a entire packet
     uint8_t size() {

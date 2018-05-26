@@ -26,9 +26,9 @@ GHAir air(7, 8, "2Node", "1Node");
 long long last_flash_on = 0;
 
 void ping_pong_game(AirPacket *pkt) {
-    int8_t cmd = pkt->command;
-    int8_t address = pkt->address;
-    int8_t length = pkt->length;
+    uint8_t cmd = pkt->command;
+    uint8_t address = pkt->address;
+    uint8_t length = pkt->length;
 
     char str[80];
 /*

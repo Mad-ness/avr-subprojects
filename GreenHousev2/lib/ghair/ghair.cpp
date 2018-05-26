@@ -63,7 +63,7 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
 
 #ifdef DEBUG_AIR
     char info[40];
-    sprintf(info, ">>> SENDing Cmd: 0x%0x, Addr: 0x%0x, Length %d (bytes)", cmd, addr, pkt.length);
+    sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Length %d (bytes)", cmd, addr, pkt.length);
     Serial.println(info);
 #endif
     if ( pkt.length > 0 ) {
@@ -203,14 +203,10 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     AirPacket pkt(in_pkt);
     memcpy(&pkt.data, data, datalen);
     pkt.length = datalen;
-    if ( resp_ok_or_fail ) {
-        setAirResponseOk(pkt.command);
-    } else {
-        setAirResponseFail(pkt.command);
-    }
+    pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR
     char str[80];
-    sprintf(str, "     RESPONSE func:%02x, good:%d, datalen:%02d (bytes)\n", getAirResponseOnCmd(pkt.command), AirResponseHasSuccess(pkt.command), pkt.length);
+    sprintf(str, "     RESPONSE func:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), pkt.length);
     Serial.print(str);
 #endif // DEBUG_AIR
     return this->sendPacket(pkt.command, pkt.address, sizeof(pkt.length), &pkt.data);

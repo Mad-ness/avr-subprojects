@@ -65,17 +65,13 @@ inline static uint8_t getAirResponseOnCmd(const uint8_t cmd) {
     return cmd & 0x3F; // clears two high bits and returns remains
 }
 
-static uint8_t setAirResponseOk(const uint8_t cmd) {
-    uint8_t out_cmd = cmd;
-    out_cmd |= (1 << 7) | (1<<6);
-    return out_cmd;
+inline static void setAirResponseOk(uint8_t *cmd) {
+    *cmd |= (1 << 7) | (1<<6);
 }
 
-static uint8_t setAirResponseFail(const uint8_t cmd) {
-    uint8_t out_cmd = cmd;
-    out_cmd |= (1 << 7);
-    out_cmd &= ~(1 << 6);
-    return out_cmd;
+inline static void setAirResponseFail(uint8_t *cmd) {
+    *cmd |= (1 << 7);
+    *cmd &= ~(1 << 6);
 }
 
 
@@ -86,6 +82,22 @@ struct AirPacket {
     uint8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
     // size of a entire packet
+    inline uint8_t getCommand() {
+        return command & 0x1F;
+    }
+    inline bool isResponse() {
+        return ( command & AIR_CMD_RESP ) == AIR_CMD_RESP;
+    }
+    inline bool isGoodResponse() {
+        return ( command & ( AIR_CMD_RESP & AIR_CMD_RESP_GOOD )) == ( AIR_CMD_RESP & AIR_CMD_RESP_GOOD );
+    }
+    void markAsResponse(const bool with_good_answer) {
+        command |= ( 1 << 7 );
+        if ( with_good_answer )
+            command |= ( 1 << 6 );
+        else
+            command &= ~( 1 << 6 );
+    }
     uint8_t size() {
         return sizeof(command) + sizeof(address) + sizeof(length) + length;
     }

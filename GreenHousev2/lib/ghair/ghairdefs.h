@@ -61,8 +61,8 @@ inline static bool AirResponseHasSuccess(const uint8_t cmd) {
     return true ? ( cmd & 0x40 ) == 0x40 : false;
 }
 
-inline static uint8_t AirResponseOnCmd(const uint8_t cmd) {
-    return cmd & 0x1C; // clears two high bits and returns remains
+inline static uint8_t getAirResponseOnCmd(const uint8_t cmd) {
+    return cmd & 0x3F; // clears two high bits and returns remains
 }
 
 static uint8_t setAirResponseOk(const uint8_t cmd) {

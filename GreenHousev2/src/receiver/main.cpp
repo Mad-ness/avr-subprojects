@@ -71,10 +71,12 @@ void loop(void) {
                 time_hour++;
             }
         }
-        char str[46];
-        sprintf(str, "Current time: %02d:%02d:%02d\n",
-                time_hour, time_minute, time_second);
-        printlog(str);
+        if ( millis() % 10000 == 0 ) {
+            char str[46];
+            sprintf(str, "Current time: %02d:%02d:%02d\n",
+                    time_hour, time_minute, time_second);
+                printlog(str);
+        }
     }
     return;
 }

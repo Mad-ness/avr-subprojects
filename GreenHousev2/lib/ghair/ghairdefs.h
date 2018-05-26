@@ -85,6 +85,7 @@ struct AirPacket {
     inline uint8_t getCommand() {
         return command & 0x1F;
     }
+
     inline bool isResponse() {
         return ( command & AIR_CMD_RESP ) == AIR_CMD_RESP;
     }

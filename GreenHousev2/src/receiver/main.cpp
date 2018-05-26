@@ -26,25 +26,23 @@ GHAir air(7, 8, "2Node", "1Node");
 long long last_flash_on = 0;
 
 void ping_pong_game(AirPacket *pkt) {
-    uint8_t cmd = pkt->command;
-    uint8_t address = pkt->address;
-    uint8_t length = pkt->length;
-
-    char str[80];
-/*
-    sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
-    printlog(str);
-*/
-    int ee_cell;
-    switch ( pkt->command ) {
-        case AIR_CMD_IN_CMD1:
-            struct {
-                uint8_t hour = time_hour;
-                uint8_t minute = time_minute;
-                uint8_t second = time_second;
-            } pkt_time;
-            air.sendResponse(*pkt, true, sizeof(pkt_time), &pkt_time);
-            break;
+    if ( pkt->isResponse() ) {
+        switch ( pkt->getCommand() ) {
+            case AIR_CMD_IN_PING:
+                printlogln("[ooo] Remote host is alive");
+                break;
+        }
+    } else {
+        switch ( pkt->command ) {
+            case AIR_CMD_IN_CMD1:
+                struct {
+                    uint8_t hour = time_hour;
+                    uint8_t minute = time_minute;
+                    uint8_t second = time_second;
+                } pkt_time;
+                air.sendResponse(*pkt, false, sizeof(pkt_time), &pkt_time);
+                break;
+        }
     }
 }
 
@@ -72,10 +70,12 @@ void loop(void) {
             }
         }
         if ( millis() % 10000 == 0 ) {
-            char str[46];
+            char str[30];
             sprintf(str, "Current time: %02d:%02d:%02d\n",
                     time_hour, time_minute, time_second);
                 printlog(str);
+        } else if ( millis() % 7000 == 0 ) {
+            air.sendPing();
         }
     }
     return;

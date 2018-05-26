@@ -32,10 +32,8 @@ void ping_pong_game(AirPacket *pkt) {
     printlog(str);
     */
     int ee_cell;
-    switch ( cmd ) {
-        case AIR_CMD_RESP:
-            int8_t resp_cmd = pkt->command & 0x1F;
-            switch ( resp_cmd ) {
+    if ( pkt->isResponse() ) {
+             switch ( pkt->getCommand() ) {
                 case AIR_CMD_IN_PING:
                     printlogln("Pong received, remote node alive");
                     break;
@@ -62,7 +60,8 @@ void ping_pong_game(AirPacket *pkt) {
                     printlog(str);
                     break;
             }
-            break;
+    } else {
+        printlogln("Received NOT a response");
     }
 }
 
@@ -97,6 +96,7 @@ void script() {
         printlogln("  >> sending PING ...");
         air.sendPing();
 */
+/*
     } else if ( mls % 7000 == 0 ) {
         memaddr++;
         memval += 5;
@@ -105,6 +105,7 @@ void script() {
     } else if ( mls % 11000 == 0 ) {
         printlogln("  >> sending READ_EEPROM ...");
         air.sendReadEEPROM(memaddr);
+*/
     }
 
     if ( memval > 200 ) {

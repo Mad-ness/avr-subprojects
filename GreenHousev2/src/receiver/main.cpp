@@ -41,6 +41,9 @@ void ping_pong_game(AirPacket *pkt) {
                     uint8_t second = time_second;
                 } pkt_time;
                 air.sendResponse(*pkt, false, sizeof(pkt_time), &pkt_time);
+                char str[30];
+                sprintf(str, "  <<<< Sent time %02d:%02d:%02d\n", pkt_time.hour, pkt_time.minute, pkt_time.second);
+                printlog(str);
                 break;
         }
     }

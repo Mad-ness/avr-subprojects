@@ -106,7 +106,8 @@ bool GHAir::sendPacket(const int8_t cmd, const int8_t addr, const int8_t len, vo
 
 bool GHAir::sendPong() {
     char greenhouse[] = "Pong:GreenHouse\0";
-    return this->sendPacket(AIR_CMD_OUT_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
+    // return this->sendPacket(AIR_CMD_OUT_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
+    return this->sendResponse(this->m_packet, true, sizeof(greenhouse), greenhouse);
 }
 
 bool GHAir::sendPing() {
@@ -160,30 +161,21 @@ bool GHAir::sendData(void *data, uint8_t len) {
 }
 
 bool GHAir::sendResetBoard() {
-    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, 0x0);
+    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, NULL);
 }
 
 void GHAir::onResetBoard() {
+    this->sendResponse(this->m_packet, true, 0x0, NULL);
     resetBoardVector();
 }
 
 bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {
     bool result = false;
-    int8_t buf = EEPROM.read(address);
-    if ( buf != value ) {
-        EEPROM.write(address, value);
-        if ( EEPROM.read(address) == value ) {
-            result = true;
-        }
-    } else {
+    EEPROM.update(address, value);
+    if ( EEPROM.read(address) == value ) {
         result = true;
     }
-    if ( result ) {
-        result = this->sendPacket(AIR_CMD_OUT_WRITE_EEPROM_OK, address, 0x0, 0x0);
-    } else {
-        result = this->sendPacket(AIR_CMD_OUT_WRITE_EEPROM_FAIL, address, 0x0, 0x0);
-    }
-    return result;
+    return this->sendResponse(this->m_packet, result, 0x0, NULL);
 }
 
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
@@ -191,10 +183,34 @@ bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
 }
 
 bool GHAir::sendReadEEPROM(uint8_t address) {
-    return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, 0x0);
+    return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, NULL);
 }
 
 bool GHAir::onReadEEPROM(uint8_t address) {
     int8_t buf = EEPROM.read(address);
-    return this->sendPacket(AIR_CMD_OUT_GET_EEPROM, address, sizeof(buf), &buf);
+    return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
+}
+
+/**
+  air_cmd - the command is the response on
+  resp_ok_or_fail - was the command executed successfully or not
+  addr - is written in the AirPacket.address
+  data* - a pointer to the data is being send in the AirPacket.data buffer
+  datalen - number of bytes in the data
+ */
+bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
+    AirPacket pkt(in_pkt);
+    memcpy(&pkt.data, data, datalen);
+    pkt.length = datalen;
+    if ( resp_ok_or_fail ) {
+        AirResponseOk(pkt.command);
+    } else {
+        AirResponseFail(pkt.command);
+    }
+#ifdef DEBUG_AIR
+    char str[80];
+    sprintf(str, "RESPONSE func:%02x, good:%d, datalen:%02d (bytes)\n", AirResponseOnCmd(pkt.command), AirResponseHasSuccess(pkt.command), pkt.length);
+    Serial.print(str);
+#endif // DEBUG_AIR
+    return this->sendPacket(pkt.command, pkt.address, sizeof(pkt.length), &pkt.data);
 }

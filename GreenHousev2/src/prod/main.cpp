@@ -1,52 +1,44 @@
 #include <Arduino.h>
-#ifndef DEBUG_AIR
 #include <manager.h>
 #include <ghdisplay.h>
-#else // DEBUG_AIR
 #include <ghair.h>
-#endif // DEBUG_AIR
-
-#ifndef DEBUG_AIR
+#include <ghairdefs.h>
+#include <ghrelay.h>
 
 Manager manager;
 
+volatile void AirHandler(AirPacket *packet) {
+    Manager &mgr = manager;
+    AirPacket &pkt = *packet;
+    int8_t buf8 = -1;
+    switch ( pkt.command ) {
+        case AIR_CMD_IN_RELAY_GET_STATE:
+            if ( pkt.address == AIR_RELAY_ID_0 ) {
+                buf8 = mgr.relay1().isOn() == LOW ? AIR_RELAY_STATE_OFF : AIR_RELAY_STATE_RUN;
+            }
+            mgr.air().sendResponse(pkt, true, sizeof(buf8), &buf8 );
+            break;
+        case AIR_CMD_IN_RELAY_GET_MODE:
+            if ( pkt.address == AIR_RELAY_ID_0 ) {
+                uint8_t result = mgr.relay1().getEEPROM(RELAY_ADDR_MODE);
+                mgr.air().sendResponse(pkt, result, &result, sizeof(result));
+            }
+            break;
+        case AIR_CMD_IN_RELAY_GET_OPER_TIME:
+            break;
+        case AIR_CMD_IN_RELAY_SET_OPER_TIME:
+            break;
+    }
+}
+
 void setup(void) {
+#ifdef DEBUG_AIR
+    Serial.begin(115200);
+#endif //
+    manager.air().setHandler(AirHandler);
     manager.setup();
     manager.display().showWelcomePage();
 }
 void loop(void) {
     manager.loop();
 }
-
-#else // DEBUG_AIR
-
-GHAir air(7, 8, "00001");
-void setup(void) {
-    Serial.begin(115200);
-    air.setup();
-}
-
-static uint8_t cycles_cnt = 0;
-
-void loop(void) {
-    if ( millis() % 1000 == 0 ) {
-
-        air.loop();
-        if ( air.hasData() ) {
-
-            AirPacket pkt = air.packet();
-            int8_t cmd = pkt.command;
-            int8_t address = pkt.address;
-            int8_t length = pkt.length;
-
-            char str[40];
-            sprintf(str, "%03d. Command 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, cmd, address, length);
-            Serial.print(str);
-        }
-    }
-    if ( millis() % 5000 == 0 ) {
-        air.cmdPing();
-    }
-}
-
-#endif // DEBUG_AIR

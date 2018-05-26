@@ -3,6 +3,7 @@
 
 GHRelayBase::GHRelayBase(const int8_t pin) {
     this->m_pin = pin;
+    this->m_mode = AIR_RELAY_MODE_AUTO;
     pinMode(pin, OUTPUT);
     digitalWrite(pin, LOW);
     this->m_workStarted = false;
@@ -10,10 +11,7 @@ GHRelayBase::GHRelayBase(const int8_t pin) {
     this->onEnd();
 };
 
-void GHRelayBase::setEEPROMAddress(const int addr) {
-}
-
-bool GHRelayBase::state() {
+bool GHRelayBase::isOn() {
     return this->m_workStarted;
 }
 void GHRelayBase::setRTC(GHRTC *rtc) {
@@ -94,7 +92,7 @@ void GHRelayBase::loop() {
     }
 };
 
-const int *GHRelayBase::getLength() {
+const uint16_t *GHRelayBase::getLength() {
     return &this->m_lenght;
 }
 
@@ -128,5 +126,4 @@ void GHRelayBase::setOperationalTime(const uint8_t hour, const uint8_t minute, c
 GHRelay::GHRelay(const int8_t pin)
 : GHRelayBase(pin)
 {
-
 }

@@ -37,32 +37,13 @@ void ping_pong_game(AirPacket *pkt) {
 */
     int ee_cell;
     switch ( pkt->command ) {
-        case AIR_CMD_OUT_PONG:
-            printlogln("Pong received, remote node  alive");
-            break;
-        case AIR_CMD_OUT_GET_EEPROM:
-            memcpy(&ee_cell, pkt->data, pkt->length);
-            sprintf(str, "Received EEPROM data %d from %2x address\0", ee_cell, address);
-            printlogln(str);
-            break;
-        case AIR_CMD_OUT_WRITE_EEPROM_OK:
-            printlogln("EEPROM updating OK");
-            break;
-        case AIR_CMD_OUT_WRITE_EEPROM_FAIL:
-            printlogln("EEPROM updating FAIL");
-            break;
         case AIR_CMD_IN_CMD1:
             struct {
                 uint8_t hour = time_hour;
                 uint8_t minute = time_minute;
                 uint8_t second = time_second;
             } pkt_time;
-            air.sendPacket(
-                AIR_CMD_OUT_CMD1,
-                AIR_ADDR_NULL,
-                sizeof(pkt_time),
-                &pkt_time
-            );
+            air.sendResponse(*pkt, true, sizeof(pkt_time), &pkt_time);
             break;
     }
 }

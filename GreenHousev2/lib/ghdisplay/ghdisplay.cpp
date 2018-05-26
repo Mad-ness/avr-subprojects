@@ -95,7 +95,7 @@ void GHDisplay::displayMainPage() {
     this->setCursor(0, 12);
     this->print(temp_str);
     this->setCursor(0, 24);
-    if ( this->m_relays[0]->state() == LOW ) {
+    if ( this->m_relays[0]->isOn() == LOW ) {
         this->print("Relay 0 : OFF\n");
     } else {
         this->print("Relay 0 : RUN\n");

@@ -23,8 +23,8 @@ int8_t buffer = 0;
 
 void ping_pong_game(AirPacket *pkt) {
     int8_t cmd = pkt->command;
-    int8_t address = pkt->address;
-    int8_t length = pkt->length;
+    const int8_t address = pkt->address;
+    const int8_t length = pkt->length;
 
     char str[80];
     /*
@@ -32,31 +32,37 @@ void ping_pong_game(AirPacket *pkt) {
     printlog(str);
     */
     int ee_cell;
-
-    switch ( pkt->command ) {
-        case AIR_CMD_OUT_PONG:
-            printlogln("Pong received, remote node  alive");
+    switch ( cmd ) {
+        case AIR_CMD_OUT_RESP:
+            int8_t resp_cmd = pkt->command & 0x1F;
+            switch ( resp_cmd ) {
+                case AIR_CMD_IN_PING:
+                    printlogln("Pong received, remote node alive");
+                    break;
+                case AIR_CMD_IN_GET_EEPROM:
+                    memcpy(&ee_cell, pkt->data, pkt->length);
+                    sprintf(str, "Received EEPROM data %d from %2x address\0", ee_cell, address);
+                    printlogln(str);
+                    break;
+                case AIR_CMD_IN_WRITE_EEPROM:
+                    if ( AirResponseHasSuccess(pkt->command) ) {
+                        printlogln("EEPROM updating OK");
+                    } else {
+                        printlogln("EEPROM updating FAIL");
+                    }
+                    break;
+                case AIR_CMD_IN_CMD1:
+                    struct {
+                        uint8_t hour;
+                        uint8_t minute;
+                        uint8_t second;
+                    } t;
+                    memcpy(&t, pkt->data, pkt->length);
+                    sprintf(str, "Remote time: %02d:%02d:%02d\n", t.hour, t.minute, t.second);
+                    printlog(str);
+                    break;
+            }
             break;
-        case AIR_CMD_OUT_GET_EEPROM:
-            memcpy(&ee_cell, pkt->data, pkt->length);
-            sprintf(str, "Received EEPROM data %d from %2x address\0", ee_cell, address);
-            printlogln(str);
-            break;
-        case AIR_CMD_OUT_WRITE_EEPROM_OK:
-            printlogln("EEPROM updating OK");
-            break;
-        case AIR_CMD_OUT_WRITE_EEPROM_FAIL:
-            printlogln("EEPROM updating FAIL");
-            break;
-        case AIR_CMD_OUT_CMD1:
-            struct {
-                uint8_t hour;
-                uint8_t minute;
-                uint8_t second;
-            } t;
-            memcpy(&t, pkt->data, pkt->length);
-            sprintf(str, "Remote time: %02d:%02d:%02d\n", t.hour, t.minute, t.second);
-            printlog(str);
     }
 }
 

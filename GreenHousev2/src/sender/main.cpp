@@ -91,12 +91,10 @@ void script() {
     if ( mls % 3000 == 0 ) {
         printlogln("  >> requesting remote time ...");
         air.sendPacket(AIR_CMD_IN_CMD1, AIR_ADDR_NULL, 0x0, 0x0);
-/*    }
+    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");
         air.sendPing();
-*/
-/*
     } else if ( mls % 7000 == 0 ) {
         memaddr++;
         memval += 5;
@@ -105,7 +103,6 @@ void script() {
     } else if ( mls % 11000 == 0 ) {
         printlogln("  >> sending READ_EEPROM ...");
         air.sendReadEEPROM(memaddr);
-*/
     }
 
     if ( memval > 200 ) {

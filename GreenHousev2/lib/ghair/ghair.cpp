@@ -192,9 +192,8 @@ bool GHAir::onReadEEPROM(uint8_t address) {
 }
 
 /**
-  air_cmd - the command is the response on
+  in_pkt - packet the response on which will be sent
   resp_ok_or_fail - was the command executed successfully or not
-  addr - is written in the AirPacket.address
   data* - a pointer to the data is being send in the AirPacket.data buffer
   datalen - number of bytes in the data
  */

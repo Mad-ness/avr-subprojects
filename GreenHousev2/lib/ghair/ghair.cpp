@@ -71,13 +71,13 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
     }
 
 #ifdef DEBUG_AIR
-    Serial.println("  >> Copied data to the packet buffer");
+//    Serial.println("  >> Copied data to the packet buffer");
 #endif
 
     this->stopListening();
 
 #ifdef DEBUG_AIR
-    Serial.println("  >> Stopped listen to the air");
+//    Serial.println("  >> Stopped listen to the air");
 #endif
 
     uint8_t attempts = 0;
@@ -122,6 +122,7 @@ void GHAir::setHandler(on_packet_handler_t handler) {
 void GHAir::onGetDataStandard() {
     if ( 1 ) {
         const AirPacket &pkt = this->m_packet;
+        if ( isAirResponse(pkt.command) ) return;
 #ifdef DEBUG_AIR
         char str[80];
         sprintf(str, "%03d. InCommand 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, pkt.command, pkt.address, pkt.length);
@@ -203,13 +204,13 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     memcpy(&pkt.data, data, datalen);
     pkt.length = datalen;
     if ( resp_ok_or_fail ) {
-        AirResponseOk(pkt.command);
+        setAirResponseOk(pkt.command);
     } else {
-        AirResponseFail(pkt.command);
+        setAirResponseFail(pkt.command);
     }
 #ifdef DEBUG_AIR
     char str[80];
-    sprintf(str, "RESPONSE func:%02x, good:%d, datalen:%02d (bytes)\n", AirResponseOnCmd(pkt.command), AirResponseHasSuccess(pkt.command), pkt.length);
+    sprintf(str, "     RESPONSE func:%02x, good:%d, datalen:%02d (bytes)\n", AirResponseOnCmd(pkt.command), AirResponseHasSuccess(pkt.command), pkt.length);
     Serial.print(str);
 #endif // DEBUG_AIR
     return this->sendPacket(pkt.command, pkt.address, sizeof(pkt.length), &pkt.data);

@@ -33,7 +33,7 @@ void ping_pong_game(AirPacket *pkt) {
     */
     int ee_cell;
     switch ( cmd ) {
-        case AIR_CMD_OUT_RESP:
+        case AIR_CMD_RESP:
             int8_t resp_cmd = pkt->command & 0x1F;
             switch ( resp_cmd ) {
                 case AIR_CMD_IN_PING:
@@ -92,10 +92,11 @@ void script() {
     if ( mls % 3000 == 0 ) {
         printlogln("  >> requesting remote time ...");
         air.sendPacket(AIR_CMD_IN_CMD1, AIR_ADDR_NULL, 0x0, 0x0);
-    }
+/*    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");
         air.sendPing();
+*/
     } else if ( mls % 7000 == 0 ) {
         memaddr++;
         memval += 5;

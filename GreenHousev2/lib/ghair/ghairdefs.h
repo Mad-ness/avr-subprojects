@@ -32,10 +32,8 @@
 #define AIR_CMD_IN_CMD2                 0x0D
 //#define AIR_CMD_OUT_CMD2                0x0E
 // This command is used by the GHAir::sendResponse method
-#define AIR_CMD_OUT_RESP                0x80 // 7th bit is set to 1
-#define AIR_CMD_OUT_RESP_UNDEF          0x00
-#define AIR_CMD_OUT_RESP_FAIL           0x40
-#define AIR_CMD_OUT_RESP_OK             0x60
+#define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
+#define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
 
 // Relays functions:
 // the address field sets the relay id (address=0 means relay1, etc)
@@ -51,28 +49,32 @@
 //#define AIR_CMD_OUT_RELAY_GET_MODE      0x59    // response
 
 
-// #define AirResponseOk(cmd)              ( cmd |= (1<<7) | (1<<6) | (1<<5) )
-// #define AirResponseFail(cmd)            ( cmd |= (1<<7) | (1<<6); cmd &= ~(1<<5) )
-// #define AirResponseUndef(cmd)           ( cmd |= (1<<7); cmd &= ~((1<<6)|(1<<5)) )
+// #define AirResponseOk(cmd)              ( cmd |= (1<<7) | (1<<6) )
+// #define AirResponseFail(cmd)            ( cmd |= (1<<7); cmd &= ~(1<<5) )
+// #define AirResponseUndef(cmd)           ( cmd |= (1<<7); cmd &= ~(1<<6 )
+
+inline static bool isAirResponse(const uint8_t cmd) {
+    return ( cmd & AIR_CMD_RESP ) == AIR_CMD_RESP;
+}
 
 inline static bool AirResponseHasSuccess(const uint8_t cmd) {
-    return true ? ( cmd & 0x60 ) : false;
+    return true ? ( cmd & 0x40 ) == 0x40 : false;
 }
 
 inline static uint8_t AirResponseOnCmd(const uint8_t cmd) {
-    return cmd & 0x1F; // clears three high bits and returns remains
+    return cmd & 0x1C; // clears two high bits and returns remains
 }
 
-static uint8_t AirResponseOk(const uint8_t cmd) {
+static uint8_t setAirResponseOk(const uint8_t cmd) {
     uint8_t out_cmd = cmd;
-    out_cmd |= (1<<7) | (1<<6) | (1<<5);
+    out_cmd |= (1 << 7) | (1<<6);
     return out_cmd;
 }
 
-static uint8_t AirResponseFail(const uint8_t cmd) {
+static uint8_t setAirResponseFail(const uint8_t cmd) {
     uint8_t out_cmd = cmd;
-    out_cmd |= (1<<7) | (1<<6);
-    out_cmd &= ~(1<<5);
+    out_cmd |= (1 << 7);
+    out_cmd &= ~(1 << 6);
     return out_cmd;
 }
 

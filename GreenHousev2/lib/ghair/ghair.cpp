@@ -107,7 +107,7 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
 bool GHAir::sendPong() {
     char greenhouse[] = "Pong:GreenHouse\0";
     // return this->sendPacket(AIR_CMD_OUT_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
-    return this->sendResponse(this->m_packet, true, sizeof(greenhouse), greenhouse);
+    return this->sendResponse(this->m_packet, true, sizeof(greenhouse)+1, greenhouse);
 }
 
 bool GHAir::sendPing() {
@@ -200,13 +200,11 @@ bool GHAir::onReadEEPROM(uint8_t address) {
  */
 bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
     AirPacket pkt(in_pkt);
-    memcpy(&pkt.data, data, datalen);
-    pkt.length = datalen;
     pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR
     char str[80];
     sprintf(str, "     RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), pkt.length);
     Serial.print(str);
 #endif // DEBUG_AIR
-    return this->sendPacket(pkt.command, pkt.address, sizeof(pkt.length), &pkt.data);
+    return this->sendPacket(pkt.command, pkt.address, datalen, data);
 }

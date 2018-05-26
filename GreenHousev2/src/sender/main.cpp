@@ -56,7 +56,7 @@ void ping_pong_game(AirPacket *pkt) {
                         uint8_t second;
                     } t;
                     memcpy(&t, pkt->data, pkt->length);
-                    sprintf(str, "Remote time: %02d:%02d:%02d\n", t.hour, t.minute, t.second);
+                    sprintf(str, "Remote time: %02d:%02d:%02d, packet length %d (bytes)\n", t.hour, t.minute, t.second, pkt->length);
                     printlog(str);
                     break;
             }

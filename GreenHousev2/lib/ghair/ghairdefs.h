@@ -31,7 +31,7 @@
 //#define AIR_CMD_OUT_CMD1                0x0C
 #define AIR_CMD_IN_CMD2                 0x0D
 //#define AIR_CMD_OUT_CMD2                0x0E
-// This defines are used by the GHAir::sendResponse method
+// These defines are used by the GHAir::sendResponse method
 #define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
 #define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
 

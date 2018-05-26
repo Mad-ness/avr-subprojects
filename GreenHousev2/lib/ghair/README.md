@@ -4,7 +4,9 @@
 
 Each packet is wrapped into the AirPacket structure as described in the ghairdefs.h.
 ```c++
-// This defines are used by the GHAir::sendResponse method
+...
+// This defines are used to recognize whether a packet is a response
+// and what a result of the response it has, if any
 #define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
 #define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
 ...
@@ -57,7 +59,7 @@ field is not treated by anyway until it is done.
 
 The **length** tells the data array length ( sizeof( data ) ).
 
-The **data** is a byte array max size of which is 29 bytes (32-sizeof(command) + sizeof(address) + sizeof(length)).
+The **data** is a byte array max size of which is 29 bytes (32-sizeof(command)-sizeof(address)-sizeof(length)).
 This is used for transmitting any kind of data by radio.
 
 ## The Command field
@@ -66,12 +68,12 @@ ghairdefs.h header file, they start as AIR_CMD_.
 
 There are the rules that applies to the **command**:
 - is a int8_t value
-- if the higher (7th) bit is set to 0, this is an initial command, the command is
-  sent by the initiator.
+- if the higher (7th) bit is set to 0, this is an initial command sent
+  by the initiator.
 - if the higher (7th) bit is set to 1, this is a response command, the response to
   the initiator that has asked the receiver recently.
-- there is a special command AIR_CMD_OUT_RESP == 0x80 that is used when a response
-  a required. In that case the following rules are applying:
+- there is a special command AIR_CMD_RESP == 0x80 that is used when a response
+  needed to be sent. In that case the following rules are applying:
   * if bit 6 is set to 1 then a response should be treated as the successful
     execution of a requested action (True response)
   * if bit 6 is set to 0 then a response is treated as the
@@ -105,14 +107,16 @@ pkt.command = AIR_CMD_IN_PING;  // Received a ping command
 // the reply command to the previous response, saying that
 // the requested operation is done with success
 pkt.command |= (1 << 7) | (1 << 6); // 11000000
+// or
+pkt.markAsResponse(true); // sets the bits 6 and 7
 // the reply command saying that the requested operation
 // has failed and negative response will come
 pkt.command |= (1 << 7); // 10000000
+// or
+pkt.markAsResponse(false); // sets the bit 7 and clear bit 6
 
-// the two commands make the response with undefined result
-pkt.command |= (1 << 7); pkt.command &= ~(1 << 6);
-
-// You can also define helpful functions
+// There are also several functions that do the same bit operations
+// like the methods of the AirPacket structure
 inline static AirResponseOk(const int8_t cmd) {
     int8_t out_cmd = cmd;
     out_cmd |= (1<<7) | (1<<6);
@@ -126,6 +130,8 @@ inline static AirResponseFail(const int8_t cmd) {
 }
 AirResponseOk(pkt.command);     // response with a positive result
 AirResponseFail(pkt.command);   // response with a negative result
+
+... // and some other commands
 ```
 Some commands do not require to have a result. So you can ignore setting the
 bit 6 and use any of the responses.

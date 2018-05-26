@@ -4,6 +4,10 @@
 
 Each packet is wrapped into the AirPacket structure as described in the ghairdefs.h.
 ```c++
+// This defines are used by the GHAir::sendResponse method
+#define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
+#define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
+...
 struct AirPacket {
     int8_t command;
     int8_t address;

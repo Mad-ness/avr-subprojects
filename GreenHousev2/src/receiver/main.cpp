@@ -14,7 +14,7 @@
 #define printflush()    ;
 #endif
 
-#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_11
+#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_01
 
 uint8_t memaddr = 0;
 int8_t memval = 0;

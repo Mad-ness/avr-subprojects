@@ -4,7 +4,7 @@
 #include <ghair.h>
 #include <ghairdefs.h>
 
-#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_11
+#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_01
 
 GHAir air(7, 8, "1Node", "2Node");
 long long last_flash_on = 0;
@@ -35,6 +35,8 @@ void ping_pong_game(AirPacket *pkt) {
     printlog(str);
     */
     int ee_cell;
+    sprintf(str, "Got the command - 0x%02x, isResponse - %d, airCmd - 0x%02x\n", pkt->command, pkt->isResponse(), pkt->getCommand());
+    printlog(str);
     if ( pkt->isResponse() ) {
              switch ( pkt->getCommand() ) {
                 case AIR_CMD_IN_PING:
@@ -98,9 +100,9 @@ void loop2() {
 
 void script() {
     long long mls = millis();
-    if ( mls % 3000 == 0 ) {
+    if ( mls % 5000 == 0 ) {
         //printlogln("  >> requesting remote time ...");
-        //air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
+        air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
 /*    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");

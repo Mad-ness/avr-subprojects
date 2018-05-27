@@ -61,17 +61,19 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
     if ( len > AIR_MAX_DATA_SIZE )
         pkt.length = AIR_MAX_DATA_SIZE;
 
-#ifdef DEBUG_AIR_TRACE
-    char info[40];
+#ifdef DEBUG_AIR_TRACE2
+    char info[50];
     sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Length %d (bytes)\0", cmd, addr, pkt.length);
     Serial.println(info);
-    if ( pkt.command == ( AIR_CMD_RESP & AIR_CMD_RESP & AIR_CMD_IN_UP ) {
-        sprintf(str, "Value of pkt.data in the sendPacket = %lu\n", pkt.data);
-        Serial.print(str);
+    if ( pkt.isResponse() && pkt.getCommand() == AIR_CMD_IN_UPTIME ) {
+        unsigned long uptime;
+        memcpy(&uptime, pkt.data, sizeof(uptime));
+        sprintf(info, "Value of pkt.data in the sendPacket = %lu\n", uptime);
+        Serial.print(info);
     }
 #endif
     if ( pkt.length > 0 ) {
-        memcpy(&pkt.data, data, pkt.length);
+        memmove(&pkt.data, data, pkt.length);
     }
 
 #ifdef DEBUG_AIR_TRACE
@@ -148,9 +150,9 @@ void GHAir::onGetDataStandard() {
                 break;
             case AIR_CMD_IN_UPTIME: {
                     unsigned long uptime = millis();
-                    this->sendResponse(pkt, true, sizeof(uptime), uptime);
+                    this->sendResponse(pkt, true, sizeof(uptime), &uptime);
 #ifdef DEBUG_AIR
-                    sprintf(str, "  == Current milliseconds %lu\n", uptime);
+                    sprintf(str, "  == Current milliseconds (local) %lu\n", uptime);
                     Serial.print(str);
 #endif // DEBUG_AIR
                 }
@@ -221,11 +223,11 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR
     char str[80];
-    sprintf(str, "     RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), in_pkt.length);
+    sprintf(str, "     Sending RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), pkt.length);
     Serial.print(str);
     if ( in_pkt.command == AIR_CMD_IN_UPTIME ) {
         unsigned long uptime;
-        memcpy(&uptime, in_pkt.data, in_pkt.length);
+        memcpy(&uptime, data, datalen);
         sprintf(str, "  << Sent data UPTIME, size=%d (bytes), value=%lu\n", sizeof(uptime), uptime);
         Serial.print(str);
     }

@@ -61,7 +61,7 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
     if ( len > AIR_MAX_DATA_SIZE )
         pkt.length = AIR_MAX_DATA_SIZE;
 
-#ifdef DEBUG_AIR
+#ifdef DEBUG_AIR_TRACE
     char info[40];
     sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Length %d (bytes)\0", cmd, addr, pkt.length);
     Serial.println(info);
@@ -70,13 +70,13 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
         memcpy(&pkt.data, data, pkt.length);
     }
 
-#ifdef DEBUG_AIR
+#ifdef DEBUG_AIR_TRACE
 //    Serial.println("  >> Copied data to the packet buffer");
 #endif
 
     this->stopListening();
 
-#ifdef DEBUG_AIR
+#ifdef DEBUG_AIR_TRACE
 //    Serial.println("  >> Stopped listen to the air");
 #endif
 
@@ -87,13 +87,13 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
             result = true;
             break;
         }
-#ifdef DEBUG_AIR
+#ifdef DEBUG_AIR_TRACE
         Serial.print("  >>>> Used "); Serial.print(attempts);
         Serial.println(" attempts.");
 #endif
     }
 
-#ifdef DEBUG_AIR
+#ifdef DEBUG_ADEBUG_AIR_TRACEIR
     if ( result ) {
         Serial.println("  >>> Packet sending OK");
     } else {

@@ -101,11 +101,11 @@ void script() {
     if ( mls % 3000 == 0 ) {
         printlogln("  >> requesting remote time ...");
         air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
-    }
+/*    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");
         air.sendPing();
-    } else if ( mls % 7000 == 0 ) {
+    } else if ( mls % 27000 == 0 ) {
         memaddr++;
         memval += 5;
         printlogln("  >> sending WRITE_EEPROM ...");
@@ -113,7 +113,7 @@ void script() {
     } else if ( mls % 11000 == 0 ) {
         printlogln("  >> sending READ_EEPROM ...");
         air.sendReadEEPROM(memaddr);
-    } else if ( millis() % 3200 == 0 ) {
+*/    } else if ( millis() % 3200 == 0 ) {
         char str[30];
         sprintf(str, "  >> this board uptime is %u\n", millis() / 1000);
         printlog(str);

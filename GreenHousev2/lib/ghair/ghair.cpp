@@ -149,11 +149,11 @@ void GHAir::onGetDataStandard() {
                 this->onWriteEEPROM(pkt.address, pkt.data[0]);
                 break;
             case AIR_CMD_IN_UPTIME: {
-                    unsigned long uptime = millis();
-                    this->sendResponse(pkt, true, sizeof(uptime), &uptime);
+                unsigned long uptime = millis();
+                this->sendResponse(pkt, true, sizeof(uptime), &uptime);
 #ifdef DEBUG_AIR
-                    sprintf(str, "  == Current milliseconds (local) %lu\n", uptime);
-                    Serial.print(str);
+                sprintf(str, "  == Current milliseconds (local) %lu\n", uptime);
+                Serial.print(str);
 #endif // DEBUG_AIR
                 }
                 break;

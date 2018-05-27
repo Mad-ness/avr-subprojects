@@ -41,6 +41,8 @@ void ping_pong_game(AirPacket *pkt) {
              switch ( pkt->getCommand() ) {
                 case AIR_CMD_IN_PING:
                     printlogln("Pong received, remote node alive");
+                    sprintf(str, "Round-trip time is %lu\n milliseconds\n");
+                    printlog(str);
                     break;
                 case AIR_CMD_IN_GET_EEPROM:
                     memcpy(&ee_cell, pkt->data, pkt->length);

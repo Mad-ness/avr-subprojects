@@ -112,13 +112,12 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
 
 bool GHAir::sendPong() {
     char greenhouse[] = "Pong:GreenHouse\0";
-    // return this->sendPacket(AIR_CMD_OUT_PONG, 0x0, sizeof(greenhouse)+1, greenhouse);
-    return this->sendResponse(this->m_packet, true, sizeof(greenhouse)+1, greenhouse);
+    return this->sendResponse(this->m_packet, true, this->m_packet.length, &this->m_packet.data);
 }
 
 bool GHAir::sendPing() {
-    char msg[] = "Hello, bro\0";
-    return this->sendPacket(AIR_CMD_IN_PING, 0x0, sizeof(msg)+1, msg);
+    unsigned long uptime = millis();
+    return this->sendPacket(AIR_CMD_IN_PING, 0x0, sizeof(uptime), &uptime);
 }
 
 void GHAir::setHandler(on_packet_handler_t handler) {
@@ -223,14 +222,16 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR
     char str[80];
-    sprintf(str, "     Sending RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), pkt.length);
+    sprintf(str, "     Sending RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), datalen);
     Serial.print(str);
+/*
     if ( in_pkt.command == AIR_CMD_IN_UPTIME ) {
         unsigned long uptime;
         memcpy(&uptime, data, datalen);
         sprintf(str, "  << Sent data UPTIME, size=%d (bytes), value=%lu\n", sizeof(uptime), uptime);
         Serial.print(str);
     }
+*/
 #endif // DEBUG_AIR
     return this->sendPacket(pkt.command, pkt.address, datalen, data);
 }

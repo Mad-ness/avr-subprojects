@@ -59,14 +59,14 @@ void ping_pong_game(AirPacket *pkt) {
                         uint8_t second;
                     } t;
                     memcpy(&t, pkt->data, pkt->length);
-                    sprintf(str, "Remote time: %02d:%02d:%02d, packet length %d (bytes)\n", t.hour, t.minute, t.second, pkt->length);
+                    sprintf(str, "     [ooo] Remote time: %02d:%02d:%02d, packet length %d (bytes)\n", t.hour, t.minute, t.second, pkt->length);
                     printlog(str);
                     break;
                 case AIR_CMD_IN_UPTIME: {
                         char str[30];
                         unsigned long uptime;
                         memcpy(&uptime, pkt->data, pkt->length);
-                        sprintf(str, "Remote board uptime %f seconds", (float)uptime/1000);
+                        sprintf(str, "     [ooo] Remote board uptime %f seconds", (float)uptime/1000);
                     }
                     break;
             }
@@ -115,7 +115,7 @@ void script() {
         air.sendReadEEPROM(memaddr);
 */    } else if ( millis() % 3200 == 0 ) {
         char str[30];
-        sprintf(str, "  >> this board uptime is %u\n", millis() / 1000);
+        sprintf(str, "  >> this board uptime is %u seconds\n", millis() / 1000);
         printlog(str);
         air.sendUptime();
     }

@@ -91,7 +91,7 @@ void loop(void) {
             air.sendPing();
         } else if ( millis() % 4000 == 0 ) {
             char str[30];
-            sprintf(str, "This board uptime is %u\n", millis());
+            sprintf(str, "This board uptime is %u seconds\n", millis()/1000);
             printlog(str);
         }
     }

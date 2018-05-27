@@ -127,6 +127,8 @@ void GHAir::onGetDataStandard() {
         sprintf(str, "%03d. InCommand 0x%02x, Address 0x%02x, Datalen: %02d (bytes)\n", cycles_cnt++, pkt.command, pkt.address, pkt.length);
         Serial.print(str);
 #endif // DEBUG_AIR
+        // Handle only initiating commands (not responses)
+        // pkt.command has to have bits 6 and 7 set to zero.
         switch ( pkt.command ) {
             case AIR_CMD_IN_PING:
                 this->sendPong();
@@ -166,7 +168,7 @@ bool GHAir::sendData(void *data, uint8_t len) {
 }
 
 bool GHAir::sendUptime() {
-    return this->sendPacket(AIR_CMD_IN_UPTIME, true, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_IN_UPTIME, AIR_ADDR_NULL, 0x0, NULL);
 }
 
 bool GHAir::sendResetBoard() {

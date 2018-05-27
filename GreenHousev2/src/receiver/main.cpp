@@ -34,12 +34,12 @@ void ping_pong_game(AirPacket *pkt) {
             case AIR_CMD_IN_PING:
                 printlogln("[ooo] Remote host is alive");
                 break;
-            case AIR_CMD_IN_UPTIME: {
+            case AIR_CMD_IN_UPTIME:
                     char str[40];
                     unsigned long uptime;
                     memcpy(&uptime, pkt->data, pkt->length);
                     sprintf(str, "Remote board uptime %d seconds", uptime/1000);
-                }
+                
                 break;
         }
     } else {
@@ -88,7 +88,7 @@ void loop(void) {
                     time_hour, time_minute, time_second);
             printlog(str);
         } else if ( millis() % 7000 == 0 ) {
-            air.sendPing();
+           // air.sendPing();
         } else if ( millis() % 4000 == 0 ) {
             char str[30];
             sprintf(str, "This board uptime is %u seconds\n", millis()/1000);

@@ -62,12 +62,12 @@ void ping_pong_game(AirPacket *pkt) {
                     sprintf(str, "     [ooo] Remote time: %02d:%02d:%02d, packet length %d (bytes)\n", t.hour, t.minute, t.second, pkt->length);
                     printlog(str);
                     break;
-                case AIR_CMD_IN_UPTIME: {
+                case AIR_CMD_IN_UPTIME:
                         char str[30];
                         unsigned long uptime;
                         memcpy(&uptime, pkt->data, pkt->length);
                         sprintf(str, "     [ooo] Remote board uptime %f seconds", (float)uptime/1000);
-                    }
+
                     break;
             }
     } else {
@@ -99,8 +99,8 @@ void loop2() {
 void script() {
     long long mls = millis();
     if ( mls % 3000 == 0 ) {
-        printlogln("  >> requesting remote time ...");
-        air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
+        //printlogln("  >> requesting remote time ...");
+        //air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
 /*    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");
@@ -121,7 +121,7 @@ void script() {
     }
 
     if ( memval > 200 ) {
-        air.sendResetBoard();
+        //air.sendResetBoard();
         memval = 0;
     }
 }

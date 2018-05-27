@@ -206,7 +206,7 @@ bool GHAir::onReadEEPROM(uint8_t address) {
   data* - a pointer to the data is being send in the AirPacket.data buffer
   datalen - number of bytes in the data
  */
-bool GHAir::sendResponse(AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
+bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
     AirPacket pkt(in_pkt);
     pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR

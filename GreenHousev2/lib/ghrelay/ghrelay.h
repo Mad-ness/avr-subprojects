@@ -14,25 +14,33 @@
 #define AIR_RELAY_STATE_RUN             0x01
 #define AIR_RELAY_MODE_AUTO             0x00
 #define AIR_RELAY_MODE_MANUAL           0x01
+
+/*
 #define AIR_RELAY_ID_0                  0x00
 #define AIR_RELAY_ID_1                  0x01
 #define AIR_RELAY_ID_2                  0x02
 #define AIR_RELAY_ID_3                  0x03
+*/
+
+#define RELAY_ID_0                      0x1
+#define RELAY_ID_1                      0x2
+#define RELAY_ID_2                      0x3
+#define RELAY_ID_3                      0x4
 
 
 class GHRTC;
 
 class GHRelayBase: public GHObjectEx {
-    int8_t m_pin;
-    //int8_t m_pinState;
+public:
     struct Time {
         uint8_t hour;
         uint8_t minute;
-    } m_startTime;
-    struct {
-        uint8_t hour;
-        uint8_t minute;
-    } m_stopTime;
+    };
+private:
+    int8_t m_pin;
+    //int8_t m_pinState;
+    Time m_startTime;
+    Time m_stopTime;
     uint16_t m_lastCheck;
     uint16_t m_lenght; // in minutes
     GHRTC *m_rtc;
@@ -54,8 +62,10 @@ public:
 };
 
 class GHRelay: public GHRelayBase {
+private:
+    int8_t m_relay_id;
 public:
-    GHRelay(const int8_t pin);
+    GHRelay(const int8_t relay_id, const int8_t pin);
 };
 
 

@@ -123,7 +123,8 @@ void GHRelayBase::setOperationalTime(const uint8_t hour, const uint8_t minute, c
     this->m_stopTime.minute = stopminutes - this->m_stopTime.hour*60;
 }
 // --------- *** GHRelay class *** -------- //
-GHRelay::GHRelay(const int8_t pin)
+GHRelay::GHRelay(const int8_t relay_id, const int8_t pin)
 : GHRelayBase(pin)
 {
+    this->m_relay_id = relay_id;
 }

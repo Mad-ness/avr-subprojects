@@ -9,7 +9,7 @@
 
 Manager::Manager()
 : m_display(pin_DISP_SCLK, pin_DISP_SID, pin_DISP_DC, pin_DISP_CS, pin_DISP_RST, pin_DISP_BL),
-  m_1wire(pin_1Wire), m_relay1(pin_Relay_1),
+  m_1wire(pin_1Wire), m_relay1(RELAY_ID_0, pin_Relay_1),
 #ifdef ENABLE_BUTTONSET
   m_buttonSet(pin_ButtonSet),
 #endif // ENABLE_BUTTONSET

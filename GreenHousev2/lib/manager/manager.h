@@ -12,6 +12,8 @@
 #endif // ENABLE_BUTTONSET
 #include <ghair.h>
 
+
+
 const int8_t pin_DISP_SID  = 5; /* Serial Data In (Din) */
 const int8_t pin_DISP_SCLK = 6; /* SCLK, clock (SCK, CLK) */
 const int8_t pin_DISP_DC   = 4; /* D/C, Data/Command Selector */

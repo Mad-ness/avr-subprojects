@@ -35,10 +35,9 @@ void ping_pong_game(AirPacket *pkt) {
     printlog(str);
     */
     int ee_cell;
-    sprintf(str, "Got the command - 0x%02x, isResponse - %d, airCmd - 0x%02x\n", pkt->command, pkt->isResponse(), pkt->getCommand());
-    printlog(str);
+//    sprintf(str, "Got the command - 0x%02x, isResponse - %d, airCmd - 0x%02x\n", pkt->command, pkt->isResponse(), pkt->getCommand());
+//    printlog(str);
     if ( pkt->isResponse() ) {
-             printlogln("Got a response");
              switch ( pkt->getCommand() ) {
                 case AIR_CMD_IN_PING:
                     printlogln("Pong received, remote node alive");
@@ -69,7 +68,8 @@ void ping_pong_game(AirPacket *pkt) {
                     char str[30];
                     unsigned long uptime = 0;
                     memcpy(&uptime, pkt->data, pkt->length);
-                    sprintf(str, "     [ooo] Remote board uptime %f seconds", (float)uptime/1000);
+                    sprintf(str, "     [ooo] Remote board uptime %lu milliseconds\n", uptime);
+                    printlog(str);
                     break;
              }
     } else {

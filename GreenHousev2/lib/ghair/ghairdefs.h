@@ -65,7 +65,7 @@ struct AirPacket {
         return ( command & AIR_CMD_RESP ) == AIR_CMD_RESP;
     }
     inline bool isGoodResponse() {
-        return ( command & ( AIR_CMD_RESP & AIR_CMD_RESP_GOOD )) == ( AIR_CMD_RESP & AIR_CMD_RESP_GOOD );
+        return ( command & AIR_CMD_RESP & AIR_CMD_RESP_GOOD ) == ( AIR_CMD_RESP & AIR_CMD_RESP_GOOD );
     }
     void markAsResponse(const bool with_good_answer) {
         command |= ( 1 << 7 );

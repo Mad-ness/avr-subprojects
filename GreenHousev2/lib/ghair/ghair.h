@@ -40,9 +40,10 @@ public:
     // Air commands
     bool sendPing();
     bool sendPong();
+    bool sendUptime();
     bool sendResetBoard();
     bool sendData(void *data, uint8_t len);
-    bool sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data);
+    bool sendResponse(AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data);
     // responses to requests
     bool sendWriteEEPROM(uint8_t address, int8_t value);
     bool sendReadEEPROM(uint8_t address);

@@ -140,6 +140,11 @@ void GHAir::onGetDataStandard() {
             case AIR_CMD_IN_WRITE_EEPROM:
                 this->onWriteEEPROM(pkt.address, pkt.data[0]);
                 break;
+            case AIR_CMD_IN_UPTIME: {
+                    unsigned long uptime = millis();
+                    this->sendResponse(this->m_packet, true, sizeof(uptime), &uptime);
+                }
+                break;
             default:
                 if ( this->m_handler != NULL ) {
                     this->m_handler(&this->m_packet);
@@ -158,6 +163,10 @@ void GHAir::loop() {
 
 bool GHAir::sendData(void *data, uint8_t len) {
     return this->sendPacket(AIR_CMD_IN_PING, AIR_ADDR_NULL, len, data);
+}
+
+bool GHAir::sendUptime() {
+    return this->sendPacket(AIR_CMD_IN_UPTIME, true, 0x0, NULL);
 }
 
 bool GHAir::sendResetBoard() {
@@ -197,7 +206,7 @@ bool GHAir::onReadEEPROM(uint8_t address) {
   data* - a pointer to the data is being send in the AirPacket.data buffer
   datalen - number of bytes in the data
  */
-bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
+bool GHAir::sendResponse(AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {
     AirPacket pkt(in_pkt);
     pkt.markAsResponse(resp_ok_or_fail);
 #ifdef DEBUG_AIR

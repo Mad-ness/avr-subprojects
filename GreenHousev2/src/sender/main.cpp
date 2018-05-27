@@ -2,6 +2,9 @@
 #include <EEPROM.h>
 #include <printf.h>
 #include <ghair.h>
+#include <ghairdefs.h>
+
+#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_11
 
 GHAir air(7, 8, "1Node", "2Node");
 long long last_flash_on = 0;
@@ -49,7 +52,7 @@ void ping_pong_game(AirPacket *pkt) {
                         printlogln("EEPROM updating FAIL");
                     }
                     break;
-                case AIR_CMD_IN_CMD1:
+                case AIR_CMD_REQ_TIME:
                     struct {
                         uint8_t hour;
                         uint8_t minute;
@@ -58,6 +61,13 @@ void ping_pong_game(AirPacket *pkt) {
                     memcpy(&t, pkt->data, pkt->length);
                     sprintf(str, "Remote time: %02d:%02d:%02d, packet length %d (bytes)\n", t.hour, t.minute, t.second, pkt->length);
                     printlog(str);
+                    break;
+                case AIR_CMD_IN_UPTIME: {
+                        char str[30];
+                        unsigned long uptime;
+                        memcpy(&uptime, pkt->data, pkt->length);
+                        sprintf(str, "Remote board uptime %d seconds", uptime/1000);
+                    }
                     break;
             }
     } else {
@@ -90,7 +100,7 @@ void script() {
     long long mls = millis();
     if ( mls % 3000 == 0 ) {
         printlogln("  >> requesting remote time ...");
-        air.sendPacket(AIR_CMD_IN_CMD1, AIR_ADDR_NULL, 0x0, 0x0);
+        air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
     }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");
@@ -103,6 +113,10 @@ void script() {
     } else if ( mls % 11000 == 0 ) {
         printlogln("  >> sending READ_EEPROM ...");
         air.sendReadEEPROM(memaddr);
+    } else if ( millis() % 3200 == 0 ) {
+        char str[30];
+        sprintf(str, "  >> his board uptime is %ul\n", millis());
+        printlog(str);
     }
 
     if ( memval > 200 ) {

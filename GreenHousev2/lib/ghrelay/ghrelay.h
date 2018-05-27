@@ -19,6 +19,7 @@
 #define AIR_RELAY_ID_2                  0x02
 #define AIR_RELAY_ID_3                  0x03
 
+
 class GHRTC;
 
 class GHRelayBase: public GHObjectEx {

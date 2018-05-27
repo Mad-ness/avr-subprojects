@@ -1,10 +1,10 @@
 #ifndef __GHAIRDEFS_H__
 #define __GHAIRDEFS_H__
 
-#define AIR_ADDRESS_SIZE        6
-#define AIR_PEER_SIZE           6
-#define AIR_MAX_PACKET_SIZE     32
-#define AIR_MAX_DATA_SIZE       29
+#define AIR_ADDRESS_SIZE                6
+#define AIR_PEER_SIZE                   6
+#define AIR_MAX_PACKET_SIZE             32
+#define AIR_MAX_DATA_SIZE               29
 
 // Samples of commands are presented
 // but you can define its own
@@ -18,40 +18,15 @@
 // Commands values must not exceed 0x1F
 #define AIR_CMD_UNDEF                   0X00
 #define AIR_CMD_IN_PING                 0x01
-//#define AIR_CMD_OUT_PONG                0x02
-#define AIR_CMD_IN_RESET                0x03
-#define AIR_CMD_IN_GET_EEPROM           0x04
-//#define AIR_CMD_OUT_GET_EEPROM          0x05
-#define AIR_CMD_IN_WRITE_EEPROM         0x06
-//#define AIR_CMD_OUT_WRITE_EEPROM_OK     0x07
-//#define AIR_CMD_OUT_WRITE_EEPROM_FAIL   0x08
-#define AIR_CMD_IN_DATA                 0x09
-//#define AIR_CMD_OUT_DATA                0x0A
-#define AIR_CMD_IN_CMD1                 0x0B
-//#define AIR_CMD_OUT_CMD1                0x0C
-#define AIR_CMD_IN_CMD2                 0x0D
-//#define AIR_CMD_OUT_CMD2                0x0E
+#define AIR_CMD_IN_RESET                0x02
+#define AIR_CMD_IN_GET_EEPROM           0x03
+#define AIR_CMD_IN_WRITE_EEPROM         0x04
+#define AIR_CMD_IN_DATA                 0x05
+#define AIR_CMD_IN_UPTIME               0x06
+
 // These defines are used by the GHAir::sendResponse method
 #define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
 #define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
-
-// Relays functions:
-// the address field sets the relay id (address=0 means relay1, etc)
-#define AIR_CMD_IN_RELAY_GET_STATE      0x50    // Get a relay's state (OFF or RUN)
-//#define AIR_CMD_OUT_RELAY_GET_STATE     0x51    // response
-#define AIR_CMD_IN_RELAY_SET_MODE       0x52    // Enable of disable (AUTO, MANUAL) control by schedule
-//#define AIR_CMD_OUT_RELAY_SET_MODE      0x53    // response
-#define AIR_CMD_IN_RELAY_GET_OPER_TIME  0x54    // Get the operational time
-//#define AIR_CMD_OUT_RELAY_GET_OPER_TIME 0x55    // response
-#define AIR_CMD_IN_RELAY_SET_OPER_TIME  0x56    // Set the operational time
-//#define AIR_CMD_OUT_RELAY_SET_OPER_TIME 0x57    // response
-#define AIR_CMD_IN_RELAY_GET_MODE       0x58    // Returns the mode (auto, manual) in which the relay is
-//#define AIR_CMD_OUT_RELAY_GET_MODE      0x59    // response
-
-
-// #define AirResponseOk(cmd)              ( cmd |= (1<<7) | (1<<6) )
-// #define AirResponseFail(cmd)            ( cmd |= (1<<7); cmd &= ~(1<<5) )
-// #define AirResponseUndef(cmd)           ( cmd |= (1<<7); cmd &= ~(1<<6 )
 
 inline static bool isAirResponse(const uint8_t cmd) {
     return ( cmd & AIR_CMD_RESP ) == AIR_CMD_RESP;
@@ -111,5 +86,58 @@ struct AirPacket {
     }
 };
 
+// More custom commands that can be redefined in the handlers
+// If you need to allocate a handler for a command just define
+// one using one of unsed below custom commands like this:
+// #define MYCOMMAND        AIR_CMD_IN_CUSTOM_01
+// Make sure that the commands do not overlap.
+// Command IDs 0x00 - 0x10 are reserved for built-in commands, they listed above.
+#define AIR_CMD_IN_CUSTOM_01            0x11
+#define AIR_CMD_IN_CUSTOM_02            0x12
+#define AIR_CMD_IN_CUSTOM_03            0x13
+#define AIR_CMD_IN_CUSTOM_04            0x14
+#define AIR_CMD_IN_CUSTOM_05            0x15
+#define AIR_CMD_IN_CUSTOM_06            0x16
+#define AIR_CMD_IN_CUSTOM_07            0x17
+#define AIR_CMD_IN_CUSTOM_08            0x18
+#define AIR_CMD_IN_CUSTOM_09            0x19
+#define AIR_CMD_IN_CUSTOM_10            0x1a
+#define AIR_CMD_IN_CUSTOM_11            0x1b
+#define AIR_CMD_IN_CUSTOM_12            0x1c
+#define AIR_CMD_IN_CUSTOM_13            0x1d
+#define AIR_CMD_IN_CUSTOM_14            0x1e
+#define AIR_CMD_IN_CUSTOM_15            0x1f
+#define AIR_CMD_IN_CUSTOM_16            0x20
+#define AIR_CMD_IN_CUSTOM_17            0x21
+#define AIR_CMD_IN_CUSTOM_18            0x22
+#define AIR_CMD_IN_CUSTOM_19            0x23
+#define AIR_CMD_IN_CUSTOM_20            0x24
+#define AIR_CMD_IN_CUSTOM_21            0x25
+#define AIR_CMD_IN_CUSTOM_22            0x26
+#define AIR_CMD_IN_CUSTOM_23            0x27
+#define AIR_CMD_IN_CUSTOM_24            0x28
+#define AIR_CMD_IN_CUSTOM_25            0x29
+#define AIR_CMD_IN_CUSTOM_26            0x2a
+#define AIR_CMD_IN_CUSTOM_27            0x2b
+#define AIR_CMD_IN_CUSTOM_28            0x2c
+#define AIR_CMD_IN_CUSTOM_29            0x2d
+#define AIR_CMD_IN_CUSTOM_30            0x2e
+#define AIR_CMD_IN_CUSTOM_31            0x2f
+#define AIR_CMD_IN_CUSTOM_32            0x30
+#define AIR_CMD_IN_CUSTOM_33            0x31
+#define AIR_CMD_IN_CUSTOM_34            0x32
+#define AIR_CMD_IN_CUSTOM_35            0x33
+#define AIR_CMD_IN_CUSTOM_36            0x34
+#define AIR_CMD_IN_CUSTOM_37            0x35
+#define AIR_CMD_IN_CUSTOM_38            0x36
+#define AIR_CMD_IN_CUSTOM_39            0x37
+#define AIR_CMD_IN_CUSTOM_40            0x38
+#define AIR_CMD_IN_CUSTOM_41            0x39
+#define AIR_CMD_IN_CUSTOM_42            0x3a
+#define AIR_CMD_IN_CUSTOM_43            0x3b
+#define AIR_CMD_IN_CUSTOM_44            0x3c
+#define AIR_CMD_IN_CUSTOM_45            0x3d
+#define AIR_CMD_IN_CUSTOM_46            0x3e
+#define AIR_CMD_IN_CUSTOM_47            0x3f
 
 #endif // __GHAIRDEFS_H__

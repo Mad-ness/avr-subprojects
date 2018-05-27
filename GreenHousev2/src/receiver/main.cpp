@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 #include <printf.h>
 #include <ghair.h>
+#include <ghairdefs.h>
 
 #ifdef DEBUG_AIR
 #define printlog(msg) Serial.print(msg)
@@ -12,6 +13,8 @@
 #define printlogln(msg) ;
 #define printflush()    ;
 #endif
+
+#define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_11
 
 uint8_t memaddr = 0;
 int8_t memval = 0;
@@ -31,10 +34,17 @@ void ping_pong_game(AirPacket *pkt) {
             case AIR_CMD_IN_PING:
                 printlogln("[ooo] Remote host is alive");
                 break;
+            case AIR_CMD_IN_UPTIME: {
+                    char str[30];
+                    unsigned long uptime;
+                    memcpy(&uptime, pkt->data, pkt->length);
+                    sprintf(str, "Remote board uptime %d seconds", uptime/1000);
+                }
+                break;
         }
     } else {
         switch ( pkt->command ) {
-            case AIR_CMD_IN_CMD1:
+            case AIR_CMD_REQ_TIME:
                 struct {
                     uint8_t hour = time_hour;
                     uint8_t minute = time_minute;
@@ -79,6 +89,10 @@ void loop(void) {
                 printlog(str);
         } else if ( millis() % 7000 == 0 ) {
             air.sendPing();
+        } else if ( millis() % 3200 == 0 ) {
+            char str[30];
+            sprintf(str, "This board uptime is %ul\n", millis());
+            printlog(str);
         }
     }
     return;

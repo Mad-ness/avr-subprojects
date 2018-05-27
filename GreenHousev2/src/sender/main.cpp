@@ -40,8 +40,9 @@ void ping_pong_game(AirPacket *pkt) {
     if ( pkt->isResponse() ) {
              switch ( pkt->getCommand() ) {
                 case AIR_CMD_IN_PING:
-                    printlogln("Pong received, remote node alive");
-                    sprintf(str, "Round-trip time is %lu\n milliseconds\n");
+                    unsigned long prev_uptime;
+                    memcpy(&prev_uptime, pkt->data, pkt->length);
+                    sprintf(str, "  >> round-trip time is (( %lu )) milliseconds\n", millis() - prev_uptime);
                     printlog(str);
                     break;
                 case AIR_CMD_IN_GET_EEPROM:
@@ -70,7 +71,7 @@ void ping_pong_game(AirPacket *pkt) {
                     char str[30];
                     unsigned long uptime = 0;
                     memcpy(&uptime, pkt->data, pkt->length);
-                    sprintf(str, "     [ooo] Remote board uptime %lu milliseconds\n", uptime);
+                    sprintf(str, "     [ooo] Remote board uptime (( %lu )) milliseconds\n", uptime);
                     printlog(str);
                     break;
              }
@@ -104,11 +105,12 @@ void script() {
     long long mls = millis();
     if ( mls % 5000 == 0 ) {
         //printlogln("  >> requesting remote time ...");
-        //air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
-/*    }
+        air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
+    }
     else if ( mls % 4000 == 0 ) {
-        printlogln("  >> sending PING ...");
+//        printlogln("  >> sending PING ...");
         air.sendPing();
+/*
     } else if ( mls % 27000 == 0 ) {
         memaddr++;
         memval += 5;
@@ -119,7 +121,7 @@ void script() {
         air.sendReadEEPROM(memaddr);
 */    } else if ( millis() % 3200 == 0 ) {
         char str[30];
-        sprintf(str, "  >> this board uptime is %u seconds\n", millis() / 1000);
+        sprintf(str, "  >> this board uptime is (( %u )) seconds\n", millis() / 1000);
         printlog(str);
         air.sendUptime();
     }

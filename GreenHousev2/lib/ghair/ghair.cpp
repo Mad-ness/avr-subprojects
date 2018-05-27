@@ -145,6 +145,9 @@ void GHAir::onGetDataStandard() {
             case AIR_CMD_IN_UPTIME: {
                     unsigned long uptime = millis();
                     this->sendResponse(pkt, true, sizeof(uptime), &uptime);
+#ifdef DEBUG_AIR
+                    sprintf(str, "  <<< Sent data UPTIME, size=%d (bytes), value=%u\n", sizeof(uptime), uptime);
+#endif // DEBUG_AIR
                 }
                 break;
             default:

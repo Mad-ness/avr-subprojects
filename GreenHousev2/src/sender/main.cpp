@@ -65,7 +65,7 @@ void ping_pong_game(AirPacket *pkt) {
                 case AIR_CMD_IN_UPTIME:
                         char str[30];
                         unsigned long uptime;
-                        memcpy(&uptime, &pkt->data, pkt->length);
+                        memcpy(&uptime, pkt->data, pkt->length);
                         sprintf(str, "     [ooo] Remote board uptime %f seconds", (float)uptime/1000);
 
                     break;

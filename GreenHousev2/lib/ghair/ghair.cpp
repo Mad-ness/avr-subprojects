@@ -65,6 +65,10 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
     char info[40];
     sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Length %d (bytes)\0", cmd, addr, pkt.length);
     Serial.println(info);
+    if ( pkt.command == ( AIR_CMD_RESP & AIR_CMD_RESP & AIR_CMD_IN_UP ) {
+        sprintf(str, "Value of pkt.data in the sendPacket = %lu\n", pkt.data);
+        Serial.print(str);
+    }
 #endif
     if ( pkt.length > 0 ) {
         memcpy(&pkt.data, data, pkt.length);
@@ -93,7 +97,7 @@ bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len,
 #endif
     }
 
-#ifdef DEBUG_ADEBUG_AIR_TRACEIR
+#ifdef DEBUG_AIR_TRACE
     if ( result ) {
         Serial.println("  >>> Packet sending OK");
     } else {
@@ -144,9 +148,10 @@ void GHAir::onGetDataStandard() {
                 break;
             case AIR_CMD_IN_UPTIME: {
                     unsigned long uptime = millis();
-                    this->sendResponse(pkt, true, sizeof(uptime), &uptime);
+                    this->sendResponse(pkt, true, sizeof(uptime), uptime);
 #ifdef DEBUG_AIR
-                    sprintf(str, "  <<< Sent data UPTIME, size=%d (bytes), value=%u\n", sizeof(uptime), uptime);
+                    sprintf(str, "  == Current milliseconds %lu\n", uptime);
+                    Serial.print(str);
 #endif // DEBUG_AIR
                 }
                 break;
@@ -218,6 +223,12 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     char str[80];
     sprintf(str, "     RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), in_pkt.length);
     Serial.print(str);
+    if ( in_pkt.command == AIR_CMD_IN_UPTIME ) {
+        unsigned long uptime;
+        memcpy(&uptime, in_pkt.data, in_pkt.length);
+        sprintf(str, "  << Sent data UPTIME, size=%d (bytes), value=%lu\n", sizeof(uptime), uptime);
+        Serial.print(str);
+    }
 #endif // DEBUG_AIR
     return this->sendPacket(pkt.command, pkt.address, datalen, data);
 }

@@ -102,7 +102,7 @@ void script() {
     long long mls = millis();
     if ( mls % 5000 == 0 ) {
         //printlogln("  >> requesting remote time ...");
-        air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
+        //air.sendPacket(AIR_CMD_REQ_TIME, AIR_ADDR_NULL, 0x0, 0x0);
 /*    }
     else if ( mls % 4000 == 0 ) {
         printlogln("  >> sending PING ...");

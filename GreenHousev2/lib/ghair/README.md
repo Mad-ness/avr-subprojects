@@ -12,9 +12,9 @@ Each packet is wrapped into the AirPacket structure as described in the ghairdef
 #define AIR_CMD_RESP_GOOD               0x40 // 6th bit is set to 1
 ...
 struct AirPacket {
-    int8_t command;
-    int8_t address;
-    int8_t length;
+    uint8_t command;
+    uint8_t address;
+    uint8_t length;
     byte data[AIR_MAX_DATA_SIZE];
 
     inline uint8_t getCommand() {
@@ -68,7 +68,7 @@ The **command** field tells what command is sent. Most of the common commands de
 ghairdefs.h header file, they start as AIR_CMD_.
 
 There are the rules that applies to the **command**:
-- is a int8_t value
+- is a uint8_t value
 - if the higher (7th) bit is set to 0, this is an initial command sent
   by the initiator.
 - if the higher (7th) bit is set to 1, this is a response command, the response to

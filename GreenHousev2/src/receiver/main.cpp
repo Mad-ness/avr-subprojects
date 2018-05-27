@@ -87,6 +87,7 @@ void loop(void) {
             sprintf(str, "Current time: %02d:%02d:%02d\n",
                     time_hour, time_minute, time_second);
             printlog(str);
+            air.sendUptime();
         } else if ( millis() % 7000 == 0 ) {
            // air.sendPing();
         } else if ( millis() % 4000 == 0 ) {

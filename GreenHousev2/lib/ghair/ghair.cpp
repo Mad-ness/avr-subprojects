@@ -144,7 +144,7 @@ void GHAir::onGetDataStandard() {
                 break;
             case AIR_CMD_IN_UPTIME: {
                     unsigned long uptime = millis();
-                    this->sendResponse(this->m_packet, true, sizeof(uptime), &uptime);
+                    this->sendResponse(pkt, true, sizeof(uptime), &uptime);
                 }
                 break;
             default:

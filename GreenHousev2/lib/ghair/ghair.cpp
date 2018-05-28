@@ -1,5 +1,7 @@
+#ifdef AIR_CLIENT
 #include <EEPROM.h>
 #include <avr/wdt.h>
+#endif // AIR_CLIENT
 #include <ghair.h>
 
 // void (*resetBoardVector)(void) = 0;
@@ -7,10 +9,12 @@
 uint16_t cycles_cnt = 0;
 #endif
 
+#ifdef AIR_CLIENT
 void resetBoardVector() {
     wdt_enable(WDTO_15MS);
     while (1); // wait until the reset
 }
+#endif // AIR_CLIENT
 
 GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe)
 : m_rf24(ce_pin, csn_pin)
@@ -124,6 +128,27 @@ void GHAir::setHandler(on_packet_handler_t handler) {
     this->m_handler = handler;
 }
 
+
+bool GHAir::sendData(void *data, uint8_t len) {
+    return this->sendPacket(AIR_CMD_IN_PING, AIR_ADDR_NULL, len, data);
+}
+
+bool GHAir::sendUptime() {
+    return this->sendPacket(AIR_CMD_IN_UPTIME, AIR_ADDR_NULL, 0x0, NULL);
+}
+
+bool GHAir::sendResetBoard() {
+    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, NULL);
+}
+
+void GHAir::loop() {
+    if ( this->m_rf24.available() ) {
+        this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
+        this->onGetDataStandard();
+    }
+}
+
+
 void GHAir::onGetDataStandard() {
     if ( 1 ) {
         const AirPacket &pkt = this->m_packet;
@@ -138,6 +163,7 @@ void GHAir::onGetDataStandard() {
             case AIR_CMD_IN_PING:
                 this->sendPong();
                 break;
+#ifdef AIR_CLIENT
             case AIR_CMD_IN_RESET:
                 this->onResetBoard();
                 break;
@@ -156,6 +182,7 @@ void GHAir::onGetDataStandard() {
 #endif // DEBUG_AIR
                 }
                 break;
+#endif // AIR_CLIENT
             default:
                 if ( this->m_handler != NULL ) {
                     this->m_handler(&this->m_packet);
@@ -165,24 +192,7 @@ void GHAir::onGetDataStandard() {
     }
 }
 
-void GHAir::loop() {
-    if ( this->m_rf24.available() ) {
-        this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
-        this->onGetDataStandard();
-    }
-}
-
-bool GHAir::sendData(void *data, uint8_t len) {
-    return this->sendPacket(AIR_CMD_IN_PING, AIR_ADDR_NULL, len, data);
-}
-
-bool GHAir::sendUptime() {
-    return this->sendPacket(AIR_CMD_IN_UPTIME, AIR_ADDR_NULL, 0x0, NULL);
-}
-
-bool GHAir::sendResetBoard() {
-    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, NULL);
-}
+#ifdef AIR_CLIENT
 
 void GHAir::onResetBoard() {
     this->sendResponse(this->m_packet, true, 0x0, NULL);
@@ -197,18 +207,17 @@ bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {
     }
     return this->sendResponse(this->m_packet, result, 0x0, NULL);
 }
-
+bool GHAir::onReadEEPROM(uint8_t address) {
+    int8_t buf = EEPROM.read(address);
+    return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
+}
+#endif // AIR_CLIENT
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
     return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, address, sizeof(value), &value);
 }
 
 bool GHAir::sendReadEEPROM(uint8_t address) {
     return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, NULL);
-}
-
-bool GHAir::onReadEEPROM(uint8_t address) {
-    int8_t buf = EEPROM.read(address);
-    return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
 }
 
 /**

@@ -1,9 +1,9 @@
 #ifndef __GH_AIR_H__
 #define __GH_AIR_H__
 
-#ifdef AIR_CLIENT
+#ifdef ARDUINO
 #include <Arduino.h>
-#endif // AIR_CLIENT
+#endif // ARDUINO
 #include <RF24.h>
 #include <ghairdefs.h>
 
@@ -24,11 +24,11 @@ private:
     void stopListening();
     void onReceiveCmd();
     // handle requests
-#ifdef AIR_CLIENT
+#ifdef ARDUINO
     bool onWriteEEPROM(uint8_t address, int8_t value);
     bool onReadEEPROM(uint8_t address);
     void onResetBoard();
-#endif // AIR_CLIENT
+#endif // ARDUINO
     void onGetDataStandard();
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);

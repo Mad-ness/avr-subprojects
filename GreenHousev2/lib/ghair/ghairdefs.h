@@ -1,6 +1,12 @@
 #ifndef __GHAIRDEFS_H__
 #define __GHAIRDEFS_H__
 
+#ifndef ARDUINO
+
+typedef unsigned char byte;
+
+#endif // ARDUINO
+
 #define AIR_ADDRESS_SIZE                6
 #define AIR_PEER_SIZE                   6
 #define AIR_MAX_PACKET_SIZE             32

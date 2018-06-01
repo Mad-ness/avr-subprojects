@@ -7,17 +7,17 @@ BUILD_DIR=arm/build
 
 
 main: ghair.o main.o
-        $(CC) $(BUILD_DIR)/main.o $(BUILD_DIR)/ghair.o -o rf24_server
+	$(CC) $(BUILD_DIR)/main.o $(BUILD_DIR)/ghair.o -o rf24_server
 
 ghair.o: prepare
-        $(CC) -c lib/ghair/ghair.cpp -o $(BUILD_DIR)/ghair.o
+	$(CC) -c lib/ghair/ghair.cpp -o $(BUILD_DIR)/ghair.o
 
 main.o: prepare
-        $(CC) -c src/arm/main.cpp -o $(BUILD_DIR)/main.o
+	$(CC) -c src/arm/main.cpp -o $(BUILD_DIR)/main.o
 
 prepare:
-        mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
 
 clean:
-        rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)
 

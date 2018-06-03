@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <ghair.h>
 
-GHAir air(42, 43, (byte*)"1Node", (byte*)"2Node");
+GHAir air(42, 266, (byte*)"1Node", (byte*)"2Node");
 
 void AirHandler(AirPacket *pkt) {
 

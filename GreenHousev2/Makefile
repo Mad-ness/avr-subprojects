@@ -1,9 +1,11 @@
 INCLUDE=-I/usr/local/include -I/usr/local/include/RF24 -I./lib/ghair
 LIBS=-L/usr/local/lib -lrf24
-CFLAGS=
+CFLAGS= -fPIC
 CCFLAGS=
 CC=g++ $(LIBS) $(INCLUDE) $(CFLAGS) $(CCFLAGS)
 BUILD_DIR=arm/build
+LIBVERS=1.0.0
+
 
 
 main: ghair.o main.o
@@ -18,6 +20,9 @@ main.o: prepare
 prepare:
 	mkdir -p $(BUILD_DIR)
 
+build_lib: ghair.o
+	$(CC) -shared -Wl,-soname,libghair.so -o libghair.so.$(LIBVERS) $(BUILD_DIR)/ghair.o
+
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) libghair.so.$(LIBVERS)
 

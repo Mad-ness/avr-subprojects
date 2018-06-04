@@ -1,5 +1,5 @@
 SRCS=main.cpp
-LDFLAGS=-levent
+LDFLAGS=-levent -ljansson
 CXXFLAGS=-I/usr/local/include -L/usr/local/lib
 PROG=http_server
 

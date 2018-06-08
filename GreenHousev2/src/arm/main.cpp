@@ -13,19 +13,24 @@ void AirHandler(AirPacket *pkt) {
 
 }
 
+static int fail_cnt = 0;
+
 int main() {
 
     air.setup();
 
 
     while ( ! air.rf24()->isChipConnected() ) {
-        printf("Chip is not connected. Checking again in 5 seconds ");
+        printf("%03d. Chip is not connected. Checking again in 1 second(s) ", ++fail_cnt);
+        if ( fail_cnt > 999 ) {
+            fail_cnt = 0;
+        }
         int i = 0;
-        while ( i++ < 5 ) {
+        while ( i++ < 1 ) {
             sleep(1);
             printf(".");
         }
-        sleep(5);
+        sleep(1);
         printf("\n");
     }
     printf("Chip is connected.\n");

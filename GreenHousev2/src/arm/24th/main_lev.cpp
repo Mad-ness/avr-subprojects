@@ -6,8 +6,10 @@
 #include <evhttp.h>
 #include <b64/b64.h>
 #include <jansson.h>
+#include <ghairdefs.h>
 
 #define ERROR_RESPONSE_SIZE 1024
+#define MAX_JSON_BUFFER_SIZE 1024
 
 using namespace lev;
 
@@ -38,7 +40,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     fprintf(stdout, "Received %d bytes\n", buffer_len);
     fflush(stdout);
     struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
-    char buffer_data[400];
+    char buffer_data[MAX_JSON_BUFFER_SIZE];
     memset(buffer_data, 0, buffer_len);
     evbuffer_copyout(in_evb, buffer_data, buffer_len);
 
@@ -50,6 +52,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
 
     if ( json_root == NULL ) {
         puts("Passed incorrect JSON data");
+        puts(json_error.text);
         evreq.cancel();
         return;
     }
@@ -59,35 +62,40 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     json_t *js_len = json_object_get(json_root, "len");
     json_t *js_data = json_object_get(json_root, "data");
 
-    int value_func = 0x0;
-    if ( 1 ) {
-    // if ( json_is_integer(js_func) ) {
-        value_func = json_integer_value(js_func);
-        puts("Decoding the function value");
+    AirPacket air_packet;
+
+    bool packet_ready = true;
+
+
+    if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
+        air_packet.command = json_integer_value(js_func);
+        air_packet.address = json_integer_value(js_addr);
+        air_packet.length = json_integer_value(js_len);
+
+       // memset(base64_data, 0x0, MAX_JSON_BUFFER_SIZE);
+
+        char base64_data[MAX_JSON_BUFFER_SIZE];
+        memset(base64_data, 0, json_string_length(js_data));
+        strcpy(base64_data, json_string_value(js_data));
+
+        fprintf(stdout, "Raw data: %s\n", base64_data);
+        fflush(stdout);
+        size_t decoded_len;
+        byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
+
+        memcpy(air_packet.data, decoded_data, decoded_len);
+        free(decoded_data);
+    } else {
+        packet_ready = false;
     }
-    int value_addr = 0x0;
-    if ( 1 ) {
-    // if ( json_is_integer(js_addr) ) {
-        value_addr = json_integer_value(js_addr);
-        puts("Decoding the address value");
-    } 
-    int value_len = 0x0;
-    if ( 1 ) {
-    // if ( json_is_integer(js_len) ) {
-        value_len = json_integer_value(js_len);
-        puts("Decoding the len value");
-    }
-    const char *value_data;
-    if ( json_is_string(js_data) ) {
-        value_data = json_string_value(js_data);
-    }
-    fprintf(stdout, "Func: 0x%u, Addr: 0x%u, Len: 0x%u, Data: %s\n", value_func, value_addr, value_len, value_data);
-    fflush(stdout);
 
     free(js_func);
     free(js_addr);
     free(js_len);
     free(js_data);
+    fprintf(stdout, "Func: 0x%u, Addr: 0x%u, Len: 0x%u, Data: %s\n", air_packet.command, air_packet.address, air_packet.length, air_packet.data);
+    fflush(stdout);
+    
     free(json_root);
     evreq.sendReply(200, "OK Good Json");
 }

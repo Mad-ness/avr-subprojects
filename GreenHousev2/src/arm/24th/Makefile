@@ -1,6 +1,6 @@
-SRCS=main.cpp
+SRCS=main.cpp b64/encode.c b64/decode.c
 LDFLAGS=-levent -ljansson
-CXXFLAGS=-I/usr/local/include -L/usr/local/lib
+CXXFLAGS=-I/usr/local/include -L/usr/local/lib -I./include -I./b64 -I. -I./janssonxx
 PROG=http_server
 
 all:
@@ -8,4 +8,6 @@ all:
 
 clean:
 	rm -f ${PROG}
+
+
 

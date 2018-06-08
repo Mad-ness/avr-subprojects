@@ -1,4 +1,4 @@
-INCLUDE=-I/usr/local/include -I/usr/local/include/RF24 -I./lib/ghair
+INCLUDE=-I/usr/local/include -I/usr/local/include/RF24 -I./lib/ghair -I./src/arm
 LIBS=-L/usr/local/lib -lrf24
 CFLAGS= -fPIC
 CCFLAGS=

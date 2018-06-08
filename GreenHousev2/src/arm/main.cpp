@@ -2,6 +2,11 @@
 #include <unistd.h>
 #include <ghair.h>
 
+#include <lev.h>
+#include <levhttp.h>
+
+using namespace lev;
+
 GHAir air(42, 266, (byte*)"1Node", (byte*)"2Node");
 
 void AirHandler(AirPacket *pkt) {

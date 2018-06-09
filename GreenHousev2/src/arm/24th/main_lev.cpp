@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <lev.h>
 #include <levhttp.h>
-//#include <jansson.hpp>
 #include <string.h>
 #include <evhttp.h>
 #include <b64/b64.h>
 #include <jansson.h>
 #include <ghairdefs.h>
+#include <queue.hpp>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
@@ -15,17 +15,31 @@ using namespace lev;
 
 static int cnt = 0;
 static EvEvent event_print;
+static EvEvent ev_radio_in;
+
 
 /*
-Example of a message that comes at the http port:
-{
-    "command": <unsigned int>,
-    "address": <unsigned int>,
-    "datalength": <unsigned int>,
-    "data": <base64 string>
+ * Check the radio module on incoming data
+ */
+static
+void onCheckRaiod(struct evhttp_request *req, void *arg) {
+     //
+    AirPacket *pkt;
+    if ( pkt != NULL ) {
+	if ( pkt->isResponse() ) {
+            switch ( pkt->getCommand() ) {
+     
+                case AIR_CMD_IN_PING: { // mark the remote board as alive
+                    break;
+                }
+            }
+	// this is not a response, the remote boards requests this one
+	} else {
+            // it responds on the pings automatically
+            // other handlers can be described here
+	}
+    }
 }
-The "data" value while converting to a data type should not exceed AIR_MAX_DATA_SIZE bytes (see in the ghairdefs.h).
-*/
 
 static 
 void onPing(struct evhttp_request *req, void *arg) {
@@ -141,6 +155,10 @@ int main(int argc, char **argv) {
 
     event_print.newTimer(onTimeout, base.base());
     event_print.start(3000);
+
+    ev_radio_in.newTimer(onCheckRaiod, base.base());
+    ev_radio_in.start(10);
+
 
     http.addRoute("/test", onHttpRequest);
     http.addRoute("/ping", onPing);

@@ -37,8 +37,10 @@ static
 void onPOSTRequest(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
     size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
-    fprintf(stdout, "Received %d bytes\n", buffer_len);
+#ifdef DEBUG
+    fprintf(stdout, "Received %lu bytes\n", buffer_len);
     fflush(stdout);
+#endif
     struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
     char buffer_data[MAX_JSON_BUFFER_SIZE];
     memset(buffer_data, 0, buffer_len);
@@ -72,18 +74,18 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         air_packet.address = json_integer_value(js_addr);
         air_packet.length = json_integer_value(js_len);
 
-       // memset(base64_data, 0x0, MAX_JSON_BUFFER_SIZE);
-
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
         strcpy(base64_data, json_string_value(js_data));
-
+#ifdef DEBUG
         fprintf(stdout, "Raw data: %s\n", base64_data);
         fflush(stdout);
+#endif
         size_t decoded_len;
         byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
 
         memcpy(air_packet.data, decoded_data, decoded_len);
+
         free(decoded_data);
     } else {
         packet_ready = false;
@@ -93,8 +95,10 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     free(js_addr);
     free(js_len);
     free(js_data);
+#ifdef DEBUG
     fprintf(stdout, "Func: 0x%u, Addr: 0x%u, Len: 0x%u, Data: %s\n", air_packet.command, air_packet.address, air_packet.length, air_packet.data);
     fflush(stdout);
+#endif
     
     free(json_root);
     evreq.sendReply(200, "OK Good Json");

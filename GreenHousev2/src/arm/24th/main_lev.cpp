@@ -6,7 +6,7 @@
 #include <b64/b64.h>
 #include <jansson.h>
 #include <ghairdefs.h>
-#include <queue.hpp>
+#include <data.h>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
@@ -17,6 +17,14 @@ static int cnt = 0;
 static EvEvent event_print;
 static EvEvent ev_radio_in;
 
+static DataCollector all_data;
+
+static 
+void onPrint(struct evhttp_request *req, void *arg) {
+    EvHttpRequest evreq(req);
+    all_data.printContent();
+    evreq.sendReply(200, "OK");
+}
 
 /*
  * Check the radio module on incoming data
@@ -84,9 +92,11 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
 
 
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
-        air_packet.command = json_integer_value(js_func);
-        air_packet.address = json_integer_value(js_addr);
-        air_packet.length = json_integer_value(js_len);
+
+        HttpRequest_t datapkt;
+        datapkt.packet.command = json_integer_value(js_func);
+        datapkt.packet.address = json_integer_value(js_addr);
+        datapkt.packet.length = json_integer_value(js_len);
 
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
@@ -96,11 +106,17 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         fflush(stdout);
 #endif
         size_t decoded_len;
+        // byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
         byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
 
-        memcpy(air_packet.data, decoded_data, decoded_len);
+        memcpy(&datapkt.packet.data, decoded_data, decoded_len);
+//        memcpy(air_packet.data, decoded_data, decoded_len);
 
         free(decoded_data);
+
+        //memcpy(&datapkt.packet, &air_packet, sizeof(air_packet));
+        strcpy(datapkt.id, "super");
+        all_data.addRequest(&datapkt);
     } else {
         packet_ready = false;
     }
@@ -156,13 +172,15 @@ int main(int argc, char **argv) {
     event_print.newTimer(onTimeout, base.base());
     event_print.start(3000);
 
-    ev_radio_in.newTimer(onCheckRaiod, base.base());
-    ev_radio_in.start(10);
+    //ev_radio_in.newTimer(onCheckRaiod, base.base());
+    //ev_radio_in.start(10);
 
 
     http.addRoute("/test", onHttpRequest);
     http.addRoute("/ping", onPing);
     http.addRoute("/hello", onHttpHello);
+    http.addRoute("/print", onPrint);
+
 
     http.bind("127.0.0.1", 8080);
     base.loop();

@@ -1,13 +1,17 @@
-SRCS=main.cpp b64/encode.c b64/decode.c
-LDFLAGS=-levent -ljansson
-CXXFLAGS=-DDEBUG -I/usr/local/include -L/usr/local/lib -I./include -I./b64 -I. -I./janssonxx -I../../../lib/ghair
+SRCS=main.cpp b64/encode.c b64/decode.c 
+LDFLAGS=-levent -ljansson -lstdc++
+CXXFLAGS=-std=c++11 -DDEBUG -I/usr/local/include -L/usr/local/lib -I./include -I./b64 -I. -I./janssonxx -I../../../lib/ghair
 PROG=http_server
 
-all:
-	c++ ${SRCS} -o ${PROG} ${LDFLAGS} ${CXXFLAGS}
+
+all: data.o
+	g++ ${SRCS} data.o -o ${PROG} ${LDFLAGS} ${CXXFLAGS}
+
+data.o: 
+	g++ -c data.cpp -o data.o ${LDFLAGS} ${CXXFLAGS}
 
 clean:
-	rm -f ${PROG}
+	rm -f ${PROG} data.o
 
 
 

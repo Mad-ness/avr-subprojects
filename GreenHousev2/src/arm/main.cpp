@@ -24,7 +24,9 @@ static EvEvent event_print;
 static EvEvent checkRadio;
 
 static DataCollector all_data;
-GHAir air(42, 266, (byte*)"1Node", (byte*)"2Node");
+// PB11 = 43 - Chip Enable (CE)
+// PH07 - 231 - Chip Select (CSN)
+GHAir air(43, 231, (byte*)"1Node", (byte*)"2Node");
 
 
 inline void logstr(std::string msg) {

@@ -3,12 +3,14 @@
 #include <levhttp.h>
 #include <string.h>
 #include <evhttp.h>
-#include <b64/b64.h>
+#include <b64.h>
 #include <jansson.h>
 #include <ghairdefs.h>
 #include <data.h>
 #include <iostream>
 #include <string>
+
+
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
@@ -178,7 +180,7 @@ int main(int argc, char **argv) {
     event_print.newTimer(onTimeout, base.base());
     event_print.start(3000);
 
-    checkRadio.newTimer(onCheckFromRadio, NULL);
+    checkRadio.newTimer(onCheckFromRadio, base.base());
     checkRadio.start(10);
 
 

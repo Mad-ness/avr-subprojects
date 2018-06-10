@@ -32,6 +32,13 @@ class HttpRequest_t {
             //memcpy(&packet, &src.packet, sizeof(src.packet)); 
             strcpy(id, src.id);
         }
+    bool operator==(const HttpRequest_t &src) {
+        return (
+            ( this->packet.command == src.packet.command ) &&
+            ( this->packet.address == src.packet.address ) &&
+            ( this->packet.length == src.packet.length )
+        );
+    }
 };
 
 class DataCollector {
@@ -44,6 +51,7 @@ class DataCollector {
         void updateWithResponse(const char *id, AirPacket *pkt);
         void removeRequest( const char *id );
         void printContent();
+        HttpRequest_t *byCommand(const uint8_t cmd);
 };
 
 #endif // __QUEUE_H__

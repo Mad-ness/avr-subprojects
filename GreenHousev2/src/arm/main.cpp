@@ -106,10 +106,30 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
 
         HttpRequest_t datapkt;
+        datapkt.packet.command = json_integer_value(js_func);
+
+        HttpRequest_t *ex_pkt = all_data.byCommand(datapkt.packet.command);
+        // if this request already in the queue and it has a response from the remote board
+        if ( ex_pkt != NULL && ex_pkt->responded > 0 ) {
+            char msg[1024];
+            char *encoded_str = b64_encode(ex_pkt->packet.data, ex_pkt->packet.length);
+            sprintf(msg, "{ \"func\": %d , \"addr\": %d , \"len\": %d , \"data\" : \"%s\" , \"ttl\": %d }",
+                         ex_pkt->packet.command, 
+                         ex_pkt->packet.address,
+                         ex_pkt->packet.length, 
+                         encoded_str,
+                         ex_pkt->responded - ex_pkt->received
+                   );
+            evreq.output().printf(msg); 
+            evreq.sendReply(200, "READY");
+            free(encoded_str);
+            all_data.data().remove(*ex_pkt); // removing this element from the queue
+            return;
+        }
+
         datapkt.received = time(NULL);
         datapkt.packet.address = json_integer_value(js_addr);
         datapkt.packet.length = json_integer_value(js_len);
-        datapkt.packet.command = json_integer_value(js_func);
 
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
@@ -129,7 +149,8 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
                   << "Len: " << (int)datapkt.packet.length << ", "
                   << "Received: " << datapkt.received << ", "
                   << "Data: " << datapkt.packet.data;
-	std::cout << "Raw data: " << base64_data << std::endl;;
+	    std::cout << "Raw data: " << base64_data << std::endl;;
+        std::cout << "New request added in the queue (see above)" << std::endl;
 #endif 
         strcpy(datapkt.id, "super");
         all_data.addRequest(datapkt);

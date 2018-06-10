@@ -42,3 +42,12 @@ void DataCollector::printContent() {
 #endif
 };
 
+HttpRequest_t *DataCollector::byCommand(const uint8_t cmd) {
+    for ( auto it = m_requests.begin(); it != m_requests.end(); it++ ) {
+        if ( it->packet.getCommand() == ( cmd & 0x1F ) ) { // ignore the highest, bit 7
+            return &(*it); 
+        }
+    }
+    return NULL;
+}
+

@@ -29,7 +29,6 @@ private:
     bool onReadEEPROM(uint8_t address);
     void onResetBoard();
 #endif // ARDUINO
-    void onGetDataStandard();
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();
@@ -38,6 +37,8 @@ public:
     void setup();
     void loop();
     void setNumAttemps(uint8_t);
+    // returns True if a packet has been processed by this handler
+    bool onGetDataStandard();
     uint8_t getNumAttempts();
     // returns True if a packet is delivered
     bool sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, void *data);

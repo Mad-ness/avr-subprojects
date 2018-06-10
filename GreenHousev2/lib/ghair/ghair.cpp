@@ -149,7 +149,8 @@ void GHAir::loop() {
 }
 
 
-void GHAir::onGetDataStandard() {
+bool GHAir::onGetDataStandard() {
+    bool result = true;
     if ( 1 ) {
         const AirPacket &pkt = this->m_packet;
 #ifdef DEBUG_AIR
@@ -189,9 +190,11 @@ void GHAir::onGetDataStandard() {
                 if ( this->m_handler != NULL ) {
                     this->m_handler(&this->m_packet);
                 }
+                result = false;
                 break;
         }
     }
+    return result;
 }
 
 #ifdef ARDUINO

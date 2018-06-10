@@ -2,16 +2,16 @@ INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include
 LIBS=-L/usr/local/lib -lrf24 -L/usr/lib -levent -ljansson
 CFLAGS=
 CXXFLAGS=
-CC=g++ -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS)
+CC=g++ -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS) -DDEBUG
 BUILD_DIR=./arm/build
 TARGET=idea24
 
 all: $(TARGET)
 
 $(TARGET): $(BUILD_DIR)/ghair.o $(BUILD_DIR)/data.o $(BUILD_DIR)/b64encode.o $(BUILD_DIR)/b64decode.o $(BUILD_DIR)/main.o
-	$(CC)         $^ -o $@ $(CFLAGS) $(LIBS)
+	$(CC) $^ -o $@ $(CFLAGS) $(LIBS)
 
-$(BUILD_DIR)/ghair.o: lib/ghair/ghair.cpp lib/ghair/ghairdefs.h
+$(BUILD_DIR)/ghair.o: lib/ghair/ghair.cpp lib/ghair/ghairdefs.h lib/ghair/ghair.h
 	$(CC) -c lib/ghair/ghair.cpp -o $@
 
 $(BUILD_DIR)/data.o: src/arm/data.cpp src/arm/data.h

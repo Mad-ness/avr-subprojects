@@ -9,11 +9,13 @@
 #include <data.h>
 #include <iostream>
 #include <string>
-
+#include <ghair.h>
+#include <unistd.h>
 
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
+
 
 using namespace lev;
  
@@ -22,6 +24,28 @@ static EvEvent event_print;
 static EvEvent checkRadio;
 
 static DataCollector all_data;
+GHAir air(42, 266, (byte*)"1Node", (byte*)"2Node");
+
+
+inline void logstr(std::string msg) {
+#ifdef DEBUG
+    std::cout << msg << std::endl;
+#endif
+}
+
+static
+void onIncomingAirPacket(AirPacket *pkt) {
+    for ( auto it = all_data.data().begin(); it != all_data.data().end(); it++) {
+        if ( it->packet.command == pkt->getCommand() ) {
+            memcpy(&it->packet, pkt, sizeof(pkt));
+            it->responded = time(NULL);
+#if DEBUG
+            std::cout << "Received a response on the command: " << pkt->getCommand() << std::endl;
+#endif
+            break;
+        }
+    }
+}
 
 static 
 void onPrint(struct evhttp_request *req, void *arg) {
@@ -34,23 +58,8 @@ void onPrint(struct evhttp_request *req, void *arg) {
  * Check the radio module on incoming data
  */
 static
-void onCheckFromRadio( evutil_socket_t socket, short id, void *data ) {
-    //
-    AirPacket *pkt;
-    if ( pkt != NULL ) {
-	if ( pkt->isResponse() ) {
-            switch ( pkt->getCommand() ) {
-     
-                case AIR_CMD_IN_PING: { // mark the remote board as alive
-                    break;
-                }
-            }
-	// this is not a response, the remote boards requests this one
-	} else {
-            // it responds on the pings automatically
-            // other handlers can be described here
-	}
-    }
+void processIncomingQueue( evutil_socket_t socket, short id, void *data ) {
+    air.loop();  // send responses, if any
 }
 
 static 
@@ -64,8 +73,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
     size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
 #ifdef DEBUG
-    fprintf(stdout, "Received %lu bytes\n", buffer_len);
-    fflush(stdout);
+    std::cout << "Received " << buffer_len << " bytes" << std::endl;
 #endif
     struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
     char buffer_data[MAX_JSON_BUFFER_SIZE];
@@ -98,9 +106,10 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
 
         HttpRequest_t datapkt;
+        datapkt.received = time(NULL);
         datapkt.packet.address = json_integer_value(js_addr);
         datapkt.packet.length = json_integer_value(js_len);
-	datapkt.packet.command = json_integer_value(js_func);
+        datapkt.packet.command = json_integer_value(js_func);
 
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
@@ -118,6 +127,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         std::cout << "Func: " << (int)datapkt.packet.command << ", " 
                   << "Addr: " << (int)datapkt.packet.address << ", " 
                   << "Len: " << (int)datapkt.packet.length << ", "
+                  << "Received: " << datapkt.received << ", "
                   << "Data: " << datapkt.packet.data;
 	std::cout << "Raw data: " << base64_data << std::endl;;
 #endif 
@@ -142,7 +152,7 @@ void onHttpRequest(struct evhttp_request *req, void *arg) {
     evreq.output().printf("Received URI: %s\n", evreq.uriStr());
     const evhttp_cmd_type cmd_type = evhttp_request_get_command( req );
     if ( cmd_type & EVHTTP_REQ_GET ) {
-        evreq.sendReply(200, "GOOD");
+        evreq.sendReply(200, "ONLY POST ACCEPTED");
     } else if ( cmd_type & EVHTTP_REQ_POST ) {
         onPOSTRequest(req, arg);
     }
@@ -158,7 +168,7 @@ void onHttpHello(struct evhttp_request *req, void *arg) {
 }
 
 static
-void onTimeout(evutil_socket_t socket, short id, void *data) {
+void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
     puts("Timeout expired!");
 
     // all_data
@@ -170,28 +180,68 @@ void onTimeout(evutil_socket_t socket, short id, void *data) {
     }
 }
 
+void usage() {
+    std::cout <<
+    "Usage: cmd <ip-address> <port>\n"
+    "    - ip-address - a local IP address which will be listened to\n"
+    "    - port       - a local port to bind on\n"
+    "\n"
+    "Example:\n"
+    "    cmd 127.0.0.1 8080 - run a server on localhost:8080\n"
+    << std::endl;
+
+}
+
 
 int main(int argc, char **argv) {
+
+    if ( argc == 1 ) {
+        usage();
+        return 0;
+    }
+
+    air.setup();
+    air.setHandler(onIncomingAirPacket); // set handler for incoming packets over radio
+    int isConnected = false;
+    for ( int i = 0; i < 100; i++ ) {
+        if ( ! air.rf24()->isChipConnected() ) {
+#ifdef DEBUG
+            logstr("Chip is not connected. Checking again ..."); 
+#endif
+            sleep(1);
+        } else {
+            isConnected = true;
+            break;
+        }
+    }
+    if ( ! isConnected ) {
+        return 1;
+    }
+
+    air.rf24()->printDetails();
+
     printf("Starting the server.\n");
     EvBaseLoop base;
     EvHttpServer http(base);
 
+    EvEvent inQueue, outQueue;
 
-    event_print.newTimer(onTimeout, base.base());
-    event_print.start(3000);
+    logstr("Installing queue processors");
+    inQueue.newTimer(processIncomingQueue, base.base());
+    outQueue.newTimer(processOutgoingQueue, base.base());
 
-    checkRadio.newTimer(onCheckFromRadio, base.base());
-    checkRadio.start(10);
+    inQueue.start(3000);
+    outQueue.start(3000);
 
-
-
-    http.addRoute("/test", onHttpRequest);
+    logstr("Adding routes");
+    http.addRoute("/request", onHttpRequest);
     http.addRoute("/ping", onPing);
     http.addRoute("/hello", onHttpHello);
     http.addRoute("/print", onPrint);
 
-
-    http.bind("127.0.0.1", 8080);
+    logstr("Running the http server");
+    http.bind(argv[1], atoi(argv[2]));
+    logstr("Entering in the loop");
     base.loop();
 
     return 0;

@@ -1,28 +1,32 @@
-INCLUDE=-I/usr/local/include -I/usr/local/include/RF24 -I./lib/ghair -I./src/arm
+INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm
 LIBS=-L/usr/local/lib -lrf24
-CFLAGS= -fPIC
-CCFLAGS=
-CC=g++ $(LIBS) $(INCLUDE) $(CFLAGS) $(CCFLAGS)
+CFLAGS=
+CXXFLAGS=
+CC=g++ $(INCLUDE) $(LIBS) $(CFLAGS) $(CXXFLAGS)
 BUILD_DIR=arm/build
-LIBVERS=1.0.0
+TARGET=idea24th
 
 
-
-main: ghair.o main.o
-	$(CC) $(BUILD_DIR)/main.o $(BUILD_DIR)/ghair.o -o rf24_server
+#%.o: %.cpp
+#	$(CC) -c -o $@ $< $(CFLAGS)
 
 ghair.o: prepare
 	$(CC) -c lib/ghair/ghair.cpp -o $(BUILD_DIR)/ghair.o
 
-main.o: prepare
-	$(CC) -c src/arm/main.cpp -o $(BUILD_DIR)/main.o
+data.o: prepare
+	$(CC) -c src/arm/data.cpp -o $(BUILD_DIR)/$@
+
+b64encode.o:
+	$(CC) -c src/arm/b64/encode.c -o $(BUILD_DIR)/$@
+b64decode.o:
+	$(CC) -c src/arm/b64/decode.c -o $(BUILD_DIR)/$@
+
+
+$(TARGET): ghair.o data.o b64encode.o b64decode.o
 
 prepare:
 	mkdir -p $(BUILD_DIR)
 
-build_lib: ghair.o
-	$(CC) -shared -Wl,-soname,libghair.so -o libghair.so.$(LIBVERS) $(BUILD_DIR)/ghair.o
-
 clean:
-	rm -rf $(BUILD_DIR) libghair.so.$(LIBVERS)
+	rm -f $(BUILD_DIR)/*
 

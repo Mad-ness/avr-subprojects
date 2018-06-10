@@ -4,7 +4,7 @@
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif // ARDUINO
-#include <RF24.h>
+#include <RF24/RF24.h>
 #include <ghairdefs.h>
 
 class GHAir {

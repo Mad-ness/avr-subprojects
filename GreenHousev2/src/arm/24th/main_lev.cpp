@@ -7,15 +7,17 @@
 #include <jansson.h>
 #include <ghairdefs.h>
 #include <data.h>
+#include <iostream>
+#include <string>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
 
 using namespace lev;
-
+ 
 static int cnt = 0;
 static EvEvent event_print;
-static EvEvent ev_radio_in;
+static EvEvent checkRadio;
 
 static DataCollector all_data;
 
@@ -30,8 +32,8 @@ void onPrint(struct evhttp_request *req, void *arg) {
  * Check the radio module on incoming data
  */
 static
-void onCheckRaiod(struct evhttp_request *req, void *arg) {
-     //
+void onCheckFromRadio( evutil_socket_t socket, short id, void *data ) {
+    //
     AirPacket *pkt;
     if ( pkt != NULL ) {
 	if ( pkt->isResponse() ) {
@@ -86,7 +88,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     json_t *js_len = json_object_get(json_root, "len");
     json_t *js_data = json_object_get(json_root, "data");
 
-    AirPacket air_packet;
+    //AirPacket air_packet;
 
     bool packet_ready = true;
 
@@ -94,29 +96,31 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
 
         HttpRequest_t datapkt;
-        datapkt.packet.command = json_integer_value(js_func);
         datapkt.packet.address = json_integer_value(js_addr);
         datapkt.packet.length = json_integer_value(js_len);
+	datapkt.packet.command = json_integer_value(js_func);
 
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
         strcpy(base64_data, json_string_value(js_data));
-#ifdef DEBUG
-        fprintf(stdout, "Raw data: %s\n", base64_data);
-        fflush(stdout);
-#endif
         size_t decoded_len;
-        // byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
         byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
 
         memcpy(&datapkt.packet.data, decoded_data, decoded_len);
-//        memcpy(air_packet.data, decoded_data, decoded_len);
 
         free(decoded_data);
 
         //memcpy(&datapkt.packet, &air_packet, sizeof(air_packet));
+
+#ifdef DEBUG
+        std::cout << "Func: " << (int)datapkt.packet.command << ", " 
+                  << "Addr: " << (int)datapkt.packet.address << ", " 
+                  << "Len: " << (int)datapkt.packet.length << ", "
+                  << "Data: " << datapkt.packet.data;
+	std::cout << "Raw data: " << base64_data << std::endl;;
+#endif 
         strcpy(datapkt.id, "super");
-        all_data.addRequest(&datapkt);
+        all_data.addRequest(datapkt);
     } else {
         packet_ready = false;
     }
@@ -125,10 +129,6 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     free(js_addr);
     free(js_len);
     free(js_data);
-#ifdef DEBUG
-    fprintf(stdout, "Func: 0x%u, Addr: 0x%u, Len: 0x%u, Data: %s\n", air_packet.command, air_packet.address, air_packet.length, air_packet.data);
-    fflush(stdout);
-#endif
     
     free(json_root);
     evreq.sendReply(200, "OK Good Json");
@@ -158,22 +158,29 @@ void onHttpHello(struct evhttp_request *req, void *arg) {
 static
 void onTimeout(evutil_socket_t socket, short id, void *data) {
     puts("Timeout expired!");
-    //fprintf(stdout, "Timeout expired!\n");
-    //fflush(stdout);
+
+    // all_data
+    for ( auto it = all_data.data().cbegin(); it != all_data.data().cend(); it++ ) {
+        if ( it->responded == 0 ) {
+            // send request to the remote board using the RF24 (GHAir lib)
+            break; // send only one request per event
+        }
+    }
 }
+
 
 int main(int argc, char **argv) {
     printf("Starting the server.\n");
     EvBaseLoop base;
     EvHttpServer http(base);
 
-    //EvBaseLoop evbase;
 
     event_print.newTimer(onTimeout, base.base());
     event_print.start(3000);
 
-    //ev_radio_in.newTimer(onCheckRaiod, base.base());
-    //ev_radio_in.start(10);
+    checkRadio.newTimer(onCheckFromRadio, NULL);
+    checkRadio.start(10);
+
 
 
     http.addRoute("/test", onHttpRequest);

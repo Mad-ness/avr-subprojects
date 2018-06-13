@@ -1,4 +1,4 @@
-#ifdef ARDUINO
+#ifdef ARDUINO_ARCH_AVR
 #include <EEPROM.h>
 #include <avr/wdt.h>
 #endif // ARDUINO
@@ -9,7 +9,7 @@
 uint16_t cycles_cnt = 0;
 #endif
 
-#ifdef ARDUINO
+#ifdef ARDUINO_ARCH_AVR
 void resetBoardVector() {
     wdt_enable(WDTO_15MS);
     while (1); // wait until the reset
@@ -163,7 +163,7 @@ void GHAir::onGetDataStandard() {
             case AIR_CMD_IN_PING:
                 this->sendPong();
                 break;
-#ifdef ARDUINO
+#ifdef ARDUINO_ARCH_AVR
             case AIR_CMD_IN_RESET:
                 this->onResetBoard();
                 break;
@@ -181,7 +181,7 @@ void GHAir::onGetDataStandard() {
                 sprintf(str, "  == Current milliseconds (local) %lu\n", uptime);
                 Serial.print(str);
 #endif // DEBUG_AIR
-#ifdef ARDUINO
+#ifdef ARDUINO_ARCH_AVR
                 }
                 break;
 #endif // ARDUINO
@@ -194,11 +194,13 @@ void GHAir::onGetDataStandard() {
     }
 }
 
-#ifdef ARDUINO
+#ifdef ARDUINO_ARCH_AVR
 
 void GHAir::onResetBoard() {
+#ifdef ARDUINO_ARCH_AVR
     this->sendResponse(this->m_packet, true, 0x0, NULL);
     resetBoardVector();
+#endif
 }
 
 bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {

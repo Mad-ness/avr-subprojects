@@ -1,12 +1,14 @@
 #include <Arduino.h>
-#include <EEPROM.h>
-#include <printf.h>
+//#include <EEPROM.h>
+#ifdef AIR_SENDER_DEBUG
+    #include <printf.h>
+#endif
 #include <ghair.h>
 #include <ghairdefs.h>
 
 #define AIR_CMD_REQ_TIME    AIR_CMD_IN_CUSTOM_01
 
-GHAir air(7, 8, "1Node", "2Node");
+GHAir air(7, 8, (byte*)"1Node", (byte*)"2Node");
 long long last_flash_on = 0;
 
 #ifdef DEBUG_AIR
@@ -82,13 +84,17 @@ void ping_pong_game(AirPacket *pkt) {
 
 void setup(void) {
     Serial.begin(115200);
+#ifdef AIR_SENDER_DEBUG
     printf_begin();
+#endif
     air.setup();
     air.setHandler(&ping_pong_game);
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
     Serial.println("  ====[ Started working (sender) ]====");
+#ifdef AIR_SENDER_DEBUG
     air.rf24()->printDetails();
+#endif
 }
 
 long long old_time = 0;

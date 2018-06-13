@@ -3,12 +3,14 @@
 
 #include <Arduino.h>
 #include <ghobject.h>
-#include <ghdisplay.h>
-#include <ghrtc.h>
-#include <ghrelay.h>
-#include <gh1wire.h>
+#ifdef ARDUINO_ARCH_AVR
+    #include <ghdisplay.h>
+    #include <ghrtc.h>
+    #include <ghrelay.h>
+    #include <gh1wire.h>
+#endif
 #ifdef ENABLE_BUTTONSET
-#include <ghbuttonset.h>
+    #include <ghbuttonset.h>
 #endif // ENABLE_BUTTONSET
 #include <ghair.h>
 

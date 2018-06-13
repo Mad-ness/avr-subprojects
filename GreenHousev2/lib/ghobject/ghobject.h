@@ -1,6 +1,8 @@
 #ifndef __GHOBJECT_H__
 #define __GHOBJECT_H__
 
+#include <inttypes.h>
+
 class GHObject {
 private:
 public:

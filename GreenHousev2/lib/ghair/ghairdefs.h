@@ -1,8 +1,9 @@
 #ifndef __GHAIRDEFS_H__
 #define __GHAIRDEFS_H__
 
-#ifndef ARDUINO
+#include <inttypes.h>
 
+#ifndef ARDUINO
 typedef unsigned char byte;
 
 #endif // ARDUINO

@@ -26,7 +26,7 @@ static EvEvent checkRadio;
 static DataCollector all_data;
 // PB11 = 43 - Chip Enable (CE)
 // PH07 - 231 - Chip Select (CSN)
-GHAir air(43, 231, (byte*)"1Node", (byte*)"2Node");
+GHAir air(266, 43, (byte*)"2Node", (byte*)"1Node");
 
 
 inline void logstr(std::string msg) {
@@ -193,7 +193,7 @@ void onHttpHello(struct evhttp_request *req, void *arg) {
 static
 void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
     puts("Timeout expired!");
-
+    air.sendPing();
     // all_data
     for ( auto it = all_data.data().cbegin(); it != all_data.data().cend(); it++ ) {
         if ( it->responded == 0 ) {
@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
     inQueue.newTimer(processIncomingQueue, base.base());
     outQueue.newTimer(processOutgoingQueue, base.base());
 
-    inQueue.start(3000);
+    inQueue.start(30);
     outQueue.start(3000);
 
     logstr("Adding routes");

@@ -14,6 +14,7 @@
 class HttpRequest_t { 
     public: 
     char id[REQUEST_ID_LEN]; // uniq strings that comes from withing a user's request
+    bool hasSent = false;
 #if __ARM_ARCH == 7
     unsigned int received = 0;
     unsigned int responded = 0;
@@ -25,7 +26,12 @@ class HttpRequest_t {
     //time_t responded;        // indicates when the board received a reply from a remote board
     AirPacket packet;        // raw data received from a remote board
     HttpRequest_t() {};
+    void markAsSentOut() {
+        received = time(NULL); 
+        hasSent = true;
+    }
     HttpRequest_t(const HttpRequest_t &src) {
+            hasSent = src.hasSent;
             received = src.received;
             responded = src.responded;
             packet = src.packet;
@@ -52,6 +58,8 @@ class DataCollector {
         void removeRequest( const char *id );
         void printContent();
         HttpRequest_t *byCommand(const uint8_t cmd);
+        void updateWithResponse(AirPacket &pkt);
+        HttpRequest_t *packetToSend(void);
 };
 
 #endif // __QUEUE_H__

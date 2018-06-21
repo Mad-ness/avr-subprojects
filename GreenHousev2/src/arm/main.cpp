@@ -23,10 +23,14 @@ static int cnt = 0;
 static EvEvent event_print;
 static EvEvent checkRadio;
 
-static DataCollector all_data;
+static DataCollector all_packets;
 // PB11 = 43 - Chip Enable (CE)
 // PH07 - 231 - Chip Select (CSN)
-GHAir air(266, 43, (byte*)"2Node", (byte*)"1Node");
+
+const int CEpin = SUNXI_GPB(10);
+const int CSNpin = SUNXI_GPB(11);
+
+GHAir air(CEpin, CSNpin, (byte*)"1Node", (byte*)"2Node");
 
 
 inline void logstr(std::string msg) {
@@ -35,24 +39,24 @@ inline void logstr(std::string msg) {
 #endif
 }
 
+/**
+ * The function is called every time the data available in the receiver providing the air.loop()
+ * is called.
+ * A new packet is not processed anyhow, it is placed in the Packet Queue.
+ */
 static
 void onIncomingAirPacket(AirPacket *pkt) {
-    for ( auto it = all_data.data().begin(); it != all_data.data().end(); it++) {
-        if ( it->packet.command == pkt->getCommand() ) {
-            memcpy(&it->packet, pkt, sizeof(pkt));
-            it->responded = time(NULL);
-#if DEBUG
-            std::cout << "Received a response on the command: " << pkt->getCommand() << std::endl;
-#endif
-            break;
-        }
-    }
+#if defined(DEBUG)
+    printf("In cmd: 0x%02x, resp: %d, datalen: %d (bytes)\n", pkt->getCommand(), pkt->isResponse(), pkt->length);
+#endif 
+    // add the came response in the packets queue
+    all_packets.updateWithResponse(*pkt);
 }
 
 static 
 void onPrint(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    all_data.printContent();
+    all_packets.printContent();
     evreq.sendReply(200, "OK");
 }
 
@@ -110,7 +114,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         HttpRequest_t datapkt;
         datapkt.packet.command = json_integer_value(js_func);
 
-        HttpRequest_t *ex_pkt = all_data.byCommand(datapkt.packet.command);
+        HttpRequest_t *ex_pkt = all_packets.byCommand(datapkt.packet.command);
         // if this request already in the queue and it has a response from the remote board
         if ( ex_pkt != NULL && ex_pkt->responded > 0 ) {
             char msg[1024];
@@ -125,7 +129,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
             evreq.output().printf(msg); 
             evreq.sendReply(200, "READY");
             free(encoded_str);
-            all_data.data().remove(*ex_pkt); // removing this element from the queue
+            all_packets.data().remove(*ex_pkt); // removing this element from the queue
             return;
         }
 
@@ -155,7 +159,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         std::cout << "New request added in the queue (see above)" << std::endl;
 #endif 
         strcpy(datapkt.id, "super");
-        all_data.addRequest(datapkt);
+        all_packets.addRequest(datapkt);
     } else {
         packet_ready = false;
     }
@@ -190,17 +194,43 @@ void onHttpHello(struct evhttp_request *req, void *arg) {
     evreq.sendReply(200, "OK");
 }
 
+/**
+ * It goes over all items in the packet queue and 
+ * sends one request per call to the remote board.
+ */
 static
 void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
-    puts("Timeout expired!");
-    air.sendPing();
-    // all_data
-    for ( auto it = all_data.data().cbegin(); it != all_data.data().cend(); it++ ) {
+/*
+    if ( air.sendPing() ) {
+        printf("Remote board pinged.\n");
+    } else {
+        printf("Ping did not send\n");
+    }
+
+    return;
+*/
+    HttpRequest_t *req = all_packets.packetToSend();
+    // If there is any packet in the queue
+    if ( req ) {
+        if ( air.sendPacket(req->packet) ) {
+            req->markAsSentOut();
+        } else {
+#if defined(DEBUG)
+            printf("Packet didn't send\n");
+#endif
+        }
+    }
+
+    /*
+    for ( auto it = all_packets.data().cbegin(); it != all_packets.data().cend(); it++ ) {
         if ( it->responded == 0 ) {
             // send request to the remote board using the RF24 (GHAir lib)
             break; // send only one request per event
+        } else {
+            // printf("Response received on cmd 0x2x\n", it->packet.command);
         }
     }
+    */
 }
 
 void usage() {
@@ -253,8 +283,8 @@ int main(int argc, char **argv) {
     inQueue.newTimer(processIncomingQueue, base.base());
     outQueue.newTimer(processOutgoingQueue, base.base());
 
-    inQueue.start(30);
-    outQueue.start(3000);
+    inQueue.start(10);
+    outQueue.start(10);
 
     logstr("Adding routes");
     http.addRoute("/request", onHttpRequest);

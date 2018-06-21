@@ -63,6 +63,14 @@ struct AirPacket {
     uint8_t address;
     uint8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
+
+    AirPacket &operator=(const AirPacket &pkt) {
+        command = pkt.command;
+        address = pkt.address;
+        length = pkt.length;
+        memcpy(&data, &pkt.data, sizeof(byte)*AIR_MAX_DATA_SIZE);
+    }
+
     // size of a entire packet
     inline uint8_t getCommand() {
         return command & 0x1F;

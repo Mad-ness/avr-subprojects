@@ -3,8 +3,12 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
-#endif // ARDUINO
 #include <RF24/RF24.h>
+#endif // ARDUINO
+#if defined(__LINUX__)
+#include <RF24.h>
+#define millis() __millis()
+#endif
 #include <ghairdefs.h>
 
 class GHAir {
@@ -41,7 +45,8 @@ public:
     bool onGetDataStandard();
     uint8_t getNumAttempts();
     // returns True if a packet is delivered
-    bool sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, void *data);
+    bool sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, const void *data);
+    bool sendPacket(const AirPacket &pkt);
     // Air commands
     bool sendPing();
     bool sendPong();

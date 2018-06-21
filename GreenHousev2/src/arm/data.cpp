@@ -34,7 +34,7 @@ void DataCollector::printContent() {
                           << "func=" << (int)it->packet.command << ", "
 			  << "addr=" << (int)it->packet.address << ", "
                           << "len=" << (int)it->packet.length << ", "
-                          << "data=" << it->packet.data;
+                          << "data=" << it->packet.data << std::endl;
             }
             if ( m_requests.cbegin() == m_requests.cend() ) {
                 fprintf(stdout, "The queue is empty.\n");
@@ -49,5 +49,26 @@ HttpRequest_t *DataCollector::byCommand(const uint8_t cmd) {
         }
     }
     return NULL;
+}
+
+void DataCollector::updateWithResponse(AirPacket &pkt) {
+    for ( auto it = this->m_requests.end(); it != m_requests.begin(); it-- ) {
+        if ( it->packet.isResponse() && it->packet.getCommand() == pkt.getCommand() ) {
+            memcpy(&(it->packet), &pkt, sizeof(AirPacket));
+            it->received = time(NULL);
+            break;
+        }
+    }
+}
+
+HttpRequest_t *DataCollector::packetToSend(void) {
+    HttpRequest_t *result = NULL;
+    for ( auto it = this->m_requests.begin(); it != m_requests.end(); it++ ) {
+        if ( ! it->packet.isResponse() && ! it->hasSent) {
+            result = &(*it);
+            break;
+        }
+    }
+    return result;
 }
 

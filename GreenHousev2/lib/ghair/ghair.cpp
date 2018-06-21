@@ -17,7 +17,11 @@ void resetBoardVector() {
 #endif // ARDUINO
 
 GHAir::GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe)
+#if defined(__LINUX__)
+: m_rf24(ce_pin, csn_pin, "/dev/spidev0.0")
+#else 
 : m_rf24(ce_pin, csn_pin)
+#endif
 {
     memcpy(&this->m_pipes.read, read_pipe, AIR_ADDRESS_SIZE);
     memcpy(&this->m_pipes.write, write_pipe, AIR_ADDRESS_SIZE);
@@ -32,8 +36,16 @@ void GHAir::setup() {
     this->m_rf24.begin();
     this->m_rf24.setPALevel(RF24_PA_LOW);
     this->m_rf24.setDataRate(RF24_250KBPS);
+#if defined(ARDUINO)
     this->m_rf24.openReadingPipe(1, this->m_pipes.read);
     this->m_rf24.openWritingPipe(this->m_pipes.write);
+#elif defined(__LINUX__)
+    uint64_t pipes[2];
+    memcpy(&pipes[0], this->m_pipes.read, sizeof(this->m_pipes.read));
+    memcpy(&pipes[1], this->m_pipes.write, sizeof(this->m_pipes.write));
+    this->m_rf24.openReadingPipe(1, pipes[0]);
+    this->m_rf24.openWritingPipe(pipes[1]);
+#endif
     this->m_rf24.startListening();
 }
 
@@ -57,7 +69,11 @@ AirPacket &GHAir::packet() {
     return this->m_packet;
 }
 
-bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, void *data) {
+bool GHAir::sendPacket(const AirPacket &pkt) {
+    return sendPacket(pkt.command, pkt.address, pkt.length, &pkt.data);
+}
+
+bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, const void *data) {
     AirPacket pkt;
     pkt.command = cmd;
     pkt.address = addr;

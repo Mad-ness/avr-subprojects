@@ -6,12 +6,12 @@
 #include <b64.h>
 #include <jansson.h>
 #include <ghairdefs.h>
-#include <data.h>
+// #include <data.h>
 #include <iostream>
 #include <string>
 #include <ghair.h>
 #include <unistd.h>
-
+#include <packetmanager.h>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
@@ -23,7 +23,7 @@ static int cnt = 0;
 static EvEvent event_print;
 static EvEvent checkRadio;
 
-static DataCollector all_packets;
+static PacketManager all_packets;
 // PB11 = 43 - Chip Enable (CE)
 // PH07 - 231 - Chip Select (CSN)
 
@@ -49,14 +49,13 @@ void onIncomingAirPacket(AirPacket *pkt) {
 #if defined(DEBUG)
     printf("In cmd: 0x%02x, resp: %d, datalen: %d (bytes)\n", pkt->getCommand(), pkt->isResponse(), pkt->length);
 #endif 
-    // add the came response in the packets queue
     all_packets.updateWithResponse(*pkt);
 }
 
 static 
 void onPrint(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    all_packets.printContent();
+    all_packets.print();
     evreq.sendReply(200, "OK");
 }
 
@@ -104,38 +103,18 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     json_t *js_len = json_object_get(json_root, "len");
     json_t *js_data = json_object_get(json_root, "data");
 
-    //AirPacket air_packet;
-
-    bool packet_ready = true;
-
 
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
 
-        HttpRequest_t datapkt;
-        datapkt.packet.command = json_integer_value(js_func);
 
-        HttpRequest_t *ex_pkt = all_packets.byCommand(datapkt.packet.command);
-        // if this request already in the queue and it has a response from the remote board
-        if ( ex_pkt != NULL && ex_pkt->responded > 0 ) {
-            char msg[1024];
-            char *encoded_str = b64_encode(ex_pkt->packet.data, ex_pkt->packet.length);
-            sprintf(msg, "{ \"func\": %d , \"addr\": %d , \"len\": %d , \"data\" : \"%s\" , \"ttl\": %d }",
-                         ex_pkt->packet.command, 
-                         ex_pkt->packet.address,
-                         ex_pkt->packet.length, 
-                         encoded_str,
-                         ex_pkt->responded - ex_pkt->received
-                   );
-            evreq.output().printf(msg); 
-            evreq.sendReply(200, "READY");
-            free(encoded_str);
-            all_packets.data().remove(*ex_pkt); // removing this element from the queue
-            return;
-        }
-
-        datapkt.received = time(NULL);
-        datapkt.packet.address = json_integer_value(js_addr);
-        datapkt.packet.length = json_integer_value(js_len);
+        evreq.output().printf("Request accepted");
+        evreq.sendReply(200, "Request accepted");
+        
+        AirPacket new_pkt;
+        new_pkt.command = json_integer_value(js_func);
+        new_pkt.address = json_integer_value(js_addr);
+        new_pkt.length = json_integer_value(js_len);
+     
 
         char base64_data[MAX_JSON_BUFFER_SIZE];
         memset(base64_data, 0, json_string_length(js_data));
@@ -143,26 +122,29 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         size_t decoded_len;
         byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
 
-        memcpy(&datapkt.packet.data, decoded_data, decoded_len);
+        memcpy(&new_pkt.data, decoded_data, decoded_len);
 
         free(decoded_data);
 
         //memcpy(&datapkt.packet, &air_packet, sizeof(air_packet));
 
 #ifdef DEBUG
-        std::cout << "Func: " << (int)datapkt.packet.command << ", " 
-                  << "Addr: " << (int)datapkt.packet.address << ", " 
-                  << "Len: " << (int)datapkt.packet.length << ", "
-                  << "Received: " << datapkt.received << ", "
-                  << "Data: " << datapkt.packet.data;
-	    std::cout << "Raw data: " << base64_data << std::endl;;
+        std::cout << "Func: " << (int)new_pkt.command << ", " 
+                  << "Addr: " << (int)new_pkt.address << ", " 
+                  << "Len: " << (int)new_pkt.length << ", "
+                  << "Data: " << new_pkt.data;
+	    std::cout << "Raw data: " << base64_data << std::endl;
         std::cout << "New request added in the queue (see above)" << std::endl;
 #endif 
-        strcpy(datapkt.id, "super");
-        all_packets.addRequest(datapkt);
+        all_packets.addRequest(UserPacket("testclient", new_pkt));
+        all_packets.print();
     } else {
-        packet_ready = false;
+        // Something wrong with JSON formatted data
+        evreq.output().printf("Bad request");
+        evreq.cancel();
     }
+
+    std::cout << "Debug line 1" << std::endl;
 
     free(js_func);
     free(js_addr);
@@ -170,7 +152,8 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     free(js_data);
     
     free(json_root);
-    evreq.sendReply(200, "OK Good Json");
+    std::cout << "Debug line 2" << std::endl;
+//    evreq.sendReply(200, "OK Good Json");
 }
 
 static
@@ -200,37 +183,22 @@ void onHttpHello(struct evhttp_request *req, void *arg) {
  */
 static
 void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
-/*
-    if ( air.sendPing() ) {
-        printf("Remote board pinged.\n");
-    } else {
-        printf("Ping did not send\n");
-    }
-
-    return;
-*/
-    HttpRequest_t *req = all_packets.packetToSend();
-    // If there is any packet in the queue
-    if ( req ) {
-        if ( air.sendPacket(req->packet) ) {
-            req->markAsSentOut();
-        } else {
+    bool is_packet = false;
+    UserPacket &pkt = all_packets.nextPacket(&is_packet);
+    if ( is_packet ) {
+        std::cout << "Debug line 3" << std::endl;
+        bool has_sent = air.sendPacket(pkt.radiopacket());
+        if ( has_sent ) {
+            pkt.attemptedToSend(has_sent);
 #if defined(DEBUG)
-            printf("Packet didn't send\n");
-#endif
+            std::cout << "Packet has been shipped out: " << pkt.str() << std::endl;
+#endif 
+        } else { 
+#if defined(DEBUG)
+            std::cout << "Packet has not been shipped: " << pkt.str() << std::endl;
+#endif 
         }
     }
-
-    /*
-    for ( auto it = all_packets.data().cbegin(); it != all_packets.data().cend(); it++ ) {
-        if ( it->responded == 0 ) {
-            // send request to the remote board using the RF24 (GHAir lib)
-            break; // send only one request per event
-        } else {
-            // printf("Response received on cmd 0x2x\n", it->packet.command);
-        }
-    }
-    */
 }
 
 void usage() {
@@ -284,7 +252,7 @@ int main(int argc, char **argv) {
     outQueue.newTimer(processOutgoingQueue, base.base());
 
     inQueue.start(10);
-    outQueue.start(10);
+    outQueue.start(200);
 
     logstr("Adding routes");
     http.addRoute("/request", onHttpRequest);

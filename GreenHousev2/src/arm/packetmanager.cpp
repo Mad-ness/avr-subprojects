@@ -8,19 +8,14 @@ void UserPacket::init() {
     when.request_senttoboard = 0;
     when.board_responded = 0;
     used_attempts = 0;
-	std::cout << "Constructor1 >>> " << str() << std::endl;
 }
 
 UserPacket::UserPacket(const string c_id, const AirPacket &pkt) {
     init();
-    std::cout << "Constructor2 >>> " << str() << std::endl;
     client_id = c_id;
     rf24packet = pkt;
-    std::cout << "Constructor3 >>> " << str() << std::endl;
     memcpy(&rf24packet, &pkt, sizeof(pkt));
-    std::cout << "Constructor4 >>> " << str() << std::endl;
     when.request_received = time(NULL);
-	std::cout << "Constructor5 >>> " << str() << std::endl;
 }
 
 
@@ -28,8 +23,12 @@ uint32_t UserPacket::packetId() {
 	return packet_id;
 }
 
-void UserPacket::markAsSentOut(void) {
-    has_sent = true;
+void UserPacket::attemptedToSend(bool with_success) {
+    when.request_senttoboard = time(NULL);
+    used_attempts++;
+    if ( with_success ) {
+        has_sent = true;
+    }
 }
 
 AirPacket &UserPacket::radiopacket() {
@@ -53,11 +52,13 @@ string UserPacket::str(void) {
     s += ", PacketId: ";
     s += to_string(packet_id);
     s += ", PacketSent: ";
-    s += has_sent ? "yes" : "no";
+    s += has_sent == true ? "yes" : "no";
     s += ", UsedAttempts: ";
     s += to_string(used_attempts);
     s += ", AirPacket: { cmd: ";
-    s += to_string(rf24packet.command);
+    s += to_string(rf24packet.getCommand());
+    s += ", isResponse: ";
+    s += rf24packet.isResponse() == true ? "yes" : "no";
     s += ", addr: ";
     s += to_string(rf24packet.address);
     s += ", len: ";
@@ -72,12 +73,9 @@ string UserPacket::str(void) {
     return s;
 }
 
-bool UserPacket::isResponse() {
-    return rf24packet.isResponse();
-}
-
 void UserPacket::replacePacket(const AirPacket &pkt) {
     memcpy(&rf24packet, &pkt, sizeof(pkt));
+    when.board_responded = time(NULL);
 }
 
 uint32_t UserPacket::usedAttempts() {
@@ -96,13 +94,16 @@ void UserPacket::setPacketId(const uint32_t &id) {
 	std::cout << "Increased packet id: " << packet_id << std::endl;
 }
 
+bool UserPacket::hasShipped() {
+    return has_sent;
+}
+
 
 
 /*****************************************************************************/
 
 void PacketManager::incrementPacketId(UserPacket &pkt) {
 	pkt.setPacketId(++curr_packet_id);
-	std::cout << "Incremented packet index to " << curr_packet_id << std::endl;
 }
 
 void PacketManager::addRequest(const UserPacket &packet) {
@@ -117,16 +118,22 @@ void PacketManager::print() {
     }
 }
 
-bool PacketManager::updateWithResponse(AirPacket *pkt) {
+bool PacketManager::updateWithResponse(AirPacket &pkt) {
+    bool result = false;
     for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
         if ( ! it->radiopacket().isResponse() &&
-             it->radiopacket().getCommand() == pkt->getCommand() &&
-             it->radiopacket().address == pkt->address ) {
-            it->replacePacket(*pkt);
-            return true;
+             it->radiopacket().getCommand() == pkt.getCommand() &&
+             it->radiopacket().address == pkt.address ) {
+            it->replacePacket(pkt);
+            result = true;
+            // not break the loop since there maybe other packets 
+            // with the same set of attributes, so update them as well
+#if defined(DEBUG)
+            std::cout << "Updated with response: " << it->str() << std::endl;
+#endif
         }
     }
-    return false;
+    return result;
 }
 
 /**
@@ -138,20 +145,22 @@ UserPacket &PacketManager::nextPacket(bool *result) {
     UserPacket *pkt = NULL;	
 	*result = false;
 	if ( m_packets.size() > 0 ) { 
-		*result = true;
-		pkt = &(*m_packets.begin());
-		auto it = m_packets.begin();
-		it++;
-        for ( it; it != m_packets.end(); it++ ) {
-            if ( ! it->isResponse() ) {
+		// *result = true;
+		// pkt = &(*m_packets.begin());
+        for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
+            if ( ! it->radiopacket().isResponse() && ! it->hasShipped() ) {
+                
+                if ( pkt == NULL ) {
+                    pkt = &(*it);
                     // Choose the packet with 
                     // less number of performed attempts
-                if ( it->timeAddInQueue() < pkt->timeAddInQueue() &&
+                } else if ( it->timeAddInQueue() < pkt->timeAddInQueue() &&
         			 it->usedAttempts() >= pkt->usedAttempts() &&
                      it->timeOfLastAttempt() <= pkt->timeOfLastAttempt() )
                 {
                     pkt = &(*it);
                 }
+                *result = true;
             }
         }
 	}

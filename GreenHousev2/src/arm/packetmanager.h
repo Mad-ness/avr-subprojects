@@ -31,8 +31,8 @@ class UserPacket {
     public:
         UserPacket();
         UserPacket(const string c_id, const AirPacket &pkt);
-        void markAsSentOut(void);
-        bool isResponse();
+        void attemptedToSend(bool with_success);
+        bool hasShipped();
         AirPacket &radiopacket();
         void updateRadioPacket(AirPacket &pkt);
         bool operator==(const UserPacket &pkt);
@@ -53,7 +53,7 @@ class PacketManager {
         void incrementPacketId(UserPacket &pkt);
     public:
         void addRequest(const UserPacket &packet);
-        bool updateWithResponse(AirPacket *pkt);
+        bool updateWithResponse(AirPacket &pkt);
         // next packet that is being sent
         UserPacket &nextPacket(bool *result);
         void print();

@@ -9,8 +9,16 @@ CXXFLAGS=-DDEBUG -D__LINUX__ -DCUBIEBOARD2 -DGPIO_SUN7I
 CC=g++ -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS)
 BUILD_DIR=./arm/build
 TARGET=idea24
+TESTS_DIR=src/arm/tests
 
 all: $(TARGET)
+
+
+pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
+	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
+
+$(BUILD_DIR)/pmtest.o: $(TESTS_DIR)/pmtest.cpp $(BUILD_DIR)/packetmanager.o
+	$(CC) -c $(TESTS_DIR)/pmtest.cpp -o $@ $(RF24_INCL)
 
 $(TARGET):  $(BUILD_DIR)/ghair.o \
 		    $(BUILD_DIR)/data.o \

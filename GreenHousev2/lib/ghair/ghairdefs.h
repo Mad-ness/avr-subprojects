@@ -64,11 +64,24 @@ struct AirPacket {
     uint8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
 
+    AirPacket() {
+        command = AIR_CMD_UNDEF;
+        address = AIR_ADDR_NULL;
+        length = 0;
+    }
+
+    AirPacket(uint8_t cmd, uint8_t addr, uint8_t len, void *d) {
+        command = cmd;
+        address = addr;
+        length = len;
+        memcpy(&data, d, len);
+    }
+
     AirPacket &operator=(const AirPacket &pkt) {
         command = pkt.command;
         address = pkt.address;
         length = pkt.length;
-        memcpy(&data, &pkt.data, sizeof(byte)*AIR_MAX_DATA_SIZE);
+        memcpy(&data, &pkt.data, sizeof(pkt.length));
     }
 
     // size of a entire packet

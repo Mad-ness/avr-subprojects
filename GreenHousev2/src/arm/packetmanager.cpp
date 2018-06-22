@@ -1,21 +1,31 @@
 #include <time.h>
 #include "packetmanager.h"
 
-UserPacket::UserPacket() {
+void UserPacket::init() {
     client_id = "";
     packet_id = 0;
     when.request_received = 0;
     when.request_senttoboard = 0;
     when.board_responded = 0;
     used_attempts = 0;
+	std::cout << "Constructor1 >>> " << str() << std::endl;
 }
 
 UserPacket::UserPacket(const string c_id, const AirPacket &pkt) {
-    UserPacket();
+    init();
+    std::cout << "Constructor2 >>> " << str() << std::endl;
     client_id = c_id;
     rf24packet = pkt;
+    std::cout << "Constructor3 >>> " << str() << std::endl;
     memcpy(&rf24packet, &pkt, sizeof(pkt));
+    std::cout << "Constructor4 >>> " << str() << std::endl;
     when.request_received = time(NULL);
+	std::cout << "Constructor5 >>> " << str() << std::endl;
+}
+
+
+uint32_t UserPacket::packetId() {
+	return packet_id;
 }
 
 void UserPacket::markAsSentOut(void) {
@@ -34,7 +44,7 @@ bool UserPacket::operator==(const UserPacket &pkt) {
 }
 
 /**
- * Returns a printable string with packet info.
+ * Returns a printable string about the packet itself.
  */ 
 string UserPacket::str(void) {
     string s;
@@ -81,7 +91,7 @@ packet_time_t &UserPacket::timeAddInQueue() {
 	return when.request_received;
 }
 
-void UserPacket::setPacketId(uint32_t id) {
+void UserPacket::setPacketId(const uint32_t &id) {
 	packet_id = id;
 	std::cout << "Increased packet id: " << packet_id << std::endl;
 }
@@ -90,18 +100,14 @@ void UserPacket::setPacketId(uint32_t id) {
 
 /*****************************************************************************/
 
-void PacketManager::incrementPacketId(UserPacket *pkt) {
-	pkt->setPacketId(++curr_packet_id);
+void PacketManager::incrementPacketId(UserPacket &pkt) {
+	pkt.setPacketId(++curr_packet_id);
+	std::cout << "Incremented packet index to " << curr_packet_id << std::endl;
 }
 
 void PacketManager::addRequest(const UserPacket &packet) {
     m_packets.push_back(UserPacket(packet));
-	incrementPacketId(&(*m_packets.end()));
-}
-
-void PacketManager::addRequest(const string client_id, const AirPacket &pkt) {
-    m_packets.push_back(UserPacket(client_id, pkt));
-    incrementPacketId(&(*m_packets.end()));
+	incrementPacketId(m_packets.back());
 }
 
 void PacketManager::print() {

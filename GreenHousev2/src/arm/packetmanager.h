@@ -7,6 +7,7 @@
 #include <ghair.h>
 
 using namespace std;
+
 #if __ARM_ARCH == 7
     typedef unsigned int packet_time_t;
 #elif __ARM_ARCH == 8
@@ -26,6 +27,7 @@ class UserPacket {
             packet_time_t request_senttoboard;
             packet_time_t board_responded;
         } when;
+        void init();
     public:
         UserPacket();
         UserPacket(const string c_id, const AirPacket &pkt);
@@ -39,18 +41,18 @@ class UserPacket {
         uint32_t usedAttempts();
         packet_time_t &timeOfLastAttempt();
         packet_time_t &timeAddInQueue();
-        void setPacketId(uint32_t id);
+        uint32_t packetId();
+        void setPacketId(const uint32_t &id);
 };
 
 
 class PacketManager {
     private:
-        uint32_t curr_packet_id;
+        uint32_t curr_packet_id = 0;
         std::list<UserPacket> m_packets;
-        void incrementPacketId(UserPacket *pkt);
+        void incrementPacketId(UserPacket &pkt);
     public:
         void addRequest(const UserPacket &packet);
-        void addRequest(const string client_id, const AirPacket &pkt);
         bool updateWithResponse(AirPacket *pkt);
         // next packet that is being sent
         UserPacket &nextPacket(bool *result);

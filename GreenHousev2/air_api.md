@@ -17,7 +17,7 @@ struct AirPacket {
 ```
 Maximum possible packet size is 32 bytes. That is limited by nRF24L01 modules.
 
-When a command sent to the remote board, it modifies the **command** byte by setting the highest (7) byte. It does not change the **address** byte. The **length** value and **data** content depends on the called function itself. The **length** byte tells how many bytes are stored in the **data** array. Format of data passed through the **data** array is depend on the called function.
+When a command sent to the remote board, it modifies the **command** byte by setting the highest (7) byte to 1, other bites aren't changed. It does not change the **address** byte. The **length** value and **data** content depends on the called function itself. The **length** byte tells how many bytes are stored in the **data** array. Format of data passed through the **data** array is depend on the called function.
 
 ## Functions
 

@@ -125,78 +125,11 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     j["status"] = "accepted";
     j["packet_id"] = pkt.packetId();
     j["when_accepted"] = pkt.timeAddInQueue();
+    j["is_response"] = pkt.airpacket().isResponse();
     evreq.output().printf(j.dump().c_str());
     std::cout << j.dump() << std::endl;
     evreq.sendReply(200, "Request accepted");
     return;
-/*
-    // buffer_data contains the POST data passed in the json format.
-
-    json_error_t json_error;
-    json_t *json_root = json_loads(buffer_data, 0, &json_error);
-    // free(buffer_data);
-
-    if ( json_root == NULL ) {
-        puts("Passed incorrect JSON data");
-        puts(json_error.text);
-        evreq.cancel();
-        return;
-    }
-
-    json_t *js_func = json_object_get(json_root, "func");
-    json_t *js_addr = json_object_get(json_root, "addr");
-    json_t *js_len = json_object_get(json_root, "len");
-    json_t *js_data = json_object_get(json_root, "data");
-
-    if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
-
-
-        evreq.output().printf("Request accepted");
-        evreq.sendReply(200, "Request accepted");
-        
-        AirPacket new_pkt;
-        new_pkt.command = json_integer_value(js_func);
-        new_pkt.address = json_integer_value(js_addr);
-        new_pkt.length = json_integer_value(js_len);
-     
-
-        char base64_data[MAX_JSON_BUFFER_SIZE];
-        memset(base64_data, 0, json_string_length(js_data));
-        strcpy(base64_data, json_string_value(js_data));
-        size_t decoded_len;
-        byte *decoded_data = b64_decode_ex(base64_data, strlen(base64_data), &decoded_len);
-
-        memcpy(&new_pkt.data, decoded_data, decoded_len);
-
-        free(decoded_data);
-
-        //memcpy(&datapkt.packet, &air_packet, sizeof(air_packet));
-
-#ifdef DEBUG
-        std::cout << "Func: " << (int)new_pkt.command << ", " 
-                  << "Addr: " << (int)new_pkt.address << ", " 
-                  << "Len: " << (int)new_pkt.length << ", "
-                  << "Data: " << new_pkt.data;
-	    std::cout << "Raw data: " << base64_data << std::endl;
-        std::cout << "New request added in the queue (see above)" << std::endl;
-#endif 
-        all_packets.addRequest(UserPacket("testclient", new_pkt));
-        // all_packets.print();
-    } else {
-        // Something wrong with JSON formatted data
-        evreq.output().printf("Bad request");
-        evreq.cancel();
-    }
-
-
-    free(js_func);
-    free(js_addr);
-    free(js_len);
-    free(js_data);
-    
-    free(json_root);
-*/
-//    evreq.sendReply(200, "OK Good Json");
 }
 
 static

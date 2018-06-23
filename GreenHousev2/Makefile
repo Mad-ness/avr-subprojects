@@ -54,5 +54,5 @@ prepare:
 	mkdir -p $(BUILD_DIR)
 
 clean:
-	rm -f $(BUILD_DIR)/*.o $(TARGET)
+	rm -f $(BUILD_DIR)/*.o $(TARGET) pmtest
 

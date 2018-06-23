@@ -4,7 +4,7 @@ There is the documentation about the API (format of a packet) that a remote boar
 
 **Format of the packet sent to the remote board**
 
-```
+```c
 #define     AIR_MAX_DATA_SIZE    29
 typedef     unsigned char        byte;
 

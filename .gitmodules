@@ -1,8 +1,8 @@
 [submodule "nlohmann"]
-    path = src/arm/nlohmann-json
+    path = GreenHousev2/src/arm/nlohmann-json
     url = git@github.com:Mad-ness/json.git
 
 [submodule "gpio_cb2"]
-    path = src/arm/gpio_cb2
+    path = GreenHousev2/src/arm/gpio_cb2
     url = git@github.com:Mad-ness/gpio_cb2.git
 

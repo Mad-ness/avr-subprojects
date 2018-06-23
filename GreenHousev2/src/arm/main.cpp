@@ -119,7 +119,11 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     airpkt.command = j["cmd"];
     airpkt.address = j["addr"];
     airpkt.length = j["len"];
-    strcpy((char*)airpkt.data, j["data"].get<std::string>().c_str());
+    if ( j["data"].is_number() ) {
+        memcpy(&airpkt.data, &j["data"], airpkt.length);
+    } else {
+        strcpy((char*)airpkt.data, j["data"].get<std::string>().c_str());
+    }
 
     UserPacket &pkt = all_packets.addRequest(UserPacket("testclient", airpkt));
     j["status"] = "accepted";

@@ -1,6 +1,6 @@
 # AirProto API
 
-There is the documentation about the API that a remote board accepts and format of passed data.
+There is the documentation about the API (format of a packet) that a remote board accepts and format of passed data.
 
 **Format of the packet sent to the remote board**
 
@@ -13,6 +13,7 @@ struct AirPacket {
     uint8_t address;
     uint8_t length;      
     byte data[AIR_MAX_DATA_SIZE];
+}
 ```
 Maximum possible packet size is 32 bytes. That is limited by nRF24L01 modules.
 

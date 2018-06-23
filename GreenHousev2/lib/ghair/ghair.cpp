@@ -74,6 +74,7 @@ bool GHAir::sendPacket(const AirPacket &pkt) {
 }
 
 bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, const void *data) {
+    if ( ! m_rf24.isChipConnected() ) return false;
     AirPacket pkt;
     pkt.command = cmd;
     pkt.address = addr;

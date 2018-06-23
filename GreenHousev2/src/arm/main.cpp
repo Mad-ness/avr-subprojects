@@ -137,7 +137,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         std::cout << "New request added in the queue (see above)" << std::endl;
 #endif 
         all_packets.addRequest(UserPacket("testclient", new_pkt));
-        all_packets.print();
+        // all_packets.print();
     } else {
         // Something wrong with JSON formatted data
         evreq.output().printf("Bad request");

@@ -4,9 +4,11 @@
 #include <string>
 #include <list>
 #include <iostream>
+//#include <nlohmann/json.hpp>
 #include <ghair.h>
 
 using namespace std;
+//using json = nlohmann::json;
 
 #if __ARM_ARCH == 7
     typedef unsigned int packet_time_t;
@@ -67,7 +69,7 @@ class PacketManager {
         std::list<UserPacket> m_packets;
         void incrementPacketId(UserPacket &pkt);
     public:
-        void addRequest(const UserPacket &packet);
+        UserPacket &addRequest(const UserPacket &packet);
         bool updateWithResponse(AirPacket &pkt);
         // next packet that is being sent
         UserPacket &nextPacket(bool *result);

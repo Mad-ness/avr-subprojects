@@ -129,9 +129,10 @@ void PacketManager::incrementPacketId(UserPacket &pkt) {
 	pkt.setPacketId(++curr_packet_id);
 }
 
-void PacketManager::addRequest(const UserPacket &packet) {
+UserPacket &PacketManager::addRequest(const UserPacket &packet) {
     m_packets.push_back(UserPacket(packet));
 	incrementPacketId(m_packets.back());
+    return m_packets.back();
 }
 
 void PacketManager::print() {

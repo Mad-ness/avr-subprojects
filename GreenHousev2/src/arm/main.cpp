@@ -4,7 +4,7 @@
 #include <string.h>
 #include <evhttp.h>
 #include <b64.h>
-#include <jansson.h>
+// #include <jansson.h>
 #include <ghairdefs.h>
 // #include <data.h>
 #include <iostream>
@@ -12,12 +12,14 @@
 #include <ghair.h>
 #include <unistd.h>
 #include <packetmanager.h>
+#include <nlohmann/json.hpp>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
 
 
 using namespace lev;
+using json = nlohmann::json;
  
 static int cnt = 0;
 static EvEvent event_print;
@@ -73,18 +75,61 @@ void onPing(struct evhttp_request *req, void *arg) {
     hreq.sendReply(200, "OK");
 }
 
-static
+// static
 void onPOSTRequest(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
 #ifdef DEBUG
     std::cout << "Received " << buffer_len << " bytes" << std::endl;
 #endif
+    size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
+    std::cout << "Buffer len: " << buffer_len << std::endl;
     struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
-    char buffer_data[MAX_JSON_BUFFER_SIZE];
-    memset(buffer_data, 0, buffer_len);
-    evbuffer_copyout(in_evb, buffer_data, buffer_len);
+    char *buffer_data;
+    buffer_data = (char*)malloc(buffer_len);
+    memset(buffer_data, ' ', sizeof(buffer_data));
+    size_t copied_size = evbuffer_copyout(in_evb, buffer_data, buffer_len); 
+    evbuffer_drain(in_evb, buffer_len);
 
+
+    // this is a trick
+    // buffer_data sometimes comes with extra bytes
+    // than it actually should have so the raw content has unprinable chars at the end.
+    // here we copy as many chars as we actually received
+    // (the problem might be in memory leaks)
+    string s_buf;
+    int i = 0;
+    while ( i < buffer_len ) {
+        s_buf += buffer_data[i++];
+    }
+
+    free(buffer_data);
+    json j;
+    try {
+        j = json::parse(s_buf);
+    } catch (json::parse_error &e) {
+        std::cout << e.what() << std::endl;
+        json je;
+        je["status"] = "error";
+        je["msg"] = e.what();
+        evreq.output().printf(je.dump().c_str());
+        evreq.sendReply(HTTP_BADREQUEST, "Bad JSON");
+        return;
+    }
+    AirPacket airpkt;
+    airpkt.command = j["cmd"];
+    airpkt.address = j["addr"];
+    airpkt.length = j["len"];
+    strcpy((char*)airpkt.data, j["data"].get<std::string>().c_str());
+
+    UserPacket &pkt = all_packets.addRequest(UserPacket("testclient", airpkt));
+    j["status"] = "accepted";
+    j["packet_id"] = pkt.packetId();
+    j["when_accepted"] = pkt.timeAddInQueue();
+    evreq.output().printf(j.dump().c_str());
+    std::cout << j.dump() << std::endl;
+    evreq.sendReply(200, "Request accepted");
+    return;
+/*
     // buffer_data contains the POST data passed in the json format.
 
     json_error_t json_error;
@@ -102,7 +147,6 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     json_t *js_addr = json_object_get(json_root, "addr");
     json_t *js_len = json_object_get(json_root, "len");
     json_t *js_data = json_object_get(json_root, "data");
-
 
     if ( json_is_integer(js_func) && json_is_integer(js_addr) && json_is_integer(js_len) && json_is_string(js_data) ) {
 
@@ -151,6 +195,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     free(js_data);
     
     free(json_root);
+*/
 //    evreq.sendReply(200, "OK Good Json");
 }
 

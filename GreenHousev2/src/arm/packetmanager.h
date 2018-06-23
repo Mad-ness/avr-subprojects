@@ -31,11 +31,12 @@ class UserPacket {
     public:
         UserPacket();
         UserPacket(const string c_id, const AirPacket &pkt);
+        bool operator==(const UserPacket &pkt);
+
         void attemptedToSend(bool with_success);
         bool hasShipped();
-        AirPacket &radiopacket();
+        AirPacket &airpacket();
         void updateRadioPacket(AirPacket &pkt);
-        bool operator==(const UserPacket &pkt);
         string str(void);
         void replacePacket(const AirPacket &pkt);
         uint32_t usedAttempts();
@@ -43,6 +44,10 @@ class UserPacket {
         packet_time_t &timeAddInQueue();
         uint32_t packetId();
         void setPacketId(const uint32_t &id);
+        void setSentTime(packet_time_t t);
+        packet_time_t getSentTime();
+        string clientId();
+        void setClientId(const string id);
 };
 
 

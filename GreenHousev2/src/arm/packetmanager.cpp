@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <time.h>
 #include "packetmanager.h"
 
@@ -31,7 +32,7 @@ void UserPacket::attemptedToSend(bool with_success) {
     }
 }
 
-AirPacket &UserPacket::radiopacket() {
+AirPacket &UserPacket::airpacket() {
     return rf24packet;
 }
 
@@ -98,6 +99,17 @@ bool UserPacket::hasShipped() {
     return has_sent;
 }
 
+packet_time_t UserPacket::getSentTime() {
+    return when.request_senttoboard;
+}
+
+string UserPacket::clientId() {
+    return client_id;
+}
+
+void UserPacket::setClientId(const string id) {
+    client_id = id;
+}
 
 
 /*****************************************************************************/
@@ -118,14 +130,49 @@ void PacketManager::print() {
     }
 }
 
+bool matchAirPacketResponse(AirPacket &origin, AirPacket &compare_to) {
+    return (
+             ( ! origin.isResponse() ) &&
+             ( origin.getCommand() == compare_to.getCommand() ) &&
+             ( origin.address == compare_to.address )     
+           );
+}
+
+/**
+ * Fills the initial packet with the answer from the remote board.
+ * It returns True if the origin has been found.
+ * It also iterates over all queue and fills the packets, which have the
+ * same set of attributes, with the answer making them not needed to be 
+ * requested from the remote board. Preventing sending of duplicate
+ * requests.
+ */
 bool PacketManager::updateWithResponse(AirPacket &pkt) {
+
+
     bool result = false;
     for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
-        if ( ! it->radiopacket().isResponse() &&
-             it->radiopacket().getCommand() == pkt.getCommand() &&
-             it->radiopacket().address == pkt.address ) {
-            it->replacePacket(pkt);
-            result = true;
+
+        if ( matchAirPacketResponse(it->airpacket(), pkt) ) {
+            if ( it->getSentTime() != 0 ) {
+
+                it->replacePacket(pkt);
+                packet_time_t when_sent = it->getSentTime();
+                result = true;
+
+                // iterate over other packets which have the same attributes
+                // and its headers saving personal information
+                for ( auto it2 = m_packets.begin(); it2 != m_packets.end(); it2++ ) {
+                    if ( matchAirPacketResponse(it->airpacket(), pkt) && it2->getSentTime() == 0 ) {
+                        const uint32_t packet_id = it2->packetId();
+                        const string client_id = it2->clientId();
+                        it2 = it;
+                        it2->setPacketId(packet_id);
+                        it2->setClientId(client_id);
+                    }
+                }
+                break;
+
+            } 
             // not break the loop since there maybe other packets 
             // with the same set of attributes, so update them as well
 #if defined(DEBUG)
@@ -148,7 +195,7 @@ UserPacket &PacketManager::nextPacket(bool *result) {
 		// *result = true;
 		// pkt = &(*m_packets.begin());
         for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
-            if ( ! it->radiopacket().isResponse() && ! it->hasShipped() ) {
+            if ( ! it->airpacket().isResponse() && ! it->hasShipped() ) {
                 
                 if ( pkt == NULL ) {
                     pkt = &(*it);

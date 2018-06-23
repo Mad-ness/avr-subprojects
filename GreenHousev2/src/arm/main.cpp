@@ -144,7 +144,6 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
         evreq.cancel();
     }
 
-    std::cout << "Debug line 1" << std::endl;
 
     free(js_func);
     free(js_addr);
@@ -152,7 +151,6 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     free(js_data);
     
     free(json_root);
-    std::cout << "Debug line 2" << std::endl;
 //    evreq.sendReply(200, "OK Good Json");
 }
 
@@ -186,8 +184,7 @@ void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
     bool is_packet = false;
     UserPacket &pkt = all_packets.nextPacket(&is_packet);
     if ( is_packet ) {
-        std::cout << "Debug line 3" << std::endl;
-        bool has_sent = air.sendPacket(pkt.radiopacket());
+        bool has_sent = air.sendPacket(pkt.airpacket());
         if ( has_sent ) {
             pkt.attemptedToSend(has_sent);
 #if defined(DEBUG)

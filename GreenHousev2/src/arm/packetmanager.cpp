@@ -79,6 +79,17 @@ void UserPacket::replacePacket(const AirPacket &pkt) {
     when.board_responded = time(NULL);
 }
 
+void UserPacket::replacePacket(const UserPacket &pkt, const int flags) {
+    if ( flags & UPAirPacket )          rf24packet = pkt.rf24packet;
+    if ( flags & UPPacketId )           packet_id = pkt.packet_id;
+    if ( flags & UPUsedAttempts )       used_attempts = pkt.used_attempts;
+    if ( flags & UPHasSentFlag )        has_sent = pkt.has_sent;
+    if ( flags & UPClientId )           client_id = pkt.client_id;
+    if ( flags & UPTimeBoardResponded ) when.board_responded = pkt.when.board_responded;
+    if ( flags & UPTimeSentToBoard )    when.request_senttoboard = pkt.when.request_senttoboard;
+    if ( flags & UPTimeReceived )       when.request_received = pkt.when.request_received;
+}
+
 uint32_t UserPacket::usedAttempts() {
     return used_attempts;
 }
@@ -99,16 +110,16 @@ bool UserPacket::hasShipped() {
     return has_sent;
 }
 
-packet_time_t UserPacket::getSentTime() {
-    return when.request_senttoboard;
-}
-
 string UserPacket::clientId() {
     return client_id;
 }
 
 void UserPacket::setClientId(const string id) {
     client_id = id;
+}
+
+const packet_time_t &UserPacket::getSentTime() {
+    return when.request_senttoboard;
 }
 
 
@@ -148,7 +159,6 @@ bool matchAirPacketResponse(AirPacket &origin, AirPacket &compare_to) {
  */
 bool PacketManager::updateWithResponse(AirPacket &pkt) {
 
-
     bool result = false;
     for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
 
@@ -156,20 +166,23 @@ bool PacketManager::updateWithResponse(AirPacket &pkt) {
             if ( it->getSentTime() != 0 ) {
 
                 it->replacePacket(pkt);
-                packet_time_t when_sent = it->getSentTime();
                 result = true;
 
                 // iterate over other packets which have the same attributes
-                // and its headers saving personal information
-                for ( auto it2 = m_packets.begin(); it2 != m_packets.end(); it2++ ) {
-                    if ( matchAirPacketResponse(it->airpacket(), pkt) && it2->getSentTime() == 0 ) {
-                        const uint32_t packet_id = it2->packetId();
-                        const string client_id = it2->clientId();
-                        it2 = it;
-                        it2->setPacketId(packet_id);
-                        it2->setClientId(client_id);
+                // and its headers, saving personal information such as
+                // client_id and packet_id. The packages marked as replied,
+                // it eliminates the need to send the same multiple requests 
+                // to the remote board. 
+                for_each( m_packets.begin(), m_packets.end(), [it](UserPacket &item) {
+                    if ( matchAirPacketResponse(item.airpacket(), it->airpacket()) && item.getSentTime() == 0 ) {
+                        const int copy_flags = UPTimeSentToBoard 
+                                               | UPTimeBoardResponded 
+                                               | UPHasSentFlag 
+                                               | UPUsedAttempts 
+                                               | UPAirPacket;
+                        item.replacePacket(*it, copy_flags);
                     }
-                }
+                });
                 break;
 
             } 
@@ -192,8 +205,6 @@ UserPacket &PacketManager::nextPacket(bool *result) {
     UserPacket *pkt = NULL;	
 	*result = false;
 	if ( m_packets.size() > 0 ) { 
-		// *result = true;
-		// pkt = &(*m_packets.begin());
         for ( auto it = m_packets.begin(); it != m_packets.end(); it++ ) {
             if ( ! it->airpacket().isResponse() && ! it->hasShipped() ) {
                 

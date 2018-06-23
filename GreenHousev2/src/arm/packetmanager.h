@@ -14,6 +14,16 @@ using namespace std;
     typedef unsigned long packet_time_t;
 #endif
 
+
+const int UPTimeReceived          = 0b00000001;
+const int UPTimeSentToBoard       = 0b00000010;
+const int UPTimeBoardResponded    = 0b00000100;
+const int UPClientId              = 0b00001000;
+const int UPHasSentFlag           = 0b00010000;
+const int UPUsedAttempts          = 0b00100000;
+const int UPPacketId              = 0b01000000;
+const int UPAirPacket             = 0b10000000;
+
 class UserPacket {
     private:
         string client_id;
@@ -39,15 +49,15 @@ class UserPacket {
         void updateRadioPacket(AirPacket &pkt);
         string str(void);
         void replacePacket(const AirPacket &pkt);
+        void replacePacket(const UserPacket &pkt, const int flags);
         uint32_t usedAttempts();
         packet_time_t &timeOfLastAttempt();
         packet_time_t &timeAddInQueue();
         uint32_t packetId();
         void setPacketId(const uint32_t &id);
-        void setSentTime(packet_time_t t);
-        packet_time_t getSentTime();
         string clientId();
         void setClientId(const string id);
+        const packet_time_t &getSentTime();
 };
 
 

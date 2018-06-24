@@ -1,4 +1,4 @@
-INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I
+INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src
 # OS=LINUX
 # SOC=A20
 RF24_INCL=-I/var/tmp/librf24-sunxi/src
@@ -22,9 +22,11 @@ examples: $(EXAMPLES)
 pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
 	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
 
-router_check: src/arm/routers.h src/arm/tests/router_check.cpp
-	$(CC) src/arm/tests/router_check.cpp -o $@
+router_check: $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o
+	$(CC) $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o -o $@
 
+$(BUILD_DIR)/router_check.o: src/arm/routemanager.h  src/arm/tests/router_check.cpp
+	$(CC) -c src/arm/tests/router_check.cpp -o $@
 
 $(BUILD_DIR)/pmtest.o: $(TESTS_DIR)/pmtest.cpp $(BUILD_DIR)/packetmanager.o
 	$(CC) -c $(TESTS_DIR)/pmtest.cpp -o $@ $(RF24_INCL)
@@ -34,6 +36,7 @@ $(TARGET):  $(BUILD_DIR)/ghair.o \
             $(BUILD_DIR)/packetmanager.o \
 		    $(BUILD_DIR)/b64encode.o \
 		    $(BUILD_DIR)/b64decode.o \
+            $(BUILD_DIR)/routemanager.o \
 		    $(BUILD_DIR)/main.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(RF24_LIBS)
 
@@ -52,6 +55,12 @@ $(BUILD_DIR)/b64decode.o: src/arm/b64.h src/arm/decode.c
 
 $(BUILD_DIR)/packetmanager.o: src/arm/packetmanager.cpp src/arm/packetmanager.h lib/ghair/ghairdefs.h ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp
 	$(CC) -c src/arm/packetmanager.cpp -o $@ $(RF24_INCL) $(JSON_INCL)
+
+$(BUILD_DIR)/edurlparser.o: src/arm/urlparser/src/EdUrlParser.cpp src/arm/urlparser/src/EdUrlParser.h
+	$(CC) -c src/arm/urlparser/src/EdUrlParser.cpp -o $@
+
+$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h
+	$(CC) -c src/arm/routemanager.cpp -o $@
 
 
 $(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp

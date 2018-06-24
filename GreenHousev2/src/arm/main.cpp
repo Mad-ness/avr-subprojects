@@ -78,10 +78,10 @@ void onPing(struct evhttp_request *req, void *arg) {
 // static
 void onPOSTRequest(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
+    size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
 #ifdef DEBUG
     std::cout << "Received " << buffer_len << " bytes" << std::endl;
 #endif
-    size_t buffer_len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
     std::cout << "Buffer len: " << buffer_len << std::endl;
     struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
     char *buffer_data;

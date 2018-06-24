@@ -2,6 +2,7 @@
 #define __GHAIRDEFS_H__
 
 #include <inttypes.h>
+#include <string.h>
 
 #ifndef ARDUINO
 typedef unsigned char byte;

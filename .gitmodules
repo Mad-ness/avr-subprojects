@@ -6,3 +6,6 @@
     path = GreenHousev2/src/arm/gpio_cb2
     url = git@github.com:Mad-ness/gpio_cb2.git
 
+[submodule "GreenHousev2/src/arm/urlparser"]
+	path = GreenHousev2/src/arm/urlparser
+	url = https://github.com/netmindms/urlparser.git

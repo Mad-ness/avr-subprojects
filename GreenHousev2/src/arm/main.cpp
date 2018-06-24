@@ -133,6 +133,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     evreq.output().printf(j.dump().c_str());
     std::cout << j.dump() << std::endl;
     evreq.sendReply(200, "Request accepted");
+
     return;
 }
 
@@ -149,11 +150,10 @@ void onHttpRequest(struct evhttp_request *req, void *arg) {
 }
 
 static
-void onHttpHello(struct evhttp_request *req, void *arg) {
+void onHttpDefault(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    evreq.output().printf("<h1>Hello, World!</h1>");
-    char msg[] = "{ \"command\": \"4\", \"address\": \"10\" }";
-    evreq.output().printf(msg);
+    std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
+    evreq.output().printf("Default handler:: Received URI: %s\n", evreq.uriStr());
     evreq.sendReply(200, "OK");
 }
 
@@ -234,10 +234,11 @@ int main(int argc, char **argv) {
     outQueue.start(200);
 
     logstr("Adding routes");
+    http.setDefaultRoute(onHttpDefault);
     http.addRoute("/request", onHttpRequest);
     http.addRoute("/ping", onPing);
-    http.addRoute("/hello", onHttpHello);
     http.addRoute("/print", onPrint);
+
 
     logstr("Running the http server");
     http.bind(argv[1], atoi(argv[2]));

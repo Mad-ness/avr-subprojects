@@ -8,16 +8,23 @@ LIBS=-L/usr/local/lib -L/usr/lib -levent -ljansson
 CFLAGS=
 # NDEBUG is for the JSON library
 CXXFLAGS=-DDEBUG -D__LINUX__ -DCUBIEBOARD2 -DGPIO_SUN7I -DNDEBUG
-CC=g++ -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS)
+CC=g++ -Os -flto -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS)
 BUILD_DIR=./arm/build
 TARGET=idea24
 TESTS_DIR=src/arm/tests
 
+EXAMPLES=router_check pmtest
+
 all: $(TARGET)
 
+examples: $(EXAMPLES)
 
 pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
 	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
+
+router_check: src/arm/routers.h src/arm/tests/router_check.cpp
+	$(CC) src/arm/tests/router_check.cpp -o $@
+
 
 $(BUILD_DIR)/pmtest.o: $(TESTS_DIR)/pmtest.cpp $(BUILD_DIR)/packetmanager.o
 	$(CC) -c $(TESTS_DIR)/pmtest.cpp -o $@ $(RF24_INCL)
@@ -54,5 +61,5 @@ prepare:
 	mkdir -p $(BUILD_DIR)
 
 clean:
-	rm -f $(BUILD_DIR)/*.o $(TARGET) pmtest
+	rm -f $(BUILD_DIR)/*.o $(TARGET) $(EXAMPLES)
 

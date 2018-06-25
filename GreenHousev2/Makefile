@@ -1,4 +1,4 @@
-INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src
+INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/c_urlparser
 # OS=LINUX
 # SOC=A20
 RF24_INCL=-I/var/tmp/librf24-sunxi/src
@@ -7,7 +7,8 @@ JSON_INCL=-I./src/arm/nlohmann-json/include
 LIBS=-L/usr/local/lib -L/usr/lib -levent -ljansson
 CFLAGS=
 # NDEBUG is for the JSON library
-CXXFLAGS=-DDEBUG -D__LINUX__ -DCUBIEBOARD2 -DGPIO_SUN7I -DNDEBUG
+CXXFLAGS=-DDEBUG -D__LINUX__ -DCUBIEBOARD2 -DGPIO_SUN7I 
+#-DNDEBUG
 CC=g++ -Os -flto -std=c++11 $(INCLUDE) $(CFLAGS) $(CXXFLAGS)
 BUILD_DIR=./arm/build
 TARGET=idea24
@@ -22,8 +23,14 @@ examples: $(EXAMPLES)
 pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
 	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
 
-router_check: $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o
-	$(CC) $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o -o $@
+# $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o
+router_check: $(BUILD_DIR)/c_urlparser.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o
+	$(CC) $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/c_urlparser.o -o $@
+
+#$(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o -o $@
+
+$(BUILD_DIR)/c_urlparser.o: src/arm/c_urlparser/yuarel.c src/arm/c_urlparser/yuarel.h
+	$(CC) -c src/arm/c_urlparser/yuarel.c -o $@
 
 $(BUILD_DIR)/router_check.o: src/arm/routemanager.h  src/arm/tests/router_check.cpp
 	$(CC) -c src/arm/tests/router_check.cpp -o $@

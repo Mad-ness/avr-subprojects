@@ -9,3 +9,6 @@
 [submodule "GreenHousev2/src/arm/urlparser"]
 	path = GreenHousev2/src/arm/urlparser
 	url = https://github.com/netmindms/urlparser.git
+[submodule "GreenHousev2/src/arm/c_urlparser"]
+	path = GreenHousev2/src/arm/c_urlparser
+	url = https://github.com/jacketizer/libyuarel.git

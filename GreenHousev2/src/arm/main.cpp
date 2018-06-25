@@ -152,6 +152,7 @@ void onHttpRequest(struct evhttp_request *req, void *arg) {
 static
 void onHttpDefault(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
+    std::cout << "Request URI: " << req->uri << std::endl;
     std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
     evreq.output().printf("Default handler:: Received URI: %s\n", evreq.uriStr());
     evreq.sendReply(200, "OK");

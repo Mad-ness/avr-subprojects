@@ -2,11 +2,7 @@
 #define __ROUTEMANAGER_H__
 
 #include <string>
-#include <unordered_map>
-#include <vector>
 #include <ghairdefs.h>
-#include <yuarel.h>
-//#include <EdUrlParser.h>
 
 using namespace std;
 
@@ -24,25 +20,7 @@ Router_t routers[] = {
 };
 */
 
-typedef unordered_map<string, string> KeyValueMap_t;
-typedef vector<string> Folder_t;
-struct yuarel;
 
-class UrlManager {
-    private:
-        KeyValueMap_t m_keysvalues;
-        Folder_t folders;
-        struct yuarel m_url;
-//        struct yuarel_param *params;
-    public:
-        ~UrlManager();
-        bool parse(const string url);
-        bool parse2(const char *uri);
-        Folder_t &paths() { return folders; };
-        KeyValueMap_t &params() { return m_keysvalues; };
-        KeyValueMap_t &args();
-        void print(char splitter='\n');
-};
 
 #endif // __ROUTEMANAGER_H__
 

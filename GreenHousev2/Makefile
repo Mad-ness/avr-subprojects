@@ -1,4 +1,4 @@
-INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/c_urlparser
+INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/simple-url-parser
 # OS=LINUX
 # SOC=A20
 RF24_INCL=-I/var/tmp/librf24-sunxi/src
@@ -23,14 +23,12 @@ examples: $(EXAMPLES)
 pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
 	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
 
-# $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o
-router_check: $(BUILD_DIR)/c_urlparser.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/routemanager.o
-	$(CC) $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/c_urlparser.o -o $@
+router_check: $(BUILD_DIR)/c_urlparser.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/surlparser.o
+	$(CC) $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/surlparser.o -o $@
 
-#$(BUILD_DIR)/routemanager.o $(BUILD_DIR)/edurlparser.o -o $@
 
-$(BUILD_DIR)/c_urlparser.o: src/arm/c_urlparser/yuarel.c src/arm/c_urlparser/yuarel.h
-	$(CC) -c src/arm/c_urlparser/yuarel.c -o $@
+$(BUILD_DIR)/surlparser.o: src/arm/simple-url-parser/surlparser.cpp src/arm/simple-url-parser/surlparser.h
+	$(CC) -c src/arm/simple-url-parser/surlparser.cpp -o $@
 
 $(BUILD_DIR)/router_check.o: src/arm/routemanager.h  src/arm/tests/router_check.cpp
 	$(CC) -c src/arm/tests/router_check.cpp -o $@

@@ -14,17 +14,31 @@ BUILD_DIR=./arm/build
 TARGET=idea24
 TESTS_DIR=src/arm/tests
 
-EXAMPLES=router_check pmtest
+EXAMPLES=router_check pmtest rexp routemanager_test
 
-all: $(TARGET)
-
+target: $(TARGET)
+all: $(TARGET) $(EXAMPLES)
 examples: $(EXAMPLES)
+
 
 pmtest: $(BUILD_DIR)/packetmanager.o $(BUILD_DIR)/pmtest.o
 	$(CC) $(BUILD_DIR)/pmtest.o $(BUILD_DIR)/packetmanager.o -o $@ $(RF24_INCL)
 
-router_check: $(BUILD_DIR)/c_urlparser.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/surlparser.o
+router_check: $(BUILD_DIR)/router_check.o $(BUILD_DIR)/surlparser.o $(BUILD_DIR)/routemanager.o
 	$(CC) $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/router_check.o $(BUILD_DIR)/surlparser.o -o $@
+
+rexp: $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/rexp.o
+	$(CC) $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/rexp.o -o $@
+
+routemanager_test: $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/surlparser.o $(BUILD_DIR)/routemanager_test.o
+	$(CC) $(BUILD_DIR)/routemanager_test.o $(BUILD_DIR)/routemanager.o $(BUILD_DIR)/surlparser.o -o $@
+
+$(BUILD_DIR)/routemanager_test.o: src/arm/routemanager.h src/arm/tests/routemanager_test.cpp
+	$(CC) -c src/arm/tests/routemanager_test.cpp -o $@
+
+
+$(BUILD_DIR)/rexp.o: src/arm/routemanager.h src/arm/tests/rexp.cpp
+	$(CC) -c src/arm/tests/rexp.cpp -o $@
 
 
 $(BUILD_DIR)/surlparser.o: src/arm/simple-url-parser/surlparser.cpp src/arm/simple-url-parser/surlparser.h
@@ -42,6 +56,7 @@ $(TARGET):  $(BUILD_DIR)/ghair.o \
 		    $(BUILD_DIR)/b64encode.o \
 		    $(BUILD_DIR)/b64decode.o \
             $(BUILD_DIR)/routemanager.o \
+            $(BUILD_DIR)/surlparser.o \
 		    $(BUILD_DIR)/main.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(RF24_LIBS)
 

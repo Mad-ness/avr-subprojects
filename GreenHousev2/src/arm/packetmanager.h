@@ -14,6 +14,8 @@ using namespace std;
     typedef unsigned int packet_time_t;
 #elif __ARM_ARCH == 8
     typedef unsigned long packet_time_t;
+#else // for everything else take maximum possible (64-bit) size
+    typedef unsigned long packet_time_t;
 #endif
 
 

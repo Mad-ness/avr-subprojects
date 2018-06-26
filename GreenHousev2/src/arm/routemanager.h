@@ -1,75 +1,68 @@
+#pragma once
 #ifndef __ROUTEMANAGER_H__
 #define __ROUTEMANAGER_H__
 
 #include <string>
-//#include <regex>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 #include <unordered_map>
 #include <ghairdefs.h>
 #include <surlparser.h>
 
+#define ERR_INVALID_CMD         0xFF
+
 using namespace std;
-
-typedef std::pair<std::string, int> KeyValuePair_t;;
-typedef std::unordered_map<string, string> Dict_t;
-
-
-const KeyValuePair_t Routers[] = {
-    { "/proxy/ping",                            0x0 },
-    { "/proxy/uptime",                          0x0 },
-    { "/proxy/reboot",                          0x0 },
-    { "/device/[[:digit:]]+/ping",              AIR_CMD_IN_PING },
-    { "/device/[[:digit:]]+/reset",             AIR_CMD_IN_RESET },
-    { "/device/[[:digit:]]+/getee",             AIR_CMD_IN_GET_EEPROM },
-    { "/device/[[:digit:]]+/setee",             AIR_CMD_IN_WRITE_EEPROM }
-};
-
-
-/**
- * /proxy/ping
- * /proxy/uptime
- * /device/ping/p/did/1                     == /device/ping?did=1
- * /device/reset/p/did/1                    == /device/ping?did=1
- * /device/uptime/p/did/1                   == /device/uptime?did=1
- * /device/time/p/did/1                     == /device/time?did=1
- * /device/getee/p/did/1?addr=0x0           == /device/getee?did=1&addr=0x0
- * /device/setee/p/did/1?addr=0x0&value=17  == /device/setee?did=1&addr=0x0&value=17
- *
- *
- * "URI path", { "FuncID", "list-params" }
- * "URI path", { "FuncID", { "param1", "param2", "param3" } }
- *
- */
 
 typedef vector<string> URLParams_t;
 typedef tuple<string, int, URLParams_t> RouterInfo_t;
 
-const RouterInfo_t RoutersData[] = {
-    std::make_tuple( "/proxy/ping",         0x1,                        URLParams_t() ),
-    std::make_tuple( "/proxy/uptime",       0x2,                        URLParams_t() ),
-    std::make_tuple( "/device/ping",        AIR_CMD_IN_PING,            URLParams_t({ "did" })),
-    std::make_tuple( "/device/reset",       AIR_CMD_IN_RESET,           URLParams_t({ "did" })),
-    std::make_tuple( "/device/uptime",      AIR_CMD_IN_UPTIME,          URLParams_t({ "did" })),
-    std::make_tuple( "/device/getee",       AIR_CMD_IN_GET_EEPROM,      URLParams_t({ "did", "addr" })),
-    std::make_tuple( "/device/setee",       AIR_CMD_IN_WRITE_EEPROM,    URLParams_t({ "did", "addr", "value" })),
+struct RouteItemsInfo_t {
+    const char *path; // all paths must be in lowercase
+    uint8_t cmd;
+    URLParams_t args;
+    /**
+      * Checking if all required arguments were passing.
+      * @passed_args - a list of arguments that has come for checking
+      * @missed_args - a list of arguments that missing
+      * @return False if all is Ok.
+      */
+    bool missedArgs(const KeyValueMap_t &passed_args, URLParams_t *missed_args) {
+        bool result = false;
+        for ( auto &a : args ) {
+            try {
+                passed_args.at(a);  // checking if a required argument among the passed_args
+            } catch ( std::out_of_range ) {
+                missed_args->push_back(a);
+                result = true;
+            }
+        }
+        return result;
+    }
+    /**
+      * Returns a code of low-level (AirProto-level) function if 
+      * the passed URI matches that records.
+      * Returns ERR_INVALID_CMD if it doesn't match
+      */
+    uint8_t hasFoundCmd(const string &uri) {
+        string s1(uri);
+        std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+        return ( string(path) == s1 ) ? cmd : ERR_INVALID_CMD;
+    }
 };
 
-const KeyValuePair_t SimpleRouters[] = {
-    { "/proxy/ping",                        0x0 },
-    { "/proxy/uptime",                      0x1 },
-    { "/device/ping",                       AIR_CMD_IN_PING },
-    { "/device/reset",                      AIR_CMD_IN_RESET },
-    { "/device/getee",                      AIR_CMD_IN_GET_EEPROM },
-    { "/device/setee",                      AIR_CMD_IN_WRITE_EEPROM },
-    { "/device/uptime",                     AIR_CMD_IN_UPTIME },
-};
 
 class RouteManager {
+    private:
+        SUrlParser parser;
+        string errmsg;
+        bool isAccepted(const string &uri);
     public:
-        static bool parseURI(const string &uri, int *func);
-        static bool findCmd(const string &uri, int *func);
-        static bool findParams(const string &uri, KeyValueMap_t *params);
+        ~RouteManager();
+        const string &emsg() { return errmsg; };
+        bool isValidURI(const string &uri); 
+        string path() { return parser.path(); };
+        KeyValueMap_t params() { return parser.params(); }
 };
 
 #endif // __ROUTEMANAGER_H__

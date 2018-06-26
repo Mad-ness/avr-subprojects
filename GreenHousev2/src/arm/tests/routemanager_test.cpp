@@ -1,37 +1,34 @@
-#include <routemanager.h>
 #include <iostream>
 #include <cassert>
 #include <ghairdefs.h>
 #include <surlparser.h>
+#include <routemanager.h>
 
 
+void test_RouteInfo() {
 
-void test_detectCmd() {
-    int func;
-    assert( RouteManager::findCmd( "/device/ping", &func) && func == AIR_CMD_IN_PING );
-    assert( RouteManager::findCmd( "device/ping", &func)  && func == AIR_CMD_IN_PING );
-    assert( RouteManager::findCmd( "/device////ping////", &func) && func == AIR_CMD_IN_PING );
-    assert( RouteManager::findCmd( "/device/setee?did=1&addr=0&v=17", &func) && func == AIR_CMD_IN_WRITE_EEPROM );
-    assert( RouteManager::findCmd( "/device/uptime?ask=now", &func) && func == AIR_CMD_IN_UPTIME );
-    std::cout << "findCmd() test passed" << std::endl;
-}
+    RouteManager m;
+    assert( m.isValidURI( "/proxy/ping" ) && m.path() == "/proxy/ping" );
+    assert( m.isValidURI( "/proxy/uptime?did=10" ));
+    assert( ! m.isValidURI( "/device/ping" ));
+    std::cout << m.emsg() << std::endl;
+    assert( m.isValidURI( "/device/ping?did=1" ));
+    assert( m.isValidURI( "/device/uptime?did=2" ));
+    assert( ! m.isValidURI( "/device/uptime?deviceid=2" ));
+    assert( m.isValidURI( "/device/uptime?deviceid=2&did=17&addr=19" ));
+    assert( m.isValidURI( "/device/setee?did=17&addr=19&value=17" ));
+    assert( !  m.isValidURI( "/device/setee?deviceid=17&address=19&val=17" ));
+    std::cout << m.emsg() << std::endl;
+    assert( ! m.isValidURI( "/device/setee?address=19&value=17&did=6" ) && m.params().size() >= 3 );
+    std::cout << m.emsg() << std::endl;
+    assert( m.isValidURI( "//////device/setee////?addr=19&value=17&did=6" ));
+    std::cout << " === Route info assertions passed ===\n";
 
-void test_findParams() {
-    KeyValueMap_t params;
-    assert( RouteManager::findParams( "/device/ping", &params ) && params.size() == 0 );
-    assert( RouteManager::findParams( "/device/ping?did=1", &params ) && params.size() == 1 && params["did"] == "1" );
-    assert( RouteManager::findParams( "/device/getee?did=1&addr=15", &params ) && params.size() == 2 && params["did"] == "1" && params["addr"] == "15" );
-    assert( RouteManager::findParams( "/device/setee?did=1&addr=15&v=17", &params ) && params.size() == 3 && params["did"] == "1" && params["addr"] == "15" && params["v"] == "17" );
-    assert( RouteManager::findParams( "/device/uptime?arg1&arg2&arg3=000&arg4&arg5", &params ) && params.size() == 5 && params["arg4"] == "" );
-
-    std::cout << "findParams() test passed" << std::endl;
 }
 
 int main() {
 
-    test_detectCmd();
-    test_findParams();
-
+    test_RouteInfo();
     return 0;
 }
 

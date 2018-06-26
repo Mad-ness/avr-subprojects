@@ -58,7 +58,6 @@ class RouteManager {
         string errmsg;
         bool isAccepted(const string &uri);
     public:
-        ~RouteManager();
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };

@@ -19,10 +19,12 @@ bool
 RouteManager::isAccepted(const string &uri) {
     bool result = false;
     if ( parser.parse(uri.c_str()) ) {
+        uint8_t cmd = ERR_INVALID_CMD;
         for ( int i = 0; i < sizeof(RouteItemsInfo)/sizeof(RouteItemsInfo_t); i++ ) {
     
             RouteItemsInfo_t *item = &RouteItemsInfo[i];
-            const uint8_t cmd = item->hasFoundCmd(parser.path());
+            cmd = item->hasFoundCmd(parser.path());
+
             if ( cmd != ERR_INVALID_CMD ) {
                 URLParams_t missed_params;
                 if ( ! item->missedArgs(parser.params(), &missed_params ) ) {   
@@ -37,8 +39,12 @@ RouteManager::isAccepted(const string &uri) {
                     }
                     errmsg.pop_back();  // remove last whitespace
                     errmsg += "]";
+                    break;
                 }
             }
+        }
+        if ( cmd == ERR_INVALID_CMD ) {
+            errmsg = "Forbidden. Invalid command";
         }
     } else { 
         errmsg = "Passed Uri: ";

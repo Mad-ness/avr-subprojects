@@ -8,7 +8,8 @@
 void test_RouteInfo() {
 
     RouteManager m;
-    assert( m.isValidURI( "/proxy/ping" ) && m.path() == "/proxy/ping" );
+    assert( m.isValidURI( "/proxy/ping" ));
+    assert( m.isValidURI( "////proxy/////ping////?" ) && m.path() == "/proxy/ping" );
     assert( m.isValidURI( "/proxy/uptime?did=10" ));
     assert( ! m.isValidURI( "/device/ping" ));
     std::cout << m.emsg() << std::endl;

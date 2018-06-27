@@ -12,7 +12,9 @@
 #include <ghair.h>
 #include <unistd.h>
 #include <packetmanager.h>
+#include <routemanager.h>
 #include <nlohmann/json.hpp>
+#include <proxy-api.h>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
@@ -33,6 +35,7 @@ const int CEpin = SUNXI_GPB(10);
 const int CSNpin = SUNXI_GPB(11);
 
 GHAir air(CEpin, CSNpin, (byte*)"1Node", (byte*)"2Node");
+RouteManager route_mg;
 
 
 inline void logstr(std::string msg) {
@@ -152,10 +155,24 @@ void onHttpRequest(struct evhttp_request *req, void *arg) {
 static
 void onHttpDefault(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    std::cout << "Request URI: " << req->uri << std::endl;
     std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
-    evreq.output().printf("Default handler:: Received URI: %s\n", evreq.uriStr());
-    evreq.sendReply(200, "OK");
+    json j;
+    j["request_uri"] = evreq.uriStr();
+    if ( ! route_mg.isValidURI( evreq.uriStr() )) {
+        j["status_code"] = 403;
+        j["msg"] = route_mg.emsg();
+        evreq.output().printf(j.dump().c_str());
+        evreq.sendReply( 403, "Incorrect request" );
+    } else {
+        j["status_code"] = 202;
+        j["msg"] = "Request accepted";
+        json j2;
+        j2["uptime"] = proxyapi::uptime();
+        j["data"] = j2;
+        std::cout << j.dump() << std::endl;
+        evreq.output().printf(j.dump().c_str());
+        evreq.sendReply(202, "Request accepted");
+    }
 }
 
 /**

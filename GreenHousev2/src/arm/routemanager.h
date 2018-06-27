@@ -10,7 +10,8 @@
 #include <ghairdefs.h>
 #include <surlparser.h>
 
-#define ERR_INVALID_CMD         0xFF
+#define ERR_INVALID_CMD         (0xFF)
+#define ERR_INVALID_PARAMS      (0xFE)
 
 using namespace std;
 

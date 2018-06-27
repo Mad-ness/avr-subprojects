@@ -67,6 +67,7 @@ $(TARGET):  $(BUILD_DIR)/ghair.o \
 		    $(BUILD_DIR)/b64decode.o \
             $(BUILD_DIR)/routemanager.o \
             $(BUILD_DIR)/surlparser.o \
+            $(BUILD_DIR)/proxy-api.o \
 		    $(BUILD_DIR)/main.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(RF24_LIBS)
 
@@ -92,6 +93,10 @@ $(BUILD_DIR)/edurlparser.o: src/arm/urlparser/src/EdUrlParser.cpp src/arm/urlpar
 
 $(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp
 	$(CC) -c src/arm/main.cpp -o $@ $(RF24_INCL) $(JSON_INCL)
+
+$(BUILD_DIR)/proxy-api.o: src/arm/proxy-api.cpp src/arm/proxy-api.h
+	$(CC) -c src/arm/proxy-api.cpp -o $@
+
 
 prepare:
 	mkdir -p $(BUILD_DIR)

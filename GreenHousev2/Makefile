@@ -97,6 +97,8 @@ $(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h ./src
 $(BUILD_DIR)/proxy-api.o: src/arm/proxy-api.cpp src/arm/proxy-api.h
 	$(CC) -c src/arm/proxy-api.cpp -o $@
 
+$(BUILD_DIR)/device-api.o: src/arm/device-api.cpp src/arm/device-api.h
+	$(CC) -c src/arm/device-api.cpp -o $@ $(RF24_INCL)
 
 prepare:
 	mkdir -p $(BUILD_DIR)

@@ -2,8 +2,8 @@
 #define __PROXY_API_H__
 
 namespace proxyapi {
-long uptime();
 
+    long uptime();
 
 };
 

@@ -25,7 +25,7 @@ Along with requested data, other parameters are also provided such as following:
     }
 ```
 
-Below in the API details, the **Return data** output is put down inside the ***data*** block.
+Below is the API details, the **Return data** output is put down inside the ***data*** block.
 
 ## Proxy API
 
@@ -56,9 +56,9 @@ In order to get requested data, one should send again the same requests with the
 If you have sent the same multiple requests and the remote board response took a long time, the **Input queue** may have multiple the same requests. If the board reponses on any of them, all of the awaiting requests will be refreshed with that data.
 
 ### /device/ping
-**Description**:
+**Description**: Pinging the remote board "Are you alive?"\
 **Method**: GET\
-**Parameters**: did=<int> - device ID
-**Return code**: 20x, if the request accepted by the proxy
+**Parameters**: did=<int> - device ID\
+**Return code**: 20x, if the request accepted by the proxy\
 **Return data**: none
 

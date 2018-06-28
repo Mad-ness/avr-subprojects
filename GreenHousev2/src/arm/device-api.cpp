@@ -26,5 +26,34 @@ bool writeEEPROM(GHAir *air, const uint8_t address, const int8_t value) {
     return air->sendWriteEEPROM(address, value);
 }
 
+/*** working with pins ***/
+
+bool setPinOutput(GHAir *air, const uint8_t pin) {
+    return air->sendGetPinOutput(pin);
+}
+
+bool setPinInput(GHAir *air, const uint8_t pin) {
+    return air->sendSetPinInput(pin);
+}
+
+bool getPinMode(GHAir *air, const uint8_t pin) {
+    return air->sendGetPinMode(pin);
+}
+
+
+bool setPinHigh(GHAir *air, const uint8_t pin) {
+    return air->sendSetPinHigh(pin);
+}
+
+bool setPinLow(GHAir *air, const uint8_t pin) {
+    return air->sendSetPinLow(pin);
+}
+
+bool getPinValue(GHAir *air, const uint8_t pin) {
+    return air->sendGetPinValue(pin);
+}
+
+/*** working with pins (end) ***/
+
 };
 

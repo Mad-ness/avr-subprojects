@@ -169,4 +169,10 @@ struct AirPacket {
 #define AIR_CMD_IN_CUSTOM_46            0x3e
 #define AIR_CMD_IN_CUSTOM_47            0x3f
 
+
+#define AIR_CMD_SET_PIN_MODE            AIR_CMD_IN_CUSTOM_01
+#define AIR_CMD_GET_PIN_MODE            AIR_CMD_IN_CUSTOM_02
+#define AIR_CMD_SET_PIN_VALUE           AIR_CMD_IN_CUSTOM_03
+#define AIR_CMD_GET_PIN_VALUE           AIR_CMD_IN_CUSTOM_03
+
 #endif // __GHAIRDEFS_H__

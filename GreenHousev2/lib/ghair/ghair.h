@@ -57,6 +57,14 @@ public:
     // responses to requests
     bool sendWriteEEPROM(uint8_t address, int8_t value);
     bool sendReadEEPROM(uint8_t address);
+
+    bool sendSetPinInput(const uint8_t pin);
+    bool sendGetPinOutput(const uint8_t pin);
+    bool sendGetPinMode(const uint8_t pin);
+    bool sendSetPinHigh(const uint8_t pin);
+    bool sendSetPinLow(const uint8_t pin);
+    bool sendGetPinValue(const uint8_t pin);
+
 };
 
 #endif // __GH_AIR_H__

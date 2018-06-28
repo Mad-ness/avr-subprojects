@@ -236,7 +236,6 @@ bool GHAir::onReadEEPROM(uint8_t address) {
     return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
 }
 
-#endif // ARDUINO
 
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
     return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, address, sizeof(value), &value);
@@ -245,6 +244,32 @@ bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
 bool GHAir::sendReadEEPROM(uint8_t address) {
     return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, NULL);
 }
+
+bool GHAir::sendPinInput(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_IN_SET_MODE, pin, 0x1, INPUT);
+}
+
+bool GHAir::sendPinOutput(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_IN_SET_MODE, pin, 0x1, OUTPUT);
+}
+
+bool GHAir::sendGetPinMode(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_IN_GET_MODE, pin, 0x0, NULL);
+}
+
+bool GHAir::sendPinHigh(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, HIGH);
+}
+
+bool GHAir::sendPinLow(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, LOW);
+}
+
+bool GHAir::sendGetPinValue(const uint8_t pin) {
+    return this->sendPacket(AIR_CMD_GET_PIN_VALUE, pin, 0x0, NULL);
+}
+
+#endif // ARDUINO
 
 /**
   in_pkt - packet the response on which will be sent

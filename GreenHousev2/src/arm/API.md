@@ -59,7 +59,7 @@ If you have sent the same multiple requests and the remote board response took a
 **Description**: Pinging the remote board "Are you alive?"\
 **Method**: GET\
 **Parameters**: 
-  - did: integer = device ID\
+  - did: integer = device ID
 **Return code**: 20x, if the request accepted by the proxy\
 **Return data**: none
 

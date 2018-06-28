@@ -15,3 +15,6 @@
 [submodule "GreenHousev2/src/arm/simple-url-parser"]
 	path = GreenHousev2/src/arm/simple-url-parser
 	url = git@github.com:Mad-ness/simple-url-parser.git
+[submodule "GreenHousev2/src/arm/librf24-sunxi"]
+	path = GreenHousev2/src/arm/librf24-sunxi
+	url = git@github.com:Mad-ness/librf24-sunxi.git

@@ -1,7 +1,7 @@
 INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/simple-url-parser
 # OS=LINUX
 # SOC=A20
-RF24_INCL=-I/var/tmp/librf24-sunxi/src
+RF24_INCL=-I./src/arm/librf24-sunxi/src
 RF24_LIBS=-L/usr/local/lib -lrf24-sunxi
 JSON_INCL=-I./src/arm/nlohmann-json/include
 LIBS=-L/usr/local/lib -L/usr/lib -levent -ljansson

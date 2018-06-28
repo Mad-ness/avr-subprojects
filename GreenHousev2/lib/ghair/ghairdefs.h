@@ -173,6 +173,9 @@ struct AirPacket {
 #define AIR_CMD_SET_PIN_MODE            AIR_CMD_IN_CUSTOM_01
 #define AIR_CMD_GET_PIN_MODE            AIR_CMD_IN_CUSTOM_02
 #define AIR_CMD_SET_PIN_VALUE           AIR_CMD_IN_CUSTOM_03
-#define AIR_CMD_GET_PIN_VALUE           AIR_CMD_IN_CUSTOM_03
+#define AIR_CMD_GET_PIN_VALUE           AIR_CMD_IN_CUSTOM_04
+#define AIR_CMD_SET_PWM_VALUE           AIR_CMD_IN_CUSTOM_05
+#define AIR_CMD_GET_PWM_VALUE           AIR_CMD_IN_CUSTOM_06
+
 
 #endif // __GHAIRDEFS_H__

@@ -11,10 +11,11 @@ namespace deviceapi {
      */
 
     const struct {
-        uint8_t input   = 1;
-        uint8_t output  = 0;
-        uint8_t low     = 0;
-        uint8_t high    = 1;
+        uint8_t input   = INPUT;
+        uint8_t output  = OUTPUT;
+        //uint8_t pullup  = INPUT_PULLUP;
+        uint8_t low     = LOW;
+        uint8_t high    = HIGH;
     } pin;
     
     bool ping(GHAir *air);
@@ -26,9 +27,9 @@ namespace deviceapi {
 
     //*** ADC functions ***//
     // Power Wide Modulation, set value 0..1023
-    bool setPinValue(GHAir *air, const uint8_t pin, const uint16_t value);
+    bool setPWMValue(GHAir *air, const uint8_t pin, const uint8_t value);
     // Request PWM value from 0..1023
-    bool getPinValue(GHAir *air, const uint8_t pin);
+    bool getPWMValue(GHAir *air, const uint8_t pin);
 
     //*** GPIO functions ***/
     bool setPinInput(GHAir *air, const uint8_t pin);

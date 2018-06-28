@@ -64,7 +64,9 @@ public:
     bool sendSetPinHigh(const uint8_t pin);
     bool sendSetPinLow(const uint8_t pin);
     bool sendGetPinValue(const uint8_t pin);
-
+    
+    bool sendSetPWMValue(const uint8_t pin, const uint8_t value);
+    bool sendGetPWMValue(const uint8_t pin);
 };
 
 #endif // __GH_AIR_H__

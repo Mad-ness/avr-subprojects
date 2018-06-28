@@ -53,6 +53,14 @@ bool getPinValue(GHAir *air, const uint8_t pin) {
     return air->sendGetPinValue(pin);
 }
 
+bool setPWMValue(GHAir *air, const uint8_t pin, const uint8_t value) {
+    return air->sendSetPWMValue(pin, value);
+}
+
+bool getPWMValue(GHAir *air, const uint8_t pin) {
+    return air->sendGetPWMValue(pin);
+}
+
 /*** working with pins (end) ***/
 
 };

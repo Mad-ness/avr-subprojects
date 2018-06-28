@@ -13,11 +13,11 @@ RouteItemsInfo_t RouteItemsInfo[] = {                                     // thi
     { "/device/uptime",         AIR_CMD_IN_UPTIME,              URLParams_t({ "did" } )},
     { "/device/getee",          AIR_CMD_IN_GET_EEPROM,          URLParams_t({ "did", "addr" } )},
     { "/device/setee",          AIR_CMD_IN_WRITE_EEPROM,        URLParams_t({ "did", "addr", "value" } )},
-    { "/device/pin/set-in",     AIR_CMD_SET_PIN_MODE,           URLParams_t({ "did", "pid" })},
-    { "/device/pin/set-out",    AIR_CMD_SET_PIN_MODE,           URLParams_t({ "did", "pid" })},
-    { "/device/pin/value",      AIR_CMD_GET_PIN_VALUE,          URLParams_t({ "did", "pid" })},
-    { "/device/pin/value/set0", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" })},
-    { "/device/pin/value/set1", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" })},
+    { "/device/pin/set-input",   AIR_CMD_SET_PIN_MODE,           URLParams_t({ "did", "pid", "mode" }),
+    { "/device/pin/set-output",   AIR_CMD_SET_PIN_MODE,           URLParams_t({ "did", "pid", "mode" }),
+    { "/device/pin/value",      AIR_CMD_GET_PIN_VALUE,          URLParams_t({ "did", "pid" }),
+    { "/device/pin/value/set0", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" }),
+    { "/device/pin/value/set1", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" }),
 };
 
 bool 

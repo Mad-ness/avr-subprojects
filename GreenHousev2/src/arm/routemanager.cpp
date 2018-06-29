@@ -1,13 +1,16 @@
 #include <iostream>
 #include <routemanager.h>
+#include <proxy-api.h>
+#include <string.h>
 //#include "surlparser.h"
 
-
+#define PROXY_CMD_PING          200 // need to verify that ID, they mustn't cross with Device IDs
+#define PROXY_CMD_UPTIME        201
 
 RouteItemsInfo_t RouteItemsInfo[] = {                                     // this array mustn't be empty{
     { "dummy",                  0x0,                            URLParams_t() },    // keep this record always here
-    { "/proxy/ping",            0x1,                            URLParams_t() },
-    { "/proxy/uptime",          0x2,                            URLParams_t() },
+    { "/proxy/ping",            PROXY_CMD_PING,                 URLParams_t() },
+    { "/proxy/uptime",          PROXY_CMD_UPTIME,               URLParams_t() },
     { "/device/ping",           AIR_CMD_IN_PING,                URLParams_t({ "did" } )},
     { "/device/reset",          AIR_CMD_IN_RESET,               URLParams_t({ "did" } )},
     { "/device/uptime",         AIR_CMD_IN_UPTIME,              URLParams_t({ "did" } )},
@@ -19,6 +22,38 @@ RouteItemsInfo_t RouteItemsInfo[] = {                                     // thi
     { "/device/pin/value/set0", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" })},
     { "/device/pin/value/set1", AIR_CMD_SET_PIN_VALUE,          URLParams_t({ "did", "pid" })},
 };
+
+/**
+ * It calls a low-level API function in case if all checks passed
+ *
+ */
+void RouteManager::callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone) {
+    bool is_proxy_call = false;
+    if ( strncmp(apifunc.path, "/proxy", strlen("/proxy")) == 0 ) {
+        is_proxy_call = true; 
+    }
+
+    if ( is_proxy_call ) {
+        switch ( apifunc.cmd ) {
+            case AIR_CMD_IN_PING: {
+                *whatsdone = CallRC::response;
+                }; break;;
+            case AIR_CMD_IN_UPTIME: {
+                *whatsdone = CallRC::response;
+                const long seconds = proxyapi::uptime();    
+                }; break;;
+        }
+    } else {    // it's a device call
+        switch ( apifunc.cmd ) {
+            case AIR_CMD_IN_PING: {
+
+                }; break;;
+            case AIR_CMD_IN_UPTIME: {
+
+                }; break;;
+        };
+    }
+}
 
 bool 
 RouteManager::isAccepted(const string &uri) {

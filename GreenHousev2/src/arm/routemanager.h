@@ -55,9 +55,11 @@ struct RouteItemsInfo_t {
 
 class RouteManager {
     private:
+        enum class CallRC { inqueue, response }; // wether a call is queued or is an immediate response
         SUrlParser parser;
         string errmsg;
         bool isAccepted(const string &uri);
+        void callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone);
     public:
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 

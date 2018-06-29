@@ -42,7 +42,7 @@ routemanager_test: $(BUILD_DIR)/surlparser.o $(BUILD_DIR)/routemanager.o $(BUILD
 # Object modules
 #
 
-$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h
+$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h src/arm/proxy-api.h
 	$(CC) -c src/arm/routemanager.cpp -o $@
 
 $(BUILD_DIR)/routemanager_test.o: src/arm/tests/routemanager_test.cpp src/arm/routemanager.h

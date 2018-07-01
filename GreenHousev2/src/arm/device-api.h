@@ -11,14 +11,21 @@ namespace deviceapi {
      */
 
     const struct {
+/*
         uint8_t input   = INPUT;
         uint8_t output  = OUTPUT;
         //uint8_t pullup  = INPUT_PULLUP;
         uint8_t low     = LOW;
         uint8_t high    = HIGH;
+*/
+        uint8_t input   = 1;
+        uint8_t output  = 0;
+        //uint8_t pullup  = INPUT_PULLUP;
+        uint8_t low     = 0;
+        uint8_t high    = 1;
     } pin;
     
-    bool ping(GHAir *air);
+    bool ping(GHAir *air, UserArgs_t &args);
     bool uptime(GHAir *air);
     bool reset(GHAir *air);
     bool readEEPROM(GHAir *air, const uint8_t address);
@@ -32,7 +39,7 @@ namespace deviceapi {
     bool getPWMValue(GHAir *air, const uint8_t pin);
 
     //*** GPIO functions ***/
-    bool setPinInput(GHAir *air, const uint8_t pin);
+    bool setPinInput(GHAir *air, UserArgs_t &args);
     bool setPinOutput(GHAir *air, const uint8_t pin);
     bool getPinMode(GHAir *air, const uint8_t pin);
     bool setPinHigh(GHAir *air, const uint8_t pin);

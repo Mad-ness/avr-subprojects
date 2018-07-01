@@ -83,6 +83,7 @@ struct AirPacket {
         address = pkt.address;
         length = pkt.length;
         memcpy(&data, &pkt.data, sizeof(pkt.length));
+        return *this;
     }
 
     // size of a entire packet

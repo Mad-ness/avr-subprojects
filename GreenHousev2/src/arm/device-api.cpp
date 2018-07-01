@@ -6,7 +6,7 @@
 
 namespace deviceapi {
 
-bool ping(GHAir *air) {
+bool ping(GHAir *air, DeviceArgs &arg) {
     return air->sendPing(); 
 }
 
@@ -32,7 +32,7 @@ bool setPinOutput(GHAir *air, const uint8_t pin) {
     return air->sendGetPinOutput(pin);
 }
 
-bool setPinInput(GHAir *air, const uint8_t pin) {
+bool setPinInput(GHAir *air, UserArgs_t &args) {
     return air->sendSetPinInput(pin);
 }
 

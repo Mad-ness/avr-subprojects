@@ -7,64 +7,55 @@
 #include <tuple>
 #include <algorithm>
 #include <unordered_map>
-#include <ghairdefs.h>
+// #include <ghairdefs.h>
 #include <surlparser.h>
-
-#define ERR_INVALID_CMD         (0xFF)
-#define ERR_INVALID_PARAMS      (0xFE)
 
 using namespace std;
 
-typedef vector<string> URLParams_t;
-typedef tuple<string, int, URLParams_t> RouterInfo_t;
+class GHAir;
 
-struct RouteItemsInfo_t {
-    const char *path; // all paths must be in lowercase
-    uint8_t cmd;
+typedef KeyValueMap_t UserArgs_t;
+typedef vector<string> URLParams_t;
+typedef bool(*CallbackDevice_t)(GHAir *air, UserArgs_t &args);
+typedef bool(*CallbackProxy_t)(UserArgs_t &args, UserArgs_t *output);
+
+
+struct DeviceRouteItemInfo_t {
+//    const char *path; // all paths must be in lowercase
     URLParams_t args;
-    /**
-      * Checking if all required arguments were passing.
-      * @passed_args - a list of arguments that has come for checking
-      * @missed_args - a list of arguments that missing
-      * @return False if all is Ok.
-      */
-    bool missedArgs(const KeyValueMap_t &passed_args, URLParams_t *missed_args) {
-        bool result = false;
-        for ( auto &a : args ) {
-            try {
-                passed_args.at(a);  // checking if a required argument among the passed_args
-            } catch ( std::out_of_range ) {
-                missed_args->push_back(a);
-                result = true;
-            }
-        }
-        return result;
-    }
-    /**
-      * Returns a code of low-level (AirProto-level) function if 
-      * the passed URI matches that records.
-      * Returns ERR_INVALID_CMD if it doesn't match
-      */
-    uint8_t hasFoundCmd(const string &uri) {
-        string s1(uri);
-        std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
-        return ( string(path) == s1 ) ? cmd : ERR_INVALID_CMD;
-    }
+    CallbackDevice_t cb;
 };
+
+struct ProxyRouteItemInfo_t {
+//    const char *path; // all paths must be in lowercase
+    URLParams_t args;
+    CallbackProxy_t cb;
+};
+
+typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
+typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
+
+#define REGISTER_DEVICE_CALLBACK( path, params, cb ) \
+        { RouteManager::addDeviceCallback( path, params, cb )}
 
 
 class RouteManager {
     private:
-        enum class CallRC { inqueue, response }; // wether a call is queued or is an immediate response
+        enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
+        enum class Receiver { proxy, device };
         SUrlParser parser;
         string errmsg;
+        static DeviceCallbacksList_t device_callbacks;
+        static ProxyCallbacksList_t proxy_callbacks;
         bool isAccepted(const string &uri);
-        void callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone);
+        // void callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone);
     public:
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };
         KeyValueMap_t params() { return parser.params(); }
+        static void addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb);
+        static void addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb);
 };
 
 #endif // __ROUTEMANAGER_H__

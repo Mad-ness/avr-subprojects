@@ -13,15 +13,17 @@
 #include <unistd.h>
 #include <packetmanager.h>
 #include <routemanager.h>
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
 #include <proxy-api.h>
 
 #define ERROR_RESPONSE_SIZE 1024
 #define MAX_JSON_BUFFER_SIZE 1024
 
 
+extern void printHandlers();
+
 using namespace lev;
-using json = nlohmann::json;
+//using json = nlohmann::json;
  
 static int cnt = 0;
 static EvEvent event_print;
@@ -93,7 +95,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     size_t copied_size = evbuffer_copyout(in_evb, buffer_data, buffer_len); 
     evbuffer_drain(in_evb, buffer_len);
 
-
+/*
     // this is a trick
     // buffer_data sometimes comes with extra bytes
     // than it actually should have so the raw content has unprinable chars at the end.
@@ -106,15 +108,17 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     }
 
     free(buffer_data);
-    json j;
     try {
         j = json::parse(s_buf);
     } catch (json::parse_error &e) {
         std::cout << e.what() << std::endl;
-        json je;
-        je["status"] = "error";
-        je["msg"] = e.what();
-        evreq.output().printf(je.dump().c_str());
+        string resp;
+        resp += "{";
+        resp += "\"status\":\"error\"";
+        resp += "\"msg\":\"";
+        resp += e.what(); 
+        resp += "\"";
+        evreq.output().printf(resp.c_str());
         evreq.sendReply(HTTP_BADREQUEST, "Bad JSON");
         return;
     }
@@ -135,6 +139,7 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     j["is_response"] = pkt.airpacket().isResponse();
     evreq.output().printf(j.dump().c_str());
     std::cout << j.dump() << std::endl;
+*/
     evreq.sendReply(200, "Request accepted");
 
     return;
@@ -156,8 +161,15 @@ static
 void onHttpDefault(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
     std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
-    json j;
-    j["request_uri"] = evreq.uriStr();
+    //json j;
+    //j["request_uri"] = evreq.uriStr();
+    string m;
+    m += "{\"requested_url\":";
+    m += evreq.uriStr();
+    m += "}\"";
+    evreq.output().printf(m.c_str());
+    evreq.sendReply(202, "Request accepted");
+/*
     if ( ! route_mg.isValidURI( evreq.uriStr() )) {
         j["status_code"] = 403;
         j["msg"] = route_mg.emsg();
@@ -173,6 +185,7 @@ void onHttpDefault(struct evhttp_request *req, void *arg) {
         evreq.output().printf(j.dump().c_str());
         evreq.sendReply(202, "Request accepted");
     }
+*/
 }
 
 /**
@@ -200,7 +213,7 @@ void processOutgoingQueue(evutil_socket_t socket, short id, void *data) {
 
 void usage() {
     std::cout <<
-    "Usage: cmd <ip-address> <port>\n"
+    "Usage: <ip-address> <port>\n"
     "    - ip-address - a local IP address which will be listened to\n"
     "    - port       - a local port to bind on\n"
     "\n"
@@ -211,10 +224,17 @@ void usage() {
 }
 
 
+void info() {
+    std::cout << "Registered handlers:" << std::endl;
+    printHandlers();
+}
+
+
 int main(int argc, char **argv) {
 
     if ( argc == 1 ) {
         usage();
+        info();
         return 0;
     }
 

@@ -84,15 +84,15 @@ $(BUILD_DIR)/b64encode.o: src/arm/b64.h src/arm/encode.c
 $(BUILD_DIR)/b64decode.o: src/arm/b64.h src/arm/decode.c
 	$(CC) -c src/arm/decode.c -o $@
 
-$(BUILD_DIR)/packetmanager.o: src/arm/packetmanager.cpp src/arm/packetmanager.h lib/ghair/ghairdefs.h ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp
-	$(CC) -c src/arm/packetmanager.cpp -o $@ $(RF24_INCL) $(JSON_INCL)
+$(BUILD_DIR)/packetmanager.o: src/arm/packetmanager.cpp src/arm/packetmanager.h lib/ghair/ghairdefs.h 
+	$(CC) -c src/arm/packetmanager.cpp -o $@ $(RF24_INCL) # $(JSON_INCL)
 
 $(BUILD_DIR)/edurlparser.o: src/arm/urlparser/src/EdUrlParser.cpp src/arm/urlparser/src/EdUrlParser.h
 	$(CC) -c src/arm/urlparser/src/EdUrlParser.cpp -o $@
 
 
-$(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp
-	$(CC) -c src/arm/main.cpp -o $@ $(RF24_INCL) $(JSON_INCL)
+$(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h # ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp 
+	$(CC) -c src/arm/main.cpp -o $@ $(RF24_INCL) # $(JSON_INCL)
 
 $(BUILD_DIR)/proxy-api.o: src/arm/proxy-api.cpp src/arm/proxy-api.h
 	$(CC) -c src/arm/proxy-api.cpp -o $@

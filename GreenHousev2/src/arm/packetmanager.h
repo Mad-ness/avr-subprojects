@@ -4,11 +4,9 @@
 #include <string>
 #include <list>
 #include <iostream>
-//#include <nlohmann/json.hpp>
 #include <ghair.h>
 
 using namespace std;
-//using json = nlohmann::json;
 
 #if __ARM_ARCH == 7
     typedef unsigned int packet_time_t;

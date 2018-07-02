@@ -7,6 +7,8 @@
 //#include "surlparser.h"
 
 
+static DeviceCallbacksList_t device_callbacks;
+static ProxyCallbacksList_t proxy_callbacks;
 
 //typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
 //typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
@@ -67,7 +69,7 @@ RouteManager::isValidURI(const string &uri) {
 }
 
 void
-RouteManager::addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb) {
+addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb) {
     try {
         proxy_callbacks.at(path); 
     } catch (std::out_of_range) {
@@ -75,8 +77,18 @@ RouteManager::addDeviceCallback( const char *path, URLParams_t params, CallbackD
     }
 }
 
+void 
+printHandlers() {
+    for ( auto &handler : proxy_callbacks ) {
+        std::cout << handler.first << std::endl;
+    }
+    for ( auto &handler : device_callbacks ) {
+        std::cout << handler.first << std::endl;
+    }
+}
+
 void
-RouteManager::addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb) {
+addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb) {
     try {
         device_callbacks.at(path);
     } catch (std::out_of_range) {

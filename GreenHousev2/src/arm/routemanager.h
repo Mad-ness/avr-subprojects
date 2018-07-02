@@ -11,9 +11,9 @@
 #include <surlparser.h>
 
 #define REGISTER_DEVICE_CALLBACK( path, params, cb ) \
-        { RouteManager::addDeviceCallback( path, params, cb )}
+        { addDeviceCallback( path, params, cb )}
 #define REGISTER_PROXY_CALLBACK( path, params, cb ) \
-        { RouteManager::addProxyCallback( path, params, cb )}
+        { addProxyCallback( path, params, cb )}
 
 using namespace std;
 
@@ -40,6 +40,9 @@ struct ProxyRouteItemInfo_t {
 typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
 typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
 
+static void addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb);
+static void addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb);
+void printHandlers();
 
 class RouteManager {
     private:
@@ -47,17 +50,14 @@ class RouteManager {
         enum class Receiver { proxy, device };
         SUrlParser parser;
         string errmsg;
-        static DeviceCallbacksList_t device_callbacks;
-        static ProxyCallbacksList_t proxy_callbacks;
+//        static DeviceCallbacksList_t device_callbacks;
+//        static ProxyCallbacksList_t proxy_callbacks;
         bool isAccepted(const string &uri);
-        // void callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone);
     public:
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };
         KeyValueMap_t params() { return parser.params(); }
-        static void addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb);
-        static void addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb);
 };
 
 #endif // __ROUTEMANAGER_H__

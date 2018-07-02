@@ -21,6 +21,9 @@ class HttpRequest_t {
 #elif __ARM_ARCH == 8
     unsigned long received = 0;
     unsigned long responded = 0;
+#else
+    unsigned long received = 0;
+    unsigned long responded = 0;
 #endif 
     //time_t received;         // a local time when the request come from a user
     //time_t responded;        // indicates when the board received a reply from a remote board

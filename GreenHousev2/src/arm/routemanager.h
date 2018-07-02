@@ -22,7 +22,7 @@ class GHAir;
 typedef KeyValueMap_t UserArgs_t;
 typedef vector<string> URLParams_t;
 typedef bool(*CallbackDevice_t)(GHAir *air, UserArgs_t &args);
-typedef bool(*CallbackProxy_t)(UserArgs_t &args, UserArgs_t *output);
+typedef bool(*CallbackProxy_t)(const UserArgs_t &args, string *output);
 
 
 struct DeviceRouteItemInfo_t {
@@ -54,6 +54,7 @@ class RouteManager {
 //        static ProxyCallbacksList_t proxy_callbacks;
         bool isAccepted(const string &uri);
     public:
+        void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };

@@ -39,24 +39,47 @@ RouteItemsInfo_t RouteItemsInfo[] = {                                           
     { "/device/pin/value/set0",             URLParams_t({ "did", "pid" } )},
     { "/device/pin/value/set1",             URLParams_t({ "did", "pid" } )},
 };
-
 */
 
-/**
- *
- * Adds a callback (handler) into the list of callbacks
- * One will be executed when an approriate call from the user.
- */
-//void RouteManager::addCallback(callback_t cb) {
 
-//}
+bool areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) {
+    for ( auto &arg : mandatory_args ) {
+        if ( passed_args.find(arg) == passed_args.end() )
+            return false;   // seek for the end and didn't find the entry
+    }
+    return true;
+}
 
-/**
- * It calls a low-level API function in case if all checks passed
- *
- */
-//void RouteManager::callAPI(const RouteItemsInfo_t &apifunc, RouteManager::CallRC *whatsdone) {
-//}
+
+void
+RouteManager::accept(const char *uri, string *outmsg) {
+    // Check if it a request to the proxy
+    if ( strncmp( "/proxy", uri, 6 ) == 0 ) {
+        std::cout << "Proxy handler requested\n";
+        try {
+            ProxyRouteItemInfo_t *item = NULL;
+            item = &proxy_callbacks.at(uri);
+            parser.parse(uri);
+            if ( areArgsOk( item->args, params() )) {
+                item->cb(params(), outmsg);
+            } else {
+                *outmsg += "{\"accepted\":false,\"msg\":\"not all mandatory arguments passed\"}";
+            }
+        } catch ( std::out_of_range ) {
+            *outmsg += "{\"accepted\":false,\"msg\":\"no such handler registered\"}";
+        }
+    } else if ( strncmp( "/device", uri, 7 ) == 0 ) {
+        std::cout << "Device handler requested\n";
+        try {
+            DeviceRouteItemInfo_t *item = &device_callbacks.at(uri); 
+        } catch ( std::out_of_range ) {
+            *outmsg += "{\"accepted\":false,\"msg\":\"no such handler registered\"}";
+        }
+    } else {
+        std::cout << "Not defined handler requested\n";
+        *outmsg += "{\"accepted\":false,\"msg\":\"not supported handler type\"}";
+    }
+}
 
 bool 
 RouteManager::isAccepted(const string &uri) {

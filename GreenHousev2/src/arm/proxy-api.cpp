@@ -3,13 +3,20 @@
 
 namespace proxyapi { 
 
-long uptime() {
+void dummy(UserArgs_t &args, string *output) {
+
+}
+
+void uptime(UserArgs_t &args, string *output) {
     struct sysinfo info;
     int rc = sysinfo(&info);
+    *output += "{\"uptime\":\"";
     if ( rc == 0 ) {
-        return info.uptime;
+        *output += info.uptime;
+    } else {
+        *output += "no data";
     }
-    return -1;
+    *output += "\"}";
 };
 
 

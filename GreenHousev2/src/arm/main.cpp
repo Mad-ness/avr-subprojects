@@ -3,7 +3,7 @@
 #include <levhttp.h>
 #include <string.h>
 #include <evhttp.h>
-#include <b64.h>
+//#include <b64.h>
 // #include <jansson.h>
 #include <ghairdefs.h>
 // #include <data.h>
@@ -161,31 +161,19 @@ static
 void onHttpDefault(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
     std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
-    //json j;
-    //j["request_uri"] = evreq.uriStr();
+
+    string route_msg;
+    route_mg.accept(evreq.uriStr(), &route_msg);
+
     string m;
-    m += "{\"requested_url\":";
+    m += "{\"requested_url\":\"";
     m += evreq.uriStr();
-    m += "}\"";
+    m += "\",";
+    m += "\"result\":";
+    m += route_msg;
+    m += "}";
     evreq.output().printf(m.c_str());
     evreq.sendReply(202, "Request accepted");
-/*
-    if ( ! route_mg.isValidURI( evreq.uriStr() )) {
-        j["status_code"] = 403;
-        j["msg"] = route_mg.emsg();
-        evreq.output().printf(j.dump().c_str());
-        evreq.sendReply( 403, "Incorrect request" );
-    } else {
-        j["status_code"] = 202;
-        j["msg"] = "Request accepted";
-        json j2;
-        j2["uptime"] = proxyapi::uptime();
-        j["data"] = j2;
-        std::cout << j.dump() << std::endl;
-        evreq.output().printf(j.dump().c_str());
-        evreq.sendReply(202, "Request accepted");
-    }
-*/
 }
 
 /**

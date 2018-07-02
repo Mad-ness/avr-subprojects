@@ -10,6 +10,11 @@
 // #include <ghairdefs.h>
 #include <surlparser.h>
 
+#define REGISTER_DEVICE_CALLBACK( path, params, cb ) \
+        { RouteManager::addDeviceCallback( path, params, cb )}
+#define REGISTER_PROXY_CALLBACK( path, params, cb ) \
+        { RouteManager::addProxyCallback( path, params, cb )}
+
 using namespace std;
 
 class GHAir;
@@ -34,9 +39,6 @@ struct ProxyRouteItemInfo_t {
 
 typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
 typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
-
-#define REGISTER_DEVICE_CALLBACK( path, params, cb ) \
-        { RouteManager::addDeviceCallback( path, params, cb )}
 
 
 class RouteManager {

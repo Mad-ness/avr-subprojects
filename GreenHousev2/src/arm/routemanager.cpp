@@ -85,5 +85,3 @@ RouteManager::addProxyCallback( const char *path, URLParams_t params, CallbackPr
 }
 
 
-REGISTER_DEVICE_CALLBACK( "/device/ping", {}, deviceapi::ping );
-

@@ -16,11 +16,13 @@
 //#include <nlohmann/json.hpp>
 #include <proxy-api.h>
 
-#define ERROR_RESPONSE_SIZE 1024
-#define MAX_JSON_BUFFER_SIZE 1024
+//#define ERROR_RESPONSE_SIZE 1024
+//#define MAX_JSON_BUFFER_SIZE 1024
 
 
 extern void printHandlers();
+//void install_callbacks();
+//void aadProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb );
 
 using namespace lev;
 //using json = nlohmann::json;
@@ -219,6 +221,8 @@ void info() {
 
 
 int main(int argc, char **argv) {
+
+    install_callbacks();
 
     if ( argc == 1 ) {
         usage();

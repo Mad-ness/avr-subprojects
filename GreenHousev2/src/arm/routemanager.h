@@ -7,13 +7,8 @@
 #include <tuple>
 #include <algorithm>
 #include <unordered_map>
-// #include <ghairdefs.h>
 #include <surlparser.h>
 
-#define REGISTER_DEVICE_CALLBACK( path, params, cb ) \
-        { addDeviceCallback( path, params, cb )}
-#define REGISTER_PROXY_CALLBACK( path, params, cb ) \
-        { addProxyCallback( path, params, cb )}
 
 using namespace std;
 
@@ -21,18 +16,23 @@ class GHAir;
 
 typedef KeyValueMap_t UserArgs_t;
 typedef vector<string> URLParams_t;
-typedef bool(*CallbackDevice_t)(GHAir *air, UserArgs_t &args);
-typedef bool(*CallbackProxy_t)(const UserArgs_t &args, string *output);
+typedef void(*CallbackDevice_t)(GHAir *air, const UserArgs_t &args, string *output);
+typedef void(*CallbackProxy_t)(const UserArgs_t &args, string *output);
 
+/**
+ * Adds an URL handler.
+ * path - an URI (after the hostname:port and before the question "?" sign, like as /path1/path2/.../)
+ * params - a list of mandatory parameters this handler accepts
+ * cb - a callback which handles the URL
+ */
+void install_callbacks();
 
 struct DeviceRouteItemInfo_t {
-//    const char *path; // all paths must be in lowercase
     URLParams_t args;
     CallbackDevice_t cb;
 };
 
 struct ProxyRouteItemInfo_t {
-//    const char *path; // all paths must be in lowercase
     URLParams_t args;
     CallbackProxy_t cb;
 };
@@ -40,8 +40,8 @@ struct ProxyRouteItemInfo_t {
 typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
 typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
 
-static void addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb);
-static void addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb);
+void addDeviceCallback( const char *path, const URLParams_t &params, CallbackDevice_t cb);
+void addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb);
 void printHandlers();
 
 class RouteManager {
@@ -50,8 +50,6 @@ class RouteManager {
         enum class Receiver { proxy, device };
         SUrlParser parser;
         string errmsg;
-//        static DeviceCallbacksList_t device_callbacks;
-//        static ProxyCallbacksList_t proxy_callbacks;
         bool isAccepted(const string &uri);
     public:
         void accept(const char *uri, string *out_msg);

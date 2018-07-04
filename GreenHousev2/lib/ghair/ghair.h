@@ -28,7 +28,7 @@ private:
     void stopListening();
     void onReceiveCmd();
     // handle requests
-#ifdef ARDUINO
+#if defined(ARDUINO)
     bool onWriteEEPROM(uint8_t address, int8_t value);
     bool onReadEEPROM(uint8_t address);
     void onResetBoard();
@@ -58,9 +58,11 @@ public:
     bool sendWriteEEPROM(uint8_t address, int8_t value);
     bool sendReadEEPROM(uint8_t address);
 
-    bool sendSetPinInput(const uint8_t pin);
-    bool sendGetPinOutput(const uint8_t pin);
+    bool sendSetPinAsInput(const uint8_t pin);
+    bool sendSetPinAsOutput(const uint8_t pin);
+
     bool sendGetPinMode(const uint8_t pin);
+
     bool sendSetPinHigh(const uint8_t pin);
     bool sendSetPinLow(const uint8_t pin);
     bool sendGetPinValue(const uint8_t pin);

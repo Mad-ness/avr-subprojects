@@ -4,22 +4,10 @@
 #include <proxy-api.h>
 #include <device-api.h>
 #include <string.h>
-//#include "surlparser.h"
 
 
 static DeviceCallbacksList_t device_callbacks;
 static ProxyCallbacksList_t proxy_callbacks;
-
-//typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
-//typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
-
-
-
-//#define REGISTER_PROXY_CALLBACK( path, params, callback ) \
-//        ( ProxyCallbacksList.push_back( { ProxyRouteItemInfo_t(path, URLParams_t(params), callback })))
-
-//#define REGISTER_DEVICE_CALLBACK( path, params, callback ) \
-//        ( DeviceCallbacksList.push_back( { path, URLParams_t(params), callback }))
 
 
 /*
@@ -61,7 +49,9 @@ RouteManager::accept(const char *uri, string *outmsg) {
             item = &proxy_callbacks.at(uri);
             parser.parse(uri);
             if ( areArgsOk( item->args, params() )) {
+
                 item->cb(params(), outmsg);
+
             } else {
                 *outmsg += "{\"accepted\":false,\"msg\":\"not all mandatory arguments passed\"}";
             }
@@ -77,7 +67,7 @@ RouteManager::accept(const char *uri, string *outmsg) {
         }
     } else {
         std::cout << "Not defined handler requested\n";
-        *outmsg += "{\"accepted\":false,\"msg\":\"not supported handler type\"}";
+        *outmsg += "{\"accepted\":false,\"msg\":\"Not supported handler type\"}";
     }
 }
 
@@ -87,12 +77,12 @@ RouteManager::isAccepted(const string &uri) {
 }
 
 bool 
-RouteManager::isValidURI(const string &uri) {
+RouteManager::isValidURI( const string &uri ) {
     return isAccepted(uri);
 }
 
 void
-addDeviceCallback( const char *path, URLParams_t params, CallbackDevice_t cb) {
+addDeviceCallback( const char *path, const URLParams_t &params, CallbackDevice_t cb ) {
     try {
         proxy_callbacks.at(path); 
     } catch (std::out_of_range) {
@@ -111,12 +101,19 @@ printHandlers() {
 }
 
 void
-addProxyCallback( const char *path, URLParams_t params, CallbackProxy_t cb) {
+addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb ) {
     try {
         device_callbacks.at(path);
     } catch (std::out_of_range) {
         proxy_callbacks[path] = { params, cb };
     }
+}
+
+void 
+install_callbacks() {
+    addProxyCallback( "/proxy/ping", URLParams_t(), proxyapi::ping );
+    addProxyCallback( "/proxy/uptime", URLParams_t(), proxyapi::uptime );
+    addDeviceCallback( "/device/ping", URLParams_t({ "did" }), deviceapi::ping );
 }
 
 

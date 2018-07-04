@@ -5,8 +5,9 @@
 
 namespace proxyapi {
 
-    void uptime(UserArgs_t &args, string *output);
-    void dummy(UserArgs_t &args, string *output);
+    void ping(const UserArgs_t &args, string *output);
+    void uptime(const UserArgs_t &args, string *output);
+    void dummy(const UserArgs_t &args, string *output);
 
 };
 

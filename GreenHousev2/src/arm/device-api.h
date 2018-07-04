@@ -1,49 +1,45 @@
 #ifndef __DEVICE_API_H__
 #define __DEVICE_API_H__
 
+#include <routemanager.h>
 
 class GHAir;
 
 namespace deviceapi {
-    /**
-     * All functions returns True if the request has been sent and accepted by the 
-     * remote board
-     */
-
-    const struct {
 /*
+    const struct {
         uint8_t input   = INPUT;
         uint8_t output  = OUTPUT;
         //uint8_t pullup  = INPUT_PULLUP;
         uint8_t low     = LOW;
         uint8_t high    = HIGH;
-*/
+        
         uint8_t input   = 1;
         uint8_t output  = 0;
         //uint8_t pullup  = INPUT_PULLUP;
         uint8_t low     = 0;
         uint8_t high    = 1;
     } pin;
-    
-    bool ping(GHAir *air, UserArgs_t &args);
-    bool uptime(GHAir *air);
-    bool reset(GHAir *air);
-    bool readEEPROM(GHAir *air, const uint8_t address);
-    bool writeEEPROM(GHAir *air, const uint8_t address, const int8_t value);
+*/    
+    void ping(GHAir *air, const UserArgs_t &args, string *output);
+    void uptime(GHAir *air, const UserArgs_t &args, string *output);
+    void reset(GHAir *air, UserArgs_t &args, string *output);
+    void readEEPROM(GHAir *air, const UserArgs_t &args, string *output);
+    void writeEEPROM(GHAir *air, const UserArgs_t &args, string *output);
 
 
     //*** ADC functions ***//
     // Power Wide Modulation, set value 0..1023
-    bool setPWMValue(GHAir *air, const uint8_t pin, const uint8_t value);
+    void setPWMValue(GHAir *air, const uint8_t pin, const uint8_t value);
     // Request PWM value from 0..1023
-    bool getPWMValue(GHAir *air, const uint8_t pin);
+    void getPWMValue(GHAir *air, const uint8_t pin);
 
     //*** GPIO functions ***/
-    bool setPinInput(GHAir *air, UserArgs_t &args);
-    bool setPinOutput(GHAir *air, const uint8_t pin);
-    bool getPinMode(GHAir *air, const uint8_t pin);
-    bool setPinHigh(GHAir *air, const uint8_t pin);
-    bool getPinValue(GHAir *air, const uint8_t pin);
+    void setPinInput(GHAir *air, UserArgs_t &args);
+    void setPinOutput(GHAir *air, const uint8_t pin);
+    void getPinMode(GHAir *air, const uint8_t pin);
+    void setPinHigh(GHAir *air, const uint8_t pin);
+    void getPinValue(GHAir *air, const uint8_t pin);
 
 }; // namespace deviceapi
 

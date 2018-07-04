@@ -3,11 +3,11 @@
 
 namespace proxyapi { 
 
-void dummy(UserArgs_t &args, string *output) {
+void dummy(const UserArgs_t &args, string *output) {
 
 }
 
-void uptime(UserArgs_t &args, string *output) {
+void uptime(const UserArgs_t &args, string *output) {
     struct sysinfo info;
     int rc = sysinfo(&info);
     *output += "{\"uptime\":\"";
@@ -17,6 +17,10 @@ void uptime(UserArgs_t &args, string *output) {
         *output += "no data";
     }
     *output += "\"}";
+};
+
+void ping(const UserArgs_t &args, string *output) {
+    *output += "{\"ping\":\"pong\"}";
 };
 
 

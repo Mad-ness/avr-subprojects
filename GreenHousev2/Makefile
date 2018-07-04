@@ -3,7 +3,6 @@ INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./s
 # SOC=A20
 RF24_INCL=-I./src/arm/librf24-sunxi/src
 RF24_LIBS=-L/usr/local/lib -lrf24-sunxi
-JSON_INCL=-I./src/arm/nlohmann-json/include
 LIBS=-L/usr/local/lib -L/usr/lib -levent -ljansson
 CFLAGS=
 # NDEBUG is for the JSON library
@@ -42,7 +41,7 @@ routemanager_test: $(BUILD_DIR)/surlparser.o $(BUILD_DIR)/routemanager.o $(BUILD
 # Object modules
 #
 
-$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h src/arm/proxy-api.h
+$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h src/arm/proxy-api.h src/arm/device-api.h
 	$(CC) -c src/arm/routemanager.cpp -o $@
 
 $(BUILD_DIR)/routemanager_test.o: src/arm/tests/routemanager_test.cpp src/arm/routemanager.h
@@ -63,11 +62,10 @@ $(BUILD_DIR)/pmtest.o: $(TESTS_DIR)/pmtest.cpp $(BUILD_DIR)/packetmanager.o
 $(TARGET):  $(BUILD_DIR)/ghair.o \
 		    $(BUILD_DIR)/data.o \
             $(BUILD_DIR)/packetmanager.o \
-		    $(BUILD_DIR)/b64encode.o \
-		    $(BUILD_DIR)/b64decode.o \
             $(BUILD_DIR)/routemanager.o \
             $(BUILD_DIR)/surlparser.o \
             $(BUILD_DIR)/proxy-api.o \
+            $(BUILD_DIR)/device-api.o \
 		    $(BUILD_DIR)/main.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(RF24_LIBS)
 
@@ -85,19 +83,22 @@ $(BUILD_DIR)/b64decode.o: src/arm/b64.h src/arm/decode.c
 	$(CC) -c src/arm/decode.c -o $@
 
 $(BUILD_DIR)/packetmanager.o: src/arm/packetmanager.cpp src/arm/packetmanager.h lib/ghair/ghairdefs.h 
-	$(CC) -c src/arm/packetmanager.cpp -o $@ $(RF24_INCL) # $(JSON_INCL)
+	$(CC) -c src/arm/packetmanager.cpp -o $@ $(RF24_INCL) 
 
 $(BUILD_DIR)/edurlparser.o: src/arm/urlparser/src/EdUrlParser.cpp src/arm/urlparser/src/EdUrlParser.h
 	$(CC) -c src/arm/urlparser/src/EdUrlParser.cpp -o $@
 
 
-$(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h # ./src/arm/nlohmann-json/single_include/nlohmann/json.hpp 
-	$(CC) -c src/arm/main.cpp -o $@ $(RF24_INCL) # $(JSON_INCL)
+$(BUILD_DIR)/main.o: src/arm/main.cpp lib/ghair/ghairdefs.h src/arm/data.h 
+	$(CC) -c src/arm/main.cpp -o $@ $(RF24_INCL) 
 
 $(BUILD_DIR)/proxy-api.o: src/arm/proxy-api.cpp src/arm/proxy-api.h
 	$(CC) -c src/arm/proxy-api.cpp -o $@
 
-$(BUILD_DIR)/device-api.o: src/arm/device-api.cpp src/arm/device-api.h lib/ghair/ghairdefs.h lib/ghair/ghair.h
+$(BUILD_DIR)/device-api.o: src/arm/device-api.cpp src/arm/device-api.h lib/ghair/ghair.h lib/ghair/ghairdefs.h
+	$(CC) -c src/arm/device-api.cpp -o $@
+
+$(BUILD_DIR)/device-api.o: src/arm/device-api.cpp src/arm/device-api.h lib/ghair/ghair.h lib/ghair/ghairdefs.h
 	$(CC) -c src/arm/device-api.cpp -o $@ $(RF24_INCL)
 
 prepare:

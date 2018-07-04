@@ -251,10 +251,8 @@ bool GHAir::onGetDataStandard() {
 #ifdef ARDUINO_ARCH_AVR
 
 void GHAir::onResetBoard() {
-#ifdef ARDUINO_ARCH_AVR
     this->sendResponse(this->m_packet, true, 0x0, NULL);
     resetBoardVector();
-#endif
 }
 
 bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {
@@ -269,7 +267,7 @@ bool GHAir::onReadEEPROM(uint8_t address) {
     int8_t buf = EEPROM.read(address);
     return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
 }
-
+#endif // ARDUINO
 
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
     return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, address, sizeof(value), &value);
@@ -279,24 +277,18 @@ bool GHAir::sendReadEEPROM(uint8_t address) {
     return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, NULL);
 }
 
-bool GHAir::sendPinInput(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_IN_SET_MODE, pin, 0x1, INPUT);
-}
-
-bool GHAir::sendPinOutput(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_IN_SET_MODE, pin, 0x1, OUTPUT);
-}
-
 bool GHAir::sendGetPinMode(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_IN_GET_MODE, pin, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_GET_PIN_MODE, pin, 0x0, NULL);
 }
 
-bool GHAir::sendPinHigh(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, HIGH);
+bool GHAir::sendSetPinHigh(const uint8_t pin) {
+    uint8_t value = HIGH;
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, &value);
 }
 
-bool GHAir::sendPinLow(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, LOW);
+bool GHAir::sendSetPinLow(const uint8_t pin) {
+    uint8_t value = LOW;
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, &value);
 }
 
 bool GHAir::sendGetPinValue(const uint8_t pin) {
@@ -311,13 +303,23 @@ bool GHAir::sendGetPWMValue(const uint8_t pin) {
     return this->sendPacket(AIR_CMD_GET_PWM_VALUE, pin, 0x0, NULL);
 }
 
+bool GHAir::sendSetPinAsInput(const uint8_t pin) {
+    uint8_t value = INPUT;
+    return this->sendPacket( AIR_CMD_SET_PIN_MODE, pin, 0x1, &value);
+}
 
-#endif // ARDUINO
+bool GHAir::sendSetPinAsOutput(const uint8_t pin) {
+    uint8_t value = OUTPUT;
+    return this->sendPacket( AIR_CMD_SET_PIN_MODE, pin, 0x1, &value );
+}
+
+
+
+
 
 /**
   in_pkt - packet the response on which will be sent
-  resp_ok_or_fail - was the command executed successfully or not
-  data* - a pointer to the data is being send in the AirPacket.data buffer
+  resp_ok_or_fail - was the command executed successfully or not data* - a pointer to the data is being send in the AirPacket.data buffer
   datalen - number of bytes in the data
  */
 bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t datalen, void *data) {

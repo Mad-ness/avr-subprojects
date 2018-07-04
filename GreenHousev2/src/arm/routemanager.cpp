@@ -111,9 +111,20 @@ addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t c
 
 void 
 install_callbacks() {
-    addProxyCallback( "/proxy/ping", URLParams_t(), proxyapi::ping );
-    addProxyCallback( "/proxy/uptime", URLParams_t(), proxyapi::uptime );
-    addDeviceCallback( "/device/ping", URLParams_t({ "did" }), deviceapi::ping );
+    addProxyCallback( "/proxy/ping",                URLParams_t(), proxyapi::ping );
+    addProxyCallback( "/proxy/uptime",              URLParams_t(), proxyapi::uptime );
+    addDeviceCallback( "/device/ping",              URLParams_t({ "did" }), deviceapi::ping );
+    addDeviceCallback( "/device/reset",             URLParams_t({ "did" }), deviceapi::reset );
+    addDeviceCallback( "/device/uptime",            URLParams_t({ "did" }), deviceapi::uptime );
+    addDeviceCallback( "/device/pin/set-in",        URLParams_t({ "did" }), deviceapi::setPinAsInput );
+    addDeviceCallback( "/device/pin/set-out",       URLParams_t({ "did" }), deviceapi::setPinAsOutput );
+    addDeviceCallback( "/device/pin/value/set0",    URLParams_t({ "did" }), deviceapi::setPinLow );
+    addDeviceCallback( "/device/pin/value/set1",    URLParams_t({ "did" }), deviceapi::setPinHigh );
+    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), deviceapi::getPinValue );
+    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), deviceapi::readEEPROM );
+    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), deviceapi::writeEEPROM );
+
+
 }
 
 

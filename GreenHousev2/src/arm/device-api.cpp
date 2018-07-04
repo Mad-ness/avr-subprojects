@@ -2,12 +2,17 @@
 #include <ghairdefs.h>
 #include "device-api.h"
 
-
+#define MSG_ACCEPTED()  { *output += "{\"result\":\"accepted\"}"; }
+#define MSG_DECLINED()  { *output += "{\"result\":\"declined\"}"; }
 
 namespace deviceapi {
 
 void ping( GHAir *air, const UserArgs_t &arg, string *output ) {
-    air->sendPing(); 
+    if ( air->sendPing() ) {
+        MSG_ACCEPTED();
+    } else {
+        MSG_DECLINED();
+    }
 }
 
 void uptime( GHAir *air, const UserArgs_t &arg, string *output ) {
@@ -29,12 +34,12 @@ void writeEEPROM( GHAir *air, const UserArgs_t &args, string *output ) {
 
 /*** working with pins ***/
 
-void setPinOutput( GHAir *air, const UserArgs_t &args, string *output ) {
+void setPinAsOutput( GHAir *air, const UserArgs_t &args, string *output ) {
     uint8_t pin = std::stoi(args.at("pid"), nullptr);
     air->sendSetPinAsOutput(pin);
 }
 
-void setPinInput( GHAir *air, const UserArgs_t &args, string *output ) {
+void setPinAsInput( GHAir *air, const UserArgs_t &args, string *output ) {
     uint8_t pin = std::stoi(args.at("pid"), nullptr);
     air->sendSetPinAsInput(pin);
 }

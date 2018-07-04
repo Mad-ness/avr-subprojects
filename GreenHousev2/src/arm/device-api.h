@@ -23,23 +23,25 @@ namespace deviceapi {
 */    
     void ping(GHAir *air, const UserArgs_t &args, string *output);
     void uptime(GHAir *air, const UserArgs_t &args, string *output);
-    void reset(GHAir *air, UserArgs_t &args, string *output);
+    void reset(GHAir *air, const UserArgs_t &args, string *output);
     void readEEPROM(GHAir *air, const UserArgs_t &args, string *output);
     void writeEEPROM(GHAir *air, const UserArgs_t &args, string *output);
 
 
     //*** ADC functions ***//
     // Power Wide Modulation, set value 0..1023
-    void setPWMValue(GHAir *air, const uint8_t pin, const uint8_t value);
+    void setPWMValue(GHAir *air, const UserArgs_t &args, string *output);
     // Request PWM value from 0..1023
-    void getPWMValue(GHAir *air, const uint8_t pin);
+    void getPWMValue(GHAir *air, const UserArgs_t &args, string *output);
 
     //*** GPIO functions ***/
-    void setPinInput(GHAir *air, UserArgs_t &args);
-    void setPinOutput(GHAir *air, const uint8_t pin);
-    void getPinMode(GHAir *air, const uint8_t pin);
-    void setPinHigh(GHAir *air, const uint8_t pin);
-    void getPinValue(GHAir *air, const uint8_t pin);
+    void setPinAsInput(GHAir *air, const UserArgs_t &args, string *output);
+    void setPinAsOutput(GHAir *air, const UserArgs_t &args, string *output);
+    void getPinMode(GHAir *air, const UserArgs_t &args, string *output);
+    void setPinHigh(GHAir *air, const UserArgs_t &args, string *output);
+    void setPinLow(GHAir *air, const UserArgs_t &args, string *output);
+
+    void getPinValue(GHAir *air, const UserArgs_t &args, string *output);
 
 }; // namespace deviceapi
 

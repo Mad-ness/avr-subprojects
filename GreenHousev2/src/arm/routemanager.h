@@ -8,16 +8,13 @@
 #include <algorithm>
 #include <unordered_map>
 #include <surlparser.h>
+#include <apptypes.h>
 
 
 using namespace std;
 
 class GHAir;
 
-typedef KeyValueMap_t UserArgs_t;
-typedef vector<string> URLParams_t;
-typedef void(*CallbackDevice_t)(GHAir *air, const UserArgs_t &args, string *output);
-typedef void(*CallbackProxy_t)(const UserArgs_t &args, string *output);
 
 /**
  * Adds an URL handler.
@@ -44,14 +41,45 @@ void addDeviceCallback( const char *path, const URLParams_t &params, CallbackDev
 void addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb);
 void printHandlers();
 
+
+#if __ARM_ARCH == 7
+    typedef unsigned int request_time_t;
+#elif __ARM_ARCH == 8
+    typedef unsigned long request_time_t;
+#else                                       // for everything else take maximum possible (64-bit) size
+    typedef unsigned long request_time_t;
+#endif
+
+struct RequestItem_t {
+    string path;
+    UserArgs_t args;
+    string uri_hash;                // hashsum of uri
+    int num_requests = 0;           // how many the same requests received
+    int done_attempts = 0;          // how many attempts have been perfromed to transmit the request
+    int failed_attempts = 0;        // how many attempts to send the request to the remote board failed
+    bool has_sent = false;          // indicates whether the request sent to the remote board
+    struct {
+        request_time_t received;    // received from the end user
+        request_time_t scheduled;   // transmitted to the remote board
+        request_time_t completed;   // received a response from the remote board
+    } when;
+};
+
+
+
+string
+makeSHA256(const char *uri);
+
 class RouteManager {
     private:
         enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
         enum class Receiver { undef, proxy, device };
+		unordered_map<string, RequestItem_t> m_requests;
         SUrlParser parser;
         string errmsg;
         bool isAccepted(const string &uri);
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
+		void addRequestInQueue(const char *uri);
     public:
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };

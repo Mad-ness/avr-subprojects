@@ -1,7 +1,7 @@
-INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/simple-url-parser
 # OS=LINUX
 # SOC=A20
 RF24_INCL=-I./src/arm/librf24-sunxi/src
+INCLUDE=-I/usr/local/lib -I. -I./lib/ghair -I./src/arm -I./src/arm/include -I./src/arm/urlparser/src -I./src/arm/simple-url-parser $(RF24_INCL)
 RF24_LIBS=-L/usr/local/lib -lrf24-sunxi
 LIBS=-L/usr/local/lib -L/usr/lib -levent -ljansson
 CFLAGS=
@@ -41,8 +41,20 @@ routemanager_test: $(BUILD_DIR)/surlparser.o $(BUILD_DIR)/routemanager.o $(BUILD
 # Object modules
 #
 
-$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp src/arm/routemanager.h src/arm/proxy-api.h src/arm/device-api.h
+$(BUILD_DIR)/routemanager.o: src/arm/routemanager.cpp \
+                             src/arm/routemanager.h \
+                             src/arm/apptypes.h \
+                             src/arm/proxy-api.h \
+                             src/arm/device-api.h
 	$(CC) -c src/arm/routemanager.cpp -o $@
+
+$(BUILD_DIR)/requestmanager.o: src/arm/requestmanager.cpp \
+                             src/arm/requestmanager.h \
+                             src/arm/apptypes.h \
+                             src/arm/proxy-api.h \
+                             src/arm/device-api.h \
+                             src/arm/crypto/sha256.h
+	$(CC) -c src/arm/requestmanager.cpp -o $@
 
 $(BUILD_DIR)/routemanager_test.o: src/arm/tests/routemanager_test.cpp src/arm/routemanager.h
 	$(CC) -c src/arm/tests/routemanager_test.cpp -o $@
@@ -97,6 +109,10 @@ $(BUILD_DIR)/proxy-api.o: src/arm/proxy-api.cpp src/arm/proxy-api.h
 
 $(BUILD_DIR)/device-api.o: src/arm/device-api.cpp src/arm/device-api.h lib/ghair/ghair.h lib/ghair/ghairdefs.h
 	$(CC) -c src/arm/device-api.cpp -o $@ $(RF24_INCL)
+
+$(BUILD_DIR)/sha256.o: src/arm/crypto/sha256.c src/arm/crypto/sha256.h
+	$(CC) -c src/arm/crypto/sha256.c -o $@ $(RF24_INCL)
+
 
 prepare:
 	mkdir -p $(BUILD_DIR)

@@ -4,6 +4,8 @@
 #include <proxy-api.h>
 #include <device-api.h>
 #include <string.h>
+#include <time.h>
+#include <crypto/sha256.h>
 
 
 static DeviceCallbacksList_t device_callbacks;
@@ -29,6 +31,16 @@ RouteItemsInfo_t RouteItemsInfo[] = {                                           
 };
 */
 
+string
+makeSHA256(const char *uri) {
+    SHA256_CTX ctx;
+    BYTE buf[SHA256_BLOCK_SIZE];
+    sha256_init(&ctx);
+    sha256_update(&ctx, (const BYTE*)uri, strlen(uri));
+    sha256_final(&ctx, buf);
+    return string((const char*)buf);
+}
+
 
 bool 
 areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) {
@@ -37,6 +49,26 @@ areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) 
             return false;   // seek for the end and didn't find the entry
     }
     return true;
+}
+
+
+void RouteManager::addRequestInQueue(const char *uri) {
+    const string url_hash = makeSHA256(uri);
+    RequestItem_t *item = nullptr;
+
+    try {
+       item = &m_requests.at(url_hash);
+       item->num_requests++;
+    } catch ( std::out_of_range ) {
+        m_requests.insert({ url_hash, RequestItem_t() });
+        item = &m_requests.at(url_hash);
+        item->path = parser.path();
+        item->args = parser.params();
+        item->when.received = time(NULL); 
+        item->when.completed = 0;
+        item->when.scheduled = 0;
+        item->uri_hash = makeSHA256(uri);
+    }
 }
 
 
@@ -62,7 +94,12 @@ RouteManager::callHandler(const char *uri, const Receiver rcv, string *outmsg) {
         try {
             DeviceRouteItemInfo_t *item = &device_callbacks.at(requested_handler_by_uri);
             if ( areArgsOk( item->args, params() )) {
+
+
                 // item->cb( &air, parser.params(), outmsg );
+                addRequestInQueue(uri);
+
+
                 *outmsg += "{\"accepted\":true}";
             } else {
                 *outmsg += "{\"accepted\":false,\"msg\":\"Not all mandatory arguments passed\"}"; 
@@ -74,7 +111,11 @@ RouteManager::callHandler(const char *uri, const Receiver rcv, string *outmsg) {
         try {
             ProxyRouteItemInfo_t *item = &proxy_callbacks.at(requested_handler_by_uri);
             if ( areArgsOk( item->args, params() )) {
+
+
                 item->cb( parser.params(), outmsg );
+
+
             } else {
                 *outmsg += "{\"accepted\":false,\"msg\":\"Not all mandatory arguments passed\"}"; 
             }

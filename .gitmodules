@@ -11,3 +11,6 @@
     path = GreenHousev2/src/arm/librf24-sunxi
     url = https://github.com/Mad-ness/librf24-sunxi.git
 
+[submodule "GreenHousev2/src/arm/crypto"]
+	path = GreenHousev2/src/arm/crypto
+	url = https://github.com/Mad-ness/crypto-algorithms.git

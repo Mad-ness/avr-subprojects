@@ -2,17 +2,10 @@
 #include <ghairdefs.h>
 #include "device-api.h"
 
-#define MSG_ACCEPTED()  { *output += "{\"result\":\"accepted\"}"; }
-#define MSG_DECLINED()  { *output += "{\"result\":\"declined\"}"; }
-
 namespace deviceapi {
 
 bool ping( GHAir *air, const UserArgs_t &arg, string *output ) {
-    if ( air->sendPing() ) {
-        MSG_ACCEPTED();
-    } else {
-        MSG_DECLINED();
-    }
+    return air->sendPing();
 }
 
 bool uptime( GHAir *air, const UserArgs_t &arg, string *output ) {

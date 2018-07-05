@@ -38,7 +38,16 @@ makeSHA256(const char *uri) {
     sha256_init(&ctx);
     sha256_update(&ctx, (const BYTE*)uri, strlen(uri));
     sha256_final(&ctx, buf);
-    return string((const char*)buf);
+    string s;
+    char buf2[4];
+    std::cout << "SHA256: ";
+    for ( int i=0; i<SHA256_BLOCK_SIZE; i++ ) {
+        sprintf( buf2, "%02x", buf[i] );
+        std::cout << buf2;
+        s += buf2;
+    }
+    std::cout << std::endl;
+    return string(s);
 }
 
 
@@ -52,10 +61,10 @@ areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) 
 }
 
 
-void RouteManager::addRequestInQueue(const char *uri) {
+RequestItem_t*
+RouteManager::addRequestInQueue(const char *uri) {
     const string url_hash = makeSHA256(uri);
     RequestItem_t *item = nullptr;
-
     try {
        item = &m_requests.at(url_hash);
        item->num_requests++;
@@ -68,6 +77,19 @@ void RouteManager::addRequestInQueue(const char *uri) {
         item->when.completed = 0;
         item->when.scheduled = 0;
         item->uri_hash = makeSHA256(uri);
+        item->num_requests = 1;
+    }
+    return item;
+}
+
+void 
+RouteManager::printInQueue() {
+    for ( auto &n : m_requests ) {
+        std::cout << n.first
+                  << " queries="
+                  << n.second.num_requests
+                  << "\n";
+
     }
 }
 
@@ -75,6 +97,7 @@ void RouteManager::addRequestInQueue(const char *uri) {
 void
 RouteManager::accept(const char *uri, string *outmsg) {
     if ( parser.parse(uri) ) {
+        // std::cout << "DEBUG: starting parsing\n";
         if ( strncmp( "/device", uri, 7 ) == 0 ) {
             callHandler( uri, Receiver::device, outmsg );
         } else if ( strncmp( "/proxy", uri, 6 ) == 0 ) {
@@ -82,6 +105,7 @@ RouteManager::accept(const char *uri, string *outmsg) {
         } else {
             *outmsg += "{\"accepted\":false,\"msg\":\"Not supported handler type\"}";
         }
+        // std::cout << "DEBUG: URI has been parsed\n";
     } else {
         *outmsg += "{\"accepted\":false,\"msg\":\"Cannot parse the url\"}";
     }
@@ -97,10 +121,11 @@ RouteManager::callHandler(const char *uri, const Receiver rcv, string *outmsg) {
 
 
                 // item->cb( &air, parser.params(), outmsg );
-                addRequestInQueue(uri);
+                RequestItem_t *item = addRequestInQueue(uri);
 
-
-                *outmsg += "{\"accepted\":true}";
+                *outmsg += "{\"accepted\":true,\"next\":\"/byhash/";
+                *outmsg += item->uri_hash;
+                *outmsg += "\"}";
             } else {
                 *outmsg += "{\"accepted\":false,\"msg\":\"Not all mandatory arguments passed\"}"; 
             }
@@ -111,7 +136,6 @@ RouteManager::callHandler(const char *uri, const Receiver rcv, string *outmsg) {
         try {
             ProxyRouteItemInfo_t *item = &proxy_callbacks.at(requested_handler_by_uri);
             if ( areArgsOk( item->args, params() )) {
-
 
                 item->cb( parser.params(), outmsg );
 

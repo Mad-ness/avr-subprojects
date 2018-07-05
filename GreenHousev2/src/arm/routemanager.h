@@ -79,13 +79,14 @@ class RouteManager {
         string errmsg;
         bool isAccepted(const string &uri);
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
-		void addRequestInQueue(const char *uri);
+		RequestItem_t *addRequestInQueue(const char *uri);
     public:
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };
         KeyValueMap_t params() { return parser.params(); }
+        void printInQueue();
 };
 
 #endif // __ROUTEMANAGER_H__

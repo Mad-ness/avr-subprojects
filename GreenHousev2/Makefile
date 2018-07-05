@@ -78,6 +78,7 @@ $(TARGET):  $(BUILD_DIR)/ghair.o \
             $(BUILD_DIR)/surlparser.o \
             $(BUILD_DIR)/proxy-api.o \
             $(BUILD_DIR)/device-api.o \
+            $(BUILD_DIR)/sha256.o \
 		    $(BUILD_DIR)/main.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(RF24_LIBS)
 

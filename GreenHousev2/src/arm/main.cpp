@@ -64,8 +64,9 @@ void onIncomingAirPacket(AirPacket *pkt) {
 static 
 void onPrint(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
-    all_packets.print();
+    //all_packets.print();
     evreq.sendReply(200, "OK");
+    route_mg.printInQueue();
 }
 
 /*
@@ -166,7 +167,7 @@ void onHttpDefault(struct evhttp_request *req, void *arg) {
 
     string route_msg;
     route_mg.accept(evreq.uriStr(), &route_msg);
-
+    // std::cout << "DEBUG: preparing to send a response to the client\n";
     string m;
     m += "{\"requested_url\":\"";
     m += evreq.uriStr();
@@ -264,11 +265,11 @@ int main(int argc, char **argv) {
     outQueue.start(200);
 
     logstr("Adding routes");
-    http.setDefaultRoute(onHttpDefault);
     http.addRoute("/request", onHttpRequest);
     http.addRoute("/ping", onPing);
     http.addRoute("/print", onPrint);
-
+    http.addRoute("/debug", onPrint);
+    http.setDefaultRoute(onHttpDefault);
 
     logstr("Running the http server");
     http.bind(argv[1], atoi(argv[2]));

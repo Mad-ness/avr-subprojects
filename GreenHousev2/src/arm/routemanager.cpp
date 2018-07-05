@@ -30,7 +30,8 @@ RouteItemsInfo_t RouteItemsInfo[] = {                                           
 */
 
 
-bool areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) {
+bool 
+areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) {
     for ( auto &arg : mandatory_args ) {
         if ( passed_args.find(arg) == passed_args.end() )
             return false;   // seek for the end and didn't find the entry
@@ -41,33 +42,45 @@ bool areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_a
 
 void
 RouteManager::accept(const char *uri, string *outmsg) {
-    // Check if it a request to the proxy
-    if ( strncmp( "/proxy", uri, 6 ) == 0 ) {
-        std::cout << "Proxy handler requested\n";
-        try {
-            ProxyRouteItemInfo_t *item = NULL;
-            item = &proxy_callbacks.at(uri);
-            parser.parse(uri);
-            if ( areArgsOk( item->args, params() )) {
-
-                item->cb(params(), outmsg);
-
-            } else {
-                *outmsg += "{\"accepted\":false,\"msg\":\"not all mandatory arguments passed\"}";
-            }
-        } catch ( std::out_of_range ) {
-            *outmsg += "{\"accepted\":false,\"msg\":\"no such handler registered\"}";
-        }
-    } else if ( strncmp( "/device", uri, 7 ) == 0 ) {
-        std::cout << "Device handler requested\n";
-        try {
-            DeviceRouteItemInfo_t *item = &device_callbacks.at(uri); 
-        } catch ( std::out_of_range ) {
-            *outmsg += "{\"accepted\":false,\"msg\":\"no such handler registered\"}";
+    if ( parser.parse(uri) ) {
+        if ( strncmp( "/device", uri, 7 ) == 0 ) {
+            callHandler( uri, Receiver::device, outmsg );
+        } else if ( strncmp( "/proxy", uri, 6 ) == 0 ) {
+            callHandler( uri, Receiver::proxy, outmsg );
+        } else {
+            *outmsg += "{\"accepted\":false,\"msg\":\"Not supported handler type\"}";
         }
     } else {
-        std::cout << "Not defined handler requested\n";
-        *outmsg += "{\"accepted\":false,\"msg\":\"Not supported handler type\"}";
+        *outmsg += "{\"accepted\":false,\"msg\":\"Cannot parse the url\"}";
+    }
+}
+
+void
+RouteManager::callHandler(const char *uri, const Receiver rcv, string *outmsg) {
+    const string requested_handler_by_uri = parser.path();
+    if ( rcv == Receiver::device ) {
+        try {
+            DeviceRouteItemInfo_t *item = &device_callbacks.at(requested_handler_by_uri);
+            if ( areArgsOk( item->args, params() )) {
+                // item->cb( &air, parser.params(), outmsg );
+                *outmsg += "{\"accepted\":true}";
+            } else {
+                *outmsg += "{\"accepted\":false,\"msg\":\"Not all mandatory arguments passed\"}"; 
+            }
+        } catch ( std::out_of_range ) {
+            *outmsg += "{\"accepted\":false,\"msg\":\"No such handler registered for this type of handler\"}";
+        }
+    } else if ( rcv == Receiver::proxy ) {
+        try {
+            ProxyRouteItemInfo_t *item = &proxy_callbacks.at(requested_handler_by_uri);
+            if ( areArgsOk( item->args, params() )) {
+                item->cb( parser.params(), outmsg );
+            } else {
+                *outmsg += "{\"accepted\":false,\"msg\":\"Not all mandatory arguments passed\"}"; 
+            }
+        } catch ( std::out_of_range ) {
+            *outmsg += "{\"accepted\":false,\"msg\":\"No such handler registered for this type of handler\"}";
+        }
     }
 }
 

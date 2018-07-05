@@ -1,3 +1,4 @@
+#include <string.h>
 #include <sys/sysinfo.h>
 #include "proxy-api.h"
 
@@ -10,17 +11,19 @@ void dummy(const UserArgs_t &args, string *output) {
 void uptime(const UserArgs_t &args, string *output) {
     struct sysinfo info;
     int rc = sysinfo(&info);
-    *output += "{\"uptime\":\"";
+    char n_str[15];
+    *output += "{\"provided\":true,\"uptime\":";
     if ( rc == 0 ) {
-        *output += info.uptime;
+        sprintf(n_str, "%lu", info.uptime);
+        *output += n_str;
     } else {
         *output += "no data";
     }
-    *output += "\"}";
+    *output += "}";
 };
 
 void ping(const UserArgs_t &args, string *output) {
-    *output += "{\"ping\":\"pong\"}";
+    *output += "{\"provided\":true,\"ping\":\"pong\"}";
 };
 
 

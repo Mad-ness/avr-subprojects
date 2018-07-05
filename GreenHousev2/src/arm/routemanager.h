@@ -47,10 +47,11 @@ void printHandlers();
 class RouteManager {
     private:
         enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
-        enum class Receiver { proxy, device };
+        enum class Receiver { undef, proxy, device };
         SUrlParser parser;
         string errmsg;
         bool isAccepted(const string &uri);
+        void callHandler(const char *uri, const Receiver rcv, string *outmsg);
     public:
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };

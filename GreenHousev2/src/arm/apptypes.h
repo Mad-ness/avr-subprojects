@@ -8,7 +8,7 @@
 
 typedef unordered_map<string, string> UserArgs_t;
 typedef vector<string> URLParams_t;
-typedef void(*CallbackDevice_t)(GHAir *air, const UserArgs_t &args, string *output);
+typedef bool(*CallbackDevice_t)(GHAir *air, const UserArgs_t &args, string *output);
 typedef void(*CallbackProxy_t)(const UserArgs_t &args, string *output);
 
 

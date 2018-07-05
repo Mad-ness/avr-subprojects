@@ -6,6 +6,7 @@
 #include <string.h>
 #include <time.h>
 #include <crypto/sha256.h>
+#include <ghair.h>
 
 
 static DeviceCallbacksList_t device_callbacks;
@@ -40,13 +41,10 @@ makeSHA256(const char *uri) {
     sha256_final(&ctx, buf);
     string s;
     char buf2[4];
-    std::cout << "SHA256: ";
     for ( int i=0; i<SHA256_BLOCK_SIZE; i++ ) {
         sprintf( buf2, "%02x", buf[i] );
-        std::cout << buf2;
         s += buf2;
     }
-    std::cout << std::endl;
     return string(s);
 }
 
@@ -82,17 +80,95 @@ RouteManager::addRequestInQueue(const char *uri) {
     return item;
 }
 
+string
+userArgsToStr(const UserArgs_t &args) {
+    string result;
+    for ( auto &n : args ) {
+        result += n.first;
+        result += "=";
+        result += n.second;
+        result += ",";
+    }
+    result.pop_back(); // remove last ","
+    return string(result);
+}
+
 void 
 RouteManager::printInQueue() {
     for ( auto &n : m_requests ) {
         std::cout << n.first
-                  << " queries="
-                  << n.second.num_requests
+                  << " queries=" << n.second.num_requests
+                  << " url=" << n.second.path
+                  << " args=" << userArgsToStr(n.second.args)
                   << "\n";
-
     }
 }
 
+CallbackDevice_t&
+getDeviceCallbackByURI(const string &path) {
+    CallbackDevice_t *cb_ptr = nullptr;
+    for ( auto &cb : device_callbacks ) {
+        if ( cb.first == path ) {
+            cb_ptr = &cb.second.cb;
+        }
+    }
+    return *cb_ptr;
+}
+
+void
+RouteManager::loop() {
+    processRequestsQueue();
+}
+
+void
+RouteManager::processRequestsQueue() {
+    request_time_t curr_time = time(NULL);
+    RequestItem_t *item = nullptr;
+    for ( auto &request : m_requests ) {
+        if ( ! request.second.hasSent() ) {
+            
+            // select this if the request has not been sent out yet
+            if ( request.second.when.scheduled == 0 ) {
+                item = &request.second;
+                break;
+
+            // select this if the request's wait time is over than 1 second
+            } else if ( curr_time - request.second.when.scheduled >= 1 ) {
+                item = &request.second;
+                break;
+            }
+
+        } else {
+            if ( request.second.when.completed > 0 && curr_time - request.second.when.completed > 5 ) {
+                m_requests.erase( request.second.uri_hash );
+            }
+        }
+    }
+
+    if ( item != nullptr ) {
+        CallbackDevice_t &cb = getDeviceCallbackByURI(item->path);
+        string output;
+        if ( air->rf24()->isChipConnected() ) {
+            if ( cb( air, item->args, &output )) {
+                item->when.scheduled = time(NULL); 
+                item->done_attempts++;
+                item->has_sent = true;
+                item->errmsg.clear();
+                std::cout << "Request "
+                          << item->path
+                          << ", has been sent out\n";
+            } else {
+                item->failed_attempts++;
+                item->errmsg = output;
+                std::cout << "Request "
+                          << item->path
+                          << ", has not been sent out\n";
+            }
+        } else {
+            item->errmsg = "Wireless module not connected";
+        }
+    }
+}
 
 void
 RouteManager::accept(const char *uri, string *outmsg) {

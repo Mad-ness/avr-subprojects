@@ -58,11 +58,16 @@ struct RequestItem_t {
     int done_attempts = 0;          // how many attempts have been perfromed to transmit the request
     int failed_attempts = 0;        // how many attempts to send the request to the remote board failed
     bool has_sent = false;          // indicates whether the request sent to the remote board
+    string errmsg;                  // this contains the message if an error occured during sending
     struct {
         request_time_t received;    // received from the end user
         request_time_t scheduled;   // transmitted to the remote board
         request_time_t completed;   // received a response from the remote board
     } when;
+    // the request has been sent and waiting for a response from the remote board
+    bool hasSent() {
+        return has_sent;
+    }
 };
 
 
@@ -72,7 +77,7 @@ makeSHA256(const char *uri);
 
 class RouteManager {
     private:
-        enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
+        // enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
         enum class Receiver { undef, proxy, device };
 		unordered_map<string, RequestItem_t> m_requests;
         SUrlParser parser;
@@ -80,13 +85,17 @@ class RouteManager {
         bool isAccepted(const string &uri);
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
 		RequestItem_t *addRequestInQueue(const char *uri);
+        void processRequestsQueue();
     public:
+        GHAir *air;
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };
         bool isValidURI(const string &uri); 
         string path() { return parser.path(); };
         KeyValueMap_t params() { return parser.params(); }
         void printInQueue();
+        // processing the queue of queries, run this in a loop as often as possible
+        void loop();
 };
 
 #endif // __ROUTEMANAGER_H__

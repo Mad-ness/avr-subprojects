@@ -75,6 +75,7 @@ void onPrint(struct evhttp_request *req, void *arg) {
 static
 void processIncomingQueue( evutil_socket_t socket, short id, void *data ) {
     air.loop();  // send responses, if any
+    route_mg.loop();
 }
 
 static 
@@ -230,6 +231,8 @@ int main(int argc, char **argv) {
         info();
         return 0;
     }
+
+    route_mg.air = &air;
 
     air.setup();
     air.setHandler(onIncomingAirPacket); // set handler for incoming packets over radio

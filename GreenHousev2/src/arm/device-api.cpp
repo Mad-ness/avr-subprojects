@@ -7,7 +7,7 @@
 
 namespace deviceapi {
 
-void ping( GHAir *air, const UserArgs_t &arg, string *output ) {
+bool ping( GHAir *air, const UserArgs_t &arg, string *output ) {
     if ( air->sendPing() ) {
         MSG_ACCEPTED();
     } else {
@@ -15,58 +15,65 @@ void ping( GHAir *air, const UserArgs_t &arg, string *output ) {
     }
 }
 
-void uptime( GHAir *air, const UserArgs_t &arg, string *output ) {
-    air->sendUptime();
+bool uptime( GHAir *air, const UserArgs_t &arg, string *output ) {
+    return air->sendUptime();
 }
 
-void reset( GHAir *air, const UserArgs_t &args, string *output ) {
-    air->sendResetBoard();
+bool reset( GHAir *air, const UserArgs_t &args, string *output ) {
+    return air->sendResetBoard();
 }
 
-void readEEPROM( GHAir *air, const UserArgs_t &args, string *output ) {
+bool readEEPROM( GHAir *air, const UserArgs_t &args, string *output ) {
     uint8_t address = std::stoi( args.at("address"), nullptr );
-    air->sendReadEEPROM(address);
+    return air->sendReadEEPROM(address);
 }
 
-void writeEEPROM( GHAir *air, const UserArgs_t &args, string *output ) {
+bool writeEEPROM( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendWriteEEPROM(address, value);
+    return false;
 }
 
 /*** working with pins ***/
 
-void setPinAsOutput( GHAir *air, const UserArgs_t &args, string *output ) {
+bool setPinAsOutput( GHAir *air, const UserArgs_t &args, string *output ) {
     uint8_t pin = std::stoi(args.at("pid"), nullptr);
-    air->sendSetPinAsOutput(pin);
+    return air->sendSetPinAsOutput(pin);
 }
 
-void setPinAsInput( GHAir *air, const UserArgs_t &args, string *output ) {
+bool setPinAsInput( GHAir *air, const UserArgs_t &args, string *output ) {
     uint8_t pin = std::stoi(args.at("pid"), nullptr);
-    air->sendSetPinAsInput(pin);
+    return air->sendSetPinAsInput(pin);
 }
 
-void getPinMode( GHAir *air, const UserArgs_t &args, string *output ) {
+bool getPinMode( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendGetPinMode(pin);
+    return false;
 }
 
 
-void setPinHigh( GHAir *air, const UserArgs_t &args, string *output ) {
+bool setPinHigh( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendSetPinHigh(pin);
+    return false;
 }
 
-void setPinLow( GHAir *air, const UserArgs_t &args, string *output ) {
+bool setPinLow( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendSetPinLow(pin);
+    return false;
 }
 
-void getPinValue( GHAir *air, const UserArgs_t &args, string *output ) {
+bool getPinValue( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendGetPinValue(pin);
+    return false;
 }
 
-void setPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
+bool setPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendSetPWMValue(pin, value);
+    return false;
 }
 
-void getPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
+bool getPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
     // air->sendGetPWMValue(pin);
+    return false;
 }
 
 /*** working with pins (end) ***/

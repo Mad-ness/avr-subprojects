@@ -21,27 +21,27 @@ namespace deviceapi {
         uint8_t high    = 1;
     } pin;
 */    
-    void ping(GHAir *air, const UserArgs_t &args, string *output);
-    void uptime(GHAir *air, const UserArgs_t &args, string *output);
-    void reset(GHAir *air, const UserArgs_t &args, string *output);
-    void readEEPROM(GHAir *air, const UserArgs_t &args, string *output);
-    void writeEEPROM(GHAir *air, const UserArgs_t &args, string *output);
+    bool ping(GHAir *air, const UserArgs_t &args, string *output);
+    bool uptime(GHAir *air, const UserArgs_t &args, string *output);
+    bool reset(GHAir *air, const UserArgs_t &args, string *output);
+    bool readEEPROM(GHAir *air, const UserArgs_t &args, string *output);
+    bool writeEEPROM(GHAir *air, const UserArgs_t &args, string *output);
 
 
     //*** ADC functions ***//
     // Power Wide Modulation, set value 0..1023
-    void setPWMValue(GHAir *air, const UserArgs_t &args, string *output);
+    bool setPWMValue(GHAir *air, const UserArgs_t &args, string *output);
     // Request PWM value from 0..1023
-    void getPWMValue(GHAir *air, const UserArgs_t &args, string *output);
+    bool getPWMValue(GHAir *air, const UserArgs_t &args, string *output);
 
     //*** GPIO functions ***/
-    void setPinAsInput(GHAir *air, const UserArgs_t &args, string *output);
-    void setPinAsOutput(GHAir *air, const UserArgs_t &args, string *output);
-    void getPinMode(GHAir *air, const UserArgs_t &args, string *output);
-    void setPinHigh(GHAir *air, const UserArgs_t &args, string *output);
-    void setPinLow(GHAir *air, const UserArgs_t &args, string *output);
+    bool setPinAsInput(GHAir *air, const UserArgs_t &args, string *output);
+    bool setPinAsOutput(GHAir *air, const UserArgs_t &args, string *output);
+    bool getPinMode(GHAir *air, const UserArgs_t &args, string *output);
+    bool setPinHigh(GHAir *air, const UserArgs_t &args, string *output);
+    bool setPinLow(GHAir *air, const UserArgs_t &args, string *output);
 
-    void getPinValue(GHAir *air, const UserArgs_t &args, string *output);
+    bool getPinValue(GHAir *air, const UserArgs_t &args, string *output);
 
 }; // namespace deviceapi
 

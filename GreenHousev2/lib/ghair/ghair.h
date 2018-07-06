@@ -24,6 +24,7 @@ private:
     //byte m_address[AIR_ADDRESS_SIZE][2];
     on_packet_handler_t m_handler;
     AirPacket m_packet;
+    uint8_t packet_id;
     void startListening();
     void stopListening();
     void onReceiveCmd();
@@ -40,12 +41,13 @@ public:
     void setHandler(on_packet_handler_t handler);
     void setup();
     void loop();
+    void setPacketId(const uint8_t id);
     void setNumAttemps(uint8_t);
     // returns True if a packet has been processed by this handler
     bool onGetDataStandard();
     uint8_t getNumAttempts();
     // returns True if a packet is delivered
-    bool sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, const void *data);
+    bool sendPacket(const uint8_t cmd, const uint8_t packet_id, const uint8_t addr, const uint8_t len, const void *data);
     bool sendPacket(const AirPacket &pkt);
     // Air commands
     bool sendPing();

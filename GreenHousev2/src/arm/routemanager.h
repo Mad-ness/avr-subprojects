@@ -59,6 +59,7 @@ struct RequestItem_t {
     int failed_attempts = 0;        // how many attempts to send the request to the remote board failed
     bool has_sent = false;          // indicates whether the request sent to the remote board
     string errmsg;                  // this contains the message if an error occured during sending
+    int packet_id = 0;              // packet-id is sent to the remote board
     struct {
         request_time_t received;    // received from the end user
         request_time_t scheduled;   // transmitted to the remote board
@@ -79,12 +80,12 @@ class RouteManager {
     private:
         // enum class CallRC { inqueue, response }; // whether a call is queued or is an immediate response
         enum class Receiver { undef, proxy, device };
-		unordered_map<string, RequestItem_t> m_requests;
+        unordered_map<string, RequestItem_t> m_requests;
         SUrlParser parser;
         string errmsg;
         bool isAccepted(const string &uri);
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
-		RequestItem_t *addRequestInQueue(const char *uri);
+        RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
     public:
         GHAir *air;

@@ -72,7 +72,6 @@ $(BUILD_DIR)/pmtest.o: $(TESTS_DIR)/pmtest.cpp $(BUILD_DIR)/packetmanager.o
 	$(CC) -c $(TESTS_DIR)/pmtest.cpp -o $@ $(RF24_INCL)
 
 $(TARGET):  $(BUILD_DIR)/ghair.o \
-		    $(BUILD_DIR)/data.o \
             $(BUILD_DIR)/packetmanager.o \
             $(BUILD_DIR)/routemanager.o \
             $(BUILD_DIR)/surlparser.o \

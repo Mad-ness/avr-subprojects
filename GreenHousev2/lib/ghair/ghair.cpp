@@ -70,21 +70,22 @@ AirPacket &GHAir::packet() {
 }
 
 bool GHAir::sendPacket(const AirPacket &pkt) {
-    return sendPacket(pkt.command, pkt.address, pkt.length, &pkt.data);
+    return sendPacket(pkt.command, pkt.request_id, pkt.address, pkt.length, &pkt.data);
 }
 
-bool GHAir::sendPacket(const uint8_t cmd, const uint8_t addr, const uint8_t len, const void *data) {
+bool GHAir::sendPacket(const uint8_t cmd, const uint8_t packet_id, const uint8_t addr, const uint8_t len, const void *data) {
     if ( ! m_rf24.isChipConnected() ) return false;
     AirPacket pkt;
     pkt.command = cmd;
     pkt.address = addr;
     pkt.length = len;
+    pkt.request_id = packet_id;
     if ( len > AIR_MAX_DATA_SIZE )
         pkt.length = AIR_MAX_DATA_SIZE;
 
 #ifdef DEBUG_AIR_TRACE2
     char info[50];
-    sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Length %d (bytes)\0", cmd, addr, pkt.length);
+    sprintf(info, ">>> SENDing Cmd: 0x%02x, Addr: 0x%02x, Id: %d, Length %d (bytes)\0", cmd, addr, packet_id, pkt.length);
     Serial.println(info);
     if ( pkt.isResponse() && pkt.getCommand() == AIR_CMD_IN_UPTIME ) {
         unsigned long uptime;
@@ -138,7 +139,7 @@ bool GHAir::sendPong() {
 
 bool GHAir::sendPing() {
     unsigned long uptime = millis();
-    return this->sendPacket(AIR_CMD_IN_PING, 0x0, sizeof(uptime), &uptime);
+    return this->sendPacket(AIR_CMD_IN_PING, packet_id, 0x0, sizeof(uptime), &uptime);
 }
 
 void GHAir::setHandler(on_packet_handler_t handler) {
@@ -147,15 +148,15 @@ void GHAir::setHandler(on_packet_handler_t handler) {
 
 
 bool GHAir::sendData(void *data, uint8_t len) {
-    return this->sendPacket(AIR_CMD_IN_PING, AIR_ADDR_NULL, len, data);
+    return this->sendPacket(AIR_CMD_IN_PING, packet_id, AIR_ADDR_NULL, len, data);
 }
 
 bool GHAir::sendUptime() {
-    return this->sendPacket(AIR_CMD_IN_UPTIME, AIR_ADDR_NULL, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_IN_UPTIME, packet_id, AIR_ADDR_NULL, 0x0, NULL);
 }
 
 bool GHAir::sendResetBoard() {
-    return this->sendPacket(AIR_CMD_IN_RESET, AIR_ADDR_NULL, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_IN_RESET, packet_id, AIR_ADDR_NULL, 0x0, NULL);
 }
 
 void GHAir::loop() {
@@ -270,47 +271,47 @@ bool GHAir::onReadEEPROM(uint8_t address) {
 #endif // ARDUINO
 
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
-    return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, address, sizeof(value), &value);
+    return this->sendPacket(AIR_CMD_IN_WRITE_EEPROM, packet_id, address, sizeof(value), &value);
 }
 
 bool GHAir::sendReadEEPROM(uint8_t address) {
-    return this->sendPacket(AIR_CMD_IN_GET_EEPROM, address, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_IN_GET_EEPROM, packet_id, address, 0x0, NULL);
 }
 
 bool GHAir::sendGetPinMode(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_GET_PIN_MODE, pin, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_GET_PIN_MODE, packet_id, pin, 0x0, NULL);
 }
 
 bool GHAir::sendSetPinHigh(const uint8_t pin) {
     uint8_t value = HIGH;
-    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, &value);
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, packet_id, pin, 0x1, &value);
 }
 
 bool GHAir::sendSetPinLow(const uint8_t pin) {
     uint8_t value = LOW;
-    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, pin, 0x1, &value);
+    return this->sendPacket(AIR_CMD_SET_PIN_VALUE, packet_id, pin, 0x1, &value);
 }
 
 bool GHAir::sendGetPinValue(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_GET_PIN_VALUE, pin, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_GET_PIN_VALUE, packet_id, pin, 0x0, NULL);
 }
 
 bool GHAir::sendSetPWMValue(const uint8_t pin, const uint8_t value) {
-    return this->sendPacket(AIR_CMD_SET_PWM_VALUE, pin, 0x1, (const void*)&value);
+    return this->sendPacket(AIR_CMD_SET_PWM_VALUE, packet_id, pin, 0x1, (const void*)&value);
 }
 
 bool GHAir::sendGetPWMValue(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_GET_PWM_VALUE, pin, 0x0, NULL);
+    return this->sendPacket(AIR_CMD_GET_PWM_VALUE, packet_id, pin, 0x0, NULL);
 }
 
 bool GHAir::sendSetPinAsInput(const uint8_t pin) {
     uint8_t value = INPUT;
-    return this->sendPacket( AIR_CMD_SET_PIN_MODE, pin, 0x1, &value);
+    return this->sendPacket( AIR_CMD_SET_PIN_MODE, packet_id, pin, 0x1, &value);
 }
 
 bool GHAir::sendSetPinAsOutput(const uint8_t pin) {
     uint8_t value = OUTPUT;
-    return this->sendPacket( AIR_CMD_SET_PIN_MODE, pin, 0x1, &value );
+    return this->sendPacket( AIR_CMD_SET_PIN_MODE, packet_id, pin, 0x1, &value );
 }
 
 
@@ -329,14 +330,13 @@ bool GHAir::sendResponse(const AirPacket &in_pkt, bool resp_ok_or_fail, uint8_t 
     char str[80];
     sprintf(str, "     Sending RESPONSE onfunc:%02x, good:%d, datalen:%d (bytes)\n", pkt.getCommand(), pkt.isGoodResponse(), datalen);
     Serial.print(str);
-/*
-    if ( in_pkt.command == AIR_CMD_IN_UPTIME ) {
-        unsigned long uptime;
-        memcpy(&uptime, data, datalen);
-        sprintf(str, "  << Sent data UPTIME, size=%d (bytes), value=%lu\n", sizeof(uptime), uptime);
-        Serial.print(str);
-    }
-*/
 #endif // DEBUG_AIR
-    return this->sendPacket(pkt.command, pkt.address, datalen, data);
+    return this->sendPacket(pkt.command, pkt.request_id, pkt.address, datalen, data);
 }
+
+void 
+GHAir::setPacketId(const uint8_t id) {
+    m_packet.request_id = id;
+    packet_id = id;
+}
+

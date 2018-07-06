@@ -67,6 +67,14 @@ RouteManager::addRequestInQueue(const char *uri) {
        item = &m_requests.at(url_hash);
        item->num_requests++;
     } catch ( std::out_of_range ) {
+        int last_package_id = 0;
+        if ( m_requests.size() > 0 ) {
+            for ( auto &p : m_requests ) {
+                if ( p.second.packet_id > last_package_id ) {
+                    last_package_id = p.second.packet_id;
+                }
+            }
+        }
         m_requests.insert({ url_hash, RequestItem_t() });
         item = &m_requests.at(url_hash);
         item->path = parser.path();
@@ -76,6 +84,7 @@ RouteManager::addRequestInQueue(const char *uri) {
         item->when.scheduled = 0;
         item->uri_hash = makeSHA256(uri);
         item->num_requests = 1;
+        item->packet_id = ++last_package_id;
     }
     return item;
 }
@@ -149,6 +158,7 @@ RouteManager::processRequestsQueue() {
         CallbackDevice_t &cb = getDeviceCallbackByURI(item->path);
         string output;
         if ( air->rf24()->isChipConnected() ) {
+            air->setPacketId( item->packet_id );
             if ( cb( air, item->args, &output )) {
                 item->when.scheduled = time(NULL); 
                 item->done_attempts++;

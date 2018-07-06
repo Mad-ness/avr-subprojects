@@ -12,7 +12,7 @@ typedef unsigned char byte;
 #define AIR_ADDRESS_SIZE                6
 #define AIR_PEER_SIZE                   6
 #define AIR_MAX_PACKET_SIZE             32
-#define AIR_MAX_DATA_SIZE               29
+#define AIR_MAX_DATA_SIZE               28
 
 // Samples of commands are presented
 // but you can define its own
@@ -62,19 +62,22 @@ struct AirPacket {
     uint8_t command;
     //AirCommand command;
     uint8_t address;
+    uint8_t request_id;
     uint8_t length;      // length of the data
     byte data[AIR_MAX_DATA_SIZE];
 
     AirPacket() {
         command = AIR_CMD_UNDEF;
         address = AIR_ADDR_NULL;
+        request_id = 0;
         length = 0;
     }
 
-    AirPacket(uint8_t cmd, uint8_t addr, uint8_t len, void *d) {
+    AirPacket(uint8_t cmd, uint8_t addr, uint8_t req_id, uint8_t len, void *d) {
         command = cmd;
         address = addr;
         length = len;
+        request_id = req_id;
         memcpy(&data, d, len);
     }
 
@@ -82,6 +85,7 @@ struct AirPacket {
         command = pkt.command;
         address = pkt.address;
         length = pkt.length;
+        request_id = pkt.request_id;
         memcpy(&data, &pkt.data, sizeof(pkt.length));
         return *this;
     }
@@ -105,7 +109,7 @@ struct AirPacket {
             command &= ~( 1 << 6 );
     }
     uint8_t size() {
-        return sizeof(command) + sizeof(address) + sizeof(length) + length;
+        return sizeof(command) + sizeof(address) + sizeof(request_id) + sizeof(length) + length;
     }
     uint8_t size_all() {
         return sizeof(this);

@@ -41,6 +41,7 @@ public:
     void setHandler(on_packet_handler_t handler);
     void setup();
     void loop();
+    bool receivedPacket();
     void setPacketId(const uint8_t id);
     void setNumAttemps(uint8_t);
     // returns True if a packet has been processed by this handler

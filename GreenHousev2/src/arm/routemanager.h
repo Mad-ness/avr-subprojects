@@ -50,6 +50,10 @@ void printHandlers();
     typedef unsigned long request_time_t;
 #endif
 
+/**
+ * Status of a request
+ */
+enum class RequestStatus { New, Sent, Completed };
 struct RequestItem_t {
     string path;
     UserArgs_t args;
@@ -57,7 +61,8 @@ struct RequestItem_t {
     int num_requests = 0;           // how many the same requests received
     int done_attempts = 0;          // how many attempts have been perfromed to transmit the request
     int failed_attempts = 0;        // how many attempts to send the request to the remote board failed
-    bool has_sent = false;          // indicates whether the request sent to the remote board
+    // bool has_sent = false;          // indicates whether the request sent to the remote board
+    RequestStatus status;           // indicates the status of the request
     string errmsg;                  // this contains the message if an error occured during sending
     int packet_id = 0;              // packet-id is sent to the remote board
     struct {
@@ -67,7 +72,7 @@ struct RequestItem_t {
     } when;
     // the request has been sent and waiting for a response from the remote board
     bool hasSent() {
-        return has_sent;
+        return ( status == RequestStatus::Sent );
     }
 };
 
@@ -87,6 +92,7 @@ class RouteManager {
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
         RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
+        void processResponses();
     public:
         GHAir *air;
         void accept(const char *uri, string *out_msg);

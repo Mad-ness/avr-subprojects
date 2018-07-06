@@ -59,6 +59,29 @@ areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) 
 }
 
 
+/**
+ * It implements the air.loop() functionality
+ * Call this method as often as possible to not miss
+ * responses on your requests
+ */
+void
+RouteManager::processResponses() {
+
+    if ( air->receivedPacket() ) { // check if it's got new data and processing required
+        const AirPacket &pkt = air->packet();
+        for ( auto &request_full : m_requests ) {
+            RequestItem_t &req = request_full.second;
+            if ( req.hasSent() && req.packet_id == pkt.request_id ) {
+                req.when.completed = time(NULL);
+                req.status = RequestStatus::Completed;
+                break;
+            }
+        }
+    }
+
+};
+
+
 RequestItem_t*
 RouteManager::addRequestInQueue(const char *uri) {
     const string url_hash = makeSHA256(uri);
@@ -85,6 +108,7 @@ RouteManager::addRequestInQueue(const char *uri) {
         item->uri_hash = makeSHA256(uri);
         item->num_requests = 1;
         item->packet_id = ++last_package_id;
+        item->status = RequestStatus::New;
     }
     return item;
 }
@@ -162,7 +186,8 @@ RouteManager::processRequestsQueue() {
             if ( cb( air, item->args, &output )) {
                 item->when.scheduled = time(NULL); 
                 item->done_attempts++;
-                item->has_sent = true;
+                // item->has_sent = true;
+                item->status = RequestStatus::Sent;
                 item->errmsg.clear();
                 std::cout << "Request "
                           << item->path
@@ -273,8 +298,18 @@ addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t c
     }
 }
 
+
 void 
 install_callbacks() {
+
+    /**
+     * The params that started with the question mark "?"
+     * are the parameters which we'll be returned. They should 
+     * not be interpretered as the incoming (mandatory) parameters.
+     * The name after such param indicates the type of data of the param.
+     * The name of such param should not overlap with existing names.
+     */
+
     addProxyCallback( "/proxy/ping",                URLParams_t(), proxyapi::ping );
     addProxyCallback( "/proxy/uptime",              URLParams_t(), proxyapi::uptime );
     addDeviceCallback( "/device/ping",              URLParams_t({ "did" }), deviceapi::ping );
@@ -284,10 +319,9 @@ install_callbacks() {
     addDeviceCallback( "/device/pin/set-out",       URLParams_t({ "did" }), deviceapi::setPinAsOutput );
     addDeviceCallback( "/device/pin/value/set0",    URLParams_t({ "did" }), deviceapi::setPinLow );
     addDeviceCallback( "/device/pin/value/set1",    URLParams_t({ "did" }), deviceapi::setPinHigh );
-    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), deviceapi::getPinValue );
-    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), deviceapi::readEEPROM );
-    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), deviceapi::writeEEPROM );
-
+    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did", "?value:int8" }), deviceapi::getPinValue );
+    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address", "?value:int8" }), deviceapi::readEEPROM );
+    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value", "?writtenvalue:int8" }), deviceapi::writeEEPROM );
 
 }
 

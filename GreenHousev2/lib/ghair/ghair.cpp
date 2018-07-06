@@ -159,6 +159,15 @@ bool GHAir::sendResetBoard() {
     return this->sendPacket(AIR_CMD_IN_RESET, packet_id, AIR_ADDR_NULL, 0x0, NULL);
 }
 
+/**
+ * Checks the buffer of the connected radio module on new data.
+ * If calls GHAir::onGetDataStandard() method along with
+ * the callback (if set) configured by calling the 
+ * GHAir::setHandler(...).
+ * ---
+ * Call this in a loop as often as possible
+ * on the client side (slave).
+ */
 void GHAir::loop() {
     if ( this->m_rf24.available() ) {
         this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
@@ -166,6 +175,25 @@ void GHAir::loop() {
     }
 }
 
+/**
+ * Call this function in cycle as often as possible.
+ * It checks the buffer of the connected radio module
+ * for new data. 
+ * It returns true if processing is required.
+ * It returns false either no data came or they was processed by the 
+ * onGetDataStandard() call.
+ * New data available as the GHAir::packet();
+ * ---
+ * This function more suitable to run on the server side (initiator, master).
+ */
+bool GHAir::receivedPacket() {
+    bool result = false;
+    if ( this->m_rf24.available() ) {
+        this->m_rf24.read(&this->m_packet, sizeof(this->m_packet));
+        result = !this->onGetDataStandard();
+    }
+    return result;
+}
 
 bool GHAir::onGetDataStandard() {
     bool result = true;

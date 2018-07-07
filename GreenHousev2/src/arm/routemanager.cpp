@@ -303,11 +303,13 @@ void
 install_callbacks() {
 
     /**
-     * The params that started with the question mark "?"
-     * are the parameters which we'll be returned. They should 
-     * not be interpretered as the incoming (mandatory) parameters.
-     * The name after such param indicates the type of data of the param.
-     * The name of such param should not overlap with existing names.
+     * Format of ret_params.
+     * - it is a vector of strings
+     * - each of the strings has this format: <name>:<type>:<position>, where
+     *   - name: name which will be returns to the end user in JSON response
+     *   - type: type of data received from the remote module
+     *   - position: position in the data file of the AirPacket
+     * - supported types: int8, uint8
      */
 
     addProxyCallback( "/proxy/ping",                URLParams_t(), URLParams_t(), proxyapi::ping );

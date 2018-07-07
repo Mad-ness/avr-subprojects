@@ -26,19 +26,21 @@ void install_callbacks();
 
 struct DeviceRouteItemInfo_t {
     URLParams_t args;
+    URLParams_t ret_args;
     CallbackDevice_t cb;
 };
 
 struct ProxyRouteItemInfo_t {
     URLParams_t args;
+    URLParams_t ret_params;
     CallbackProxy_t cb;
 };
 
 typedef unordered_map<string, ProxyRouteItemInfo_t> ProxyCallbacksList_t;
 typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
 
-void addDeviceCallback( const char *path, const URLParams_t &params, CallbackDevice_t cb);
-void addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb);
+void addDeviceCallback( const char *path, const URLParams_t &params, const URLParams_t &ret_params, CallbackDevice_t cb);
+void addProxyCallback( const char *path, const URLParams_t &params, const URLParams_t &ret_params, CallbackProxy_t cb);
 void printHandlers();
 
 

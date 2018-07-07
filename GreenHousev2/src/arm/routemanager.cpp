@@ -271,11 +271,11 @@ RouteManager::isValidURI( const string &uri ) {
 }
 
 void
-addDeviceCallback( const char *path, const URLParams_t &params, CallbackDevice_t cb ) {
+addDeviceCallback( const char *path, const URLParams_t &params, const URLParams_t &r_params, CallbackDevice_t cb ) {
     try {
         proxy_callbacks.at(path); 
     } catch (std::out_of_range) {
-        device_callbacks[path] = { params, cb };
+        device_callbacks[path] = { params, r_params, cb };
     }
 }
 
@@ -290,11 +290,11 @@ printHandlers() {
 }
 
 void
-addProxyCallback( const char *path, const URLParams_t &params, CallbackProxy_t cb ) {
+addProxyCallback( const char *path, const URLParams_t &params, const URLParams_t &r_params, CallbackProxy_t cb ) {
     try {
         device_callbacks.at(path);
     } catch (std::out_of_range) {
-        proxy_callbacks[path] = { params, cb };
+        proxy_callbacks[path] = { params, r_params, cb };
     }
 }
 
@@ -310,18 +310,18 @@ install_callbacks() {
      * The name of such param should not overlap with existing names.
      */
 
-    addProxyCallback( "/proxy/ping",                URLParams_t(), proxyapi::ping );
-    addProxyCallback( "/proxy/uptime",              URLParams_t(), proxyapi::uptime );
-    addDeviceCallback( "/device/ping",              URLParams_t({ "did" }), deviceapi::ping );
-    addDeviceCallback( "/device/reset",             URLParams_t({ "did" }), deviceapi::reset );
-    addDeviceCallback( "/device/uptime",            URLParams_t({ "did" }), deviceapi::uptime );
-    addDeviceCallback( "/device/pin/set-in",        URLParams_t({ "did" }), deviceapi::setPinAsInput );
-    addDeviceCallback( "/device/pin/set-out",       URLParams_t({ "did" }), deviceapi::setPinAsOutput );
-    addDeviceCallback( "/device/pin/value/set0",    URLParams_t({ "did" }), deviceapi::setPinLow );
-    addDeviceCallback( "/device/pin/value/set1",    URLParams_t({ "did" }), deviceapi::setPinHigh );
-    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did", "?value:int8" }), deviceapi::getPinValue );
-    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address", "?value:int8" }), deviceapi::readEEPROM );
-    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value", "?writtenvalue:int8" }), deviceapi::writeEEPROM );
+    addProxyCallback( "/proxy/ping",                URLParams_t(), URLParams_t(), proxyapi::ping );
+    addProxyCallback( "/proxy/uptime",              URLParams_t(), URLParams_t(), proxyapi::uptime );
+    addDeviceCallback( "/device/ping",              URLParams_t({ "did" }), URLParams_t(), deviceapi::ping );
+    addDeviceCallback( "/device/reset",             URLParams_t({ "did" }), URLParams_t(), deviceapi::reset );
+    addDeviceCallback( "/device/uptime",            URLParams_t({ "did" }), URLParams_t(), deviceapi::uptime );
+    addDeviceCallback( "/device/pin/set-in",        URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinAsInput );
+    addDeviceCallback( "/device/pin/set-out",       URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinAsOutput );
+    addDeviceCallback( "/device/pin/value/set0",    URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinLow );
+    addDeviceCallback( "/device/pin/value/set1",    URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinHigh );
+    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), URLParams_t({ "value:int8:1" }), deviceapi::getPinValue );
+    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), URLParams_t({ "value:int8:1" }), deviceapi::readEEPROM );
+    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), URLParams_t({ "writtenvalue:int8:1" }), deviceapi::writeEEPROM );
 
 }
 

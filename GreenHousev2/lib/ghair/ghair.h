@@ -3,7 +3,7 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
-#include <RF24/RF24.h>
+#include <RF24.h>
 #endif // ARDUINO
 #if defined(__LINUX__)
 #include <RF24.h>
@@ -65,8 +65,6 @@ public:
 
     bool sendSetPinAsInput(const uint8_t pin);
     bool sendSetPinAsOutput(const uint8_t pin);
-
-    bool sendGetPinMode(const uint8_t pin);
 
     bool sendSetPinHigh(const uint8_t pin);
     bool sendSetPinLow(const uint8_t pin);

@@ -231,35 +231,29 @@ bool GHAir::onGetDataStandard() {
 #ifdef ARDUINO_ARCH_AVR
                 }
                 break;
-            AIR_CMD_IN_SET_MODE: {
+            case AIR_CMD_SET_PIN_MODE: {
                     pinMode(pkt.address, (const uint8_t*)pkt.data);
                     this->sendResponse(pkt, true, 0x0, NULL);
                 }
                 break;
-            AIR_CMD_IN_GET_MODE: {
-                    pinMode(pkt.address, (const uint8_t*)pkt.data[0]);
-                    uint8_t mode = 0x0f;
-                    this->sendResponse(pkt, true, 0x1, &mode);
-                }
-                break;
-            AIR_CMD_SET_PIN_VALUE: {
+            case AIR_CMD_SET_PIN_VALUE: {
                     digitalWrite(pkt.address, (const uint8_t*)pkt.data);
                     this->sendResponse(pkt, true, 0x0, NULL);
                 }
                 break;
-            AIR_CMD_GET_PIN_VALUE: {
+            case AIR_CMD_GET_PIN_VALUE: {
                     const uint8_t value = digitalRead(pkt.address);
                     this->sendResponse(pkt, true, 0x1, &value);
                 }
                 break;
-            AIR_CMD_SET_PWM_VALUE: {
+            case AIR_CMD_SET_PWM_VALUE: {
                     uint16_t value;
-                    memcpy(&value, data, 2);
+                    memcpy(&value, &pkt.data, 2);
                     analogWrite(pkt.address, &value);
-                    this->sendResponse(pkt, true, 0x0, NULL);
+                    this->sendResponse(pkt, true, 0x2, &value);
                 }
                 break;
-            AIR_CMD_GET_PWM_VALUE: {
+            case AIR_CMD_GET_PWM_VALUE: {
                     uint16_t value = analogRead(pkt.address);
                     this->sendResponse(pkt, true, 0x2, &value);
                 }
@@ -317,10 +311,6 @@ bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {
 
 bool GHAir::sendReadEEPROM(uint8_t address) {
     return this->sendPacket(AIR_CMD_IN_GET_EEPROM, packet_id, address, 0x0, NULL);
-}
-
-bool GHAir::sendGetPinMode(const uint8_t pin) {
-    return this->sendPacket(AIR_CMD_GET_PIN_MODE, packet_id, pin, 0x0, NULL);
 }
 
 bool GHAir::sendSetPinHigh(const uint8_t pin) {

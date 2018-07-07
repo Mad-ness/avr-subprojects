@@ -33,6 +33,8 @@ private:
     bool onWriteEEPROM(uint8_t address, int8_t value);
     bool onReadEEPROM(uint8_t address);
     void onResetBoard();
+    //void onSetPinAsInput(const uint8_t pin);
+    //void onSetPinAsOutput(const uint8_t pin);
 #endif // ARDUINO
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);

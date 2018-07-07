@@ -237,7 +237,7 @@ bool GHAir::onGetDataStandard() {
                 }
                 break;
             AIR_CMD_IN_GET_MODE: {
-                    pinMode(pkt.address, (const uint8_t*)pkt.data);
+                    pinMode(pkt.address, (const uint8_t*)pkt.data[0]);
                     uint8_t mode = 0x0f;
                     this->sendResponse(pkt, true, 0x1, &mode);
                 }
@@ -292,10 +292,23 @@ bool GHAir::onWriteEEPROM(uint8_t address, int8_t value) {
     }
     return this->sendResponse(this->m_packet, result, 0x0, NULL);
 }
+
 bool GHAir::onReadEEPROM(uint8_t address) {
     int8_t buf = EEPROM.read(address);
     return this->sendResponse(this->m_packet, true, sizeof(buf), &buf);
 }
+/*
+void GHAir::onSetPinAsInput(const uint8_t pin) {
+    pinMode(pin, INPUT);
+    this->sendResponse(this->m_packet, true, m_packet.length, &m_packet.data);
+};
+
+void GHAir::onSetPinAsOutput(const uint8_t pin) {
+    pinMode(pin, OUTPUT);
+    this->sendResponse(this->m_packet, true, m_packet.length, &m_packet.data);
+};
+*/
+
 #endif // ARDUINO
 
 bool GHAir::sendWriteEEPROM(uint8_t address, int8_t value) {

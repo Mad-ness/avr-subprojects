@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <unordered_map>
 #include <routemanager.h>
 #include <proxy-api.h>
@@ -13,24 +14,6 @@ static DeviceCallbacksList_t device_callbacks;
 static ProxyCallbacksList_t proxy_callbacks;
 
 
-/*
-RouteItemsInfo_t RouteItemsInfo[] = {                                            // this array mustn't be empty{
-    { "dummy",                              URLParams_t(), proxyapi::dummy },    // keep this record always here
-    { "/device/ping",                       URLParams_t(), deviceapi::ping },
-    { "/device/pin/value/set",              URLParams_t({ "did", "pid" }), deviceapi::setPinInput },
-    { "/proxy/ping",                        URLParams_t() },
-    { "/proxy/uptime",                      URLParams_t() },
-    { "/device/reset",                      URLParams_t({ "did" } )},
-    { "/device/uptime",                     URLParams_t({ "did" } )},
-    { "/device/getee",                      URLParams_t({ "did", "addr" } )},
-    { "/device/setee",                      URLParams_t({ "did", "addr", "value" } )},
-    { "/device/pin/set-in",                 URLParams_t({ "did", "pid" } )},
-    { "/device/pin/set-out",                URLParams_t({ "did", "pid" } )},
-    { "/device/pin/value",                  URLParams_t({ "did", "pid" } )},
-    { "/device/pin/value/set0",             URLParams_t({ "did", "pid" } )},
-    { "/device/pin/value/set1",             URLParams_t({ "did", "pid" } )},
-};
-*/
 
 string
 makeSHA256(const char *uri) {
@@ -59,26 +42,101 @@ areArgsOk( const URLParams_t &mandatory_args, const KeyValueMap_t &passed_args) 
 }
 
 
+vector<string> split(string str, string token){
+    vector<string>result;
+    while(str.size()){
+        int index = str.find(token);
+        if(index!=string::npos){
+            result.push_back(str.substr(0,index));
+            str = str.substr(index+token.size());
+            if(str.size()==0)result.push_back(str);
+        }else{
+            result.push_back(str);
+            str = "";
+        }
+    }
+    return result;
+}
+
 /**
  * It implements the air.loop() functionality
  * Call this method as often as possible to not miss
- * responses on your requests
+ * responses on your requests.
+ * Returns a JSON string enclosed in the angle brackets the
+ * returned string looks like this "{"name":"value",...}"
  */
-void
-RouteManager::processResponses() {
-
+string
+RouteManager::processResponse() {
+    bool found_request = false;
+    AirPacket *pkt = nullptr;
+    RequestItem_t *req = nullptr;
     if ( air->receivedPacket() ) { // check if it's got new data and processing required
-        const AirPacket &pkt = air->packet();
+        pkt = &air->packet();
+        
+        // looking for the record in the queue which has sent the request for this response
         for ( auto &request_full : m_requests ) {
-            RequestItem_t &req = request_full.second;
-            if ( req.hasSent() && req.packet_id == pkt.request_id ) {
-                req.when.completed = time(NULL);
-                req.status = RequestStatus::Completed;
+            req = &request_full.second;
+            if ( req->hasSent() && req->packet_id == pkt->request_id ) {
+                req->when.completed = time(NULL);
+                req->status = RequestStatus::Completed;
+                found_request = true;
                 break;
             }
         }
     }
 
+    string result;
+    if ( found_request ) {
+        result += "\"{";
+        // Seek for the handler which called this request "req"
+        for ( auto &handler : device_callbacks ) {
+            if ( handler.first == req->path ) {
+
+                URLParams_t &output_params = handler.second.ret_args;
+                // iterate over parameters defined in the callback
+                // and upack them for extracting the parameters 
+                // from the AirPacket(pkt).data
+                int pos_shift = 0;
+                std::sort( output_params.begin(), output_params.end() );
+                for ( auto &arg : output_params ) {
+                    vector<string> args_info = split(arg, ":");
+                    string &data_type = args_info[2];
+                    string &arg_name = args_info[1];
+                    // int pos = std::stoi( args_info[0] );
+
+                    result += "\""; result += arg_name; result += "\":";
+                    if ( pos_shift >= pkt->length ) {
+                        result += "\"Out of bounds of the AirPacket.data buffer\""; 
+                        break;
+                    }
+                    if ( data_type == "int8" ) {
+                        int8_t value;
+                        memcpy( &value, &pkt->data[pos_shift], sizeof(int8_t) );
+                        pos_shift += sizeof( int8_t );
+                        result += std::to_string( value );
+                    } else if ( data_type == "uint8") {
+                        uint8_t value;
+                        memcpy( &value, &pkt->data[pos_shift], sizeof(uint8_t) );
+                        pos_shift += sizeof( uint8_t );
+                        result += std::to_string( value );
+                    } else if ( data_type == "ulong" ) {
+                        unsigned long value;
+                        memcpy( &value, &pkt->data[pos_shift], sizeof(unsigned long) );
+                        pos_shift += sizeof( unsigned long );
+                        result += std::to_string( value );
+                    } else {
+                        result += "\"Unknown type of data\"";
+                    }
+                    result += ",";
+                } // for loop // iterate over output params
+                result.pop_back(); // remove last comma ","
+            }
+        }
+        result += "\"}";
+    } else {
+        result += "{\"error\":\"Did not find the origin message\"}";        
+    }
+    return string(result);
 };
 
 
@@ -321,9 +379,9 @@ install_callbacks() {
     addDeviceCallback( "/device/pin/set-out",       URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinAsOutput );
     addDeviceCallback( "/device/pin/value/set0",    URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinLow );
     addDeviceCallback( "/device/pin/value/set1",    URLParams_t({ "did" }), URLParams_t(), deviceapi::setPinHigh );
-    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), URLParams_t({ "value:int8:1" }), deviceapi::getPinValue );
-    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), URLParams_t({ "value:int8:1" }), deviceapi::readEEPROM );
-    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), URLParams_t({ "writtenvalue:int8:1" }), deviceapi::writeEEPROM );
+    addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), URLParams_t({ "1:value:int8" }), deviceapi::getPinValue );
+    addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), URLParams_t({ "1:value:int8" }), deviceapi::readEEPROM );
+    addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), URLParams_t({ "1:savedvalue:int8" }), deviceapi::writeEEPROM );
 
 }
 

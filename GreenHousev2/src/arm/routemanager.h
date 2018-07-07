@@ -32,7 +32,7 @@ struct DeviceRouteItemInfo_t {
 
 struct ProxyRouteItemInfo_t {
     URLParams_t args;
-    URLParams_t ret_params;
+    URLParams_t ret_args;
     CallbackProxy_t cb;
 };
 
@@ -94,7 +94,7 @@ class RouteManager {
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
         RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
-        void processResponses();
+        string processResponse();
     public:
         GHAir *air;
         void accept(const char *uri, string *out_msg);

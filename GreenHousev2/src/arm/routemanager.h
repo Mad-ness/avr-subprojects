@@ -74,7 +74,7 @@ struct RequestItem_t {
     } when;
     // the request has been sent and waiting for a response from the remote board
     bool hasSent() {
-        return ( status == RequestStatus::Sent );
+        return ( status != RequestStatus::New );
     }
 };
 
@@ -94,8 +94,9 @@ class RouteManager {
         void callHandler(const char *uri, const Receiver rcv, string *outmsg);
         RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
-        string processResponse();
     public:
+        string handleResponses();
+        void cleanUpRequestsQueue();
         GHAir *air;
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };

@@ -58,6 +58,20 @@ vector<string> split(string str, string token){
     return result;
 }
 
+void 
+RouteManager::cleanUpRequestsQueue() {
+    for ( auto &request_info : m_requests ) {
+        RequestItem_t &req = request_info.second;
+        request_time_t curr_time = time(NULL);
+        // requests with responses older 5 seconds are removed
+        if ( req.when.completed > 0 && curr_time - req.when.completed > 5 ) {
+            std::cout << "Removed request: " << request_info.first << std::endl;
+            m_requests.erase(request_info.first);
+            break;
+        }
+    }
+}
+
 /**
  * It implements the air.loop() functionality
  * Call this method as often as possible to not miss
@@ -66,21 +80,23 @@ vector<string> split(string str, string token){
  * returned string looks like this "{"name":"value",...}"
  */
 string
-RouteManager::processResponse() {
+RouteManager::handleResponses() {
     bool found_request = false;
     AirPacket *pkt = nullptr;
     RequestItem_t *req = nullptr;
     if ( air->receivedPacket() ) { // check if it's got new data and processing required
         pkt = &air->packet();
-        
-        // looking for the record in the queue which has sent the request for this response
-        for ( auto &request_full : m_requests ) {
-            req = &request_full.second;
-            if ( req->hasSent() && req->packet_id == pkt->request_id ) {
-                req->when.completed = time(NULL);
-                req->status = RequestStatus::Completed;
-                found_request = true;
-                break;
+        if ( pkt->isResponse() ) {
+            std::cout << "A response arrived\n";
+            // looking for the record in the queue which has sent the request for this response
+            for ( auto &request_full : m_requests ) {
+                req = &request_full.second;
+                if ( req->hasSent() && req->packet_id == pkt->request_id ) {
+                    req->when.completed = time(NULL);
+                    req->status = RequestStatus::Completed;
+                    found_request = true;
+                    break;
+                }
             }
         }
     }
@@ -114,16 +130,19 @@ RouteManager::processResponse() {
                         memcpy( &value, &pkt->data[pos_shift], sizeof(int8_t) );
                         pos_shift += sizeof( int8_t );
                         result += std::to_string( value );
+                        req->args[arg_name] = std::to_string(value);
                     } else if ( data_type == "uint8") {
                         uint8_t value;
                         memcpy( &value, &pkt->data[pos_shift], sizeof(uint8_t) );
                         pos_shift += sizeof( uint8_t );
                         result += std::to_string( value );
+                        req->args[arg_name] = std::to_string(value);
                     } else if ( data_type == "ulong" ) {
                         unsigned long value;
                         memcpy( &value, &pkt->data[pos_shift], sizeof(unsigned long) );
                         pos_shift += sizeof( unsigned long );
                         result += std::to_string( value );
+                        req->args[arg_name] = std::to_string(value);
                     } else {
                         result += "\"Unknown type of data\"";
                     }
@@ -133,8 +152,7 @@ RouteManager::processResponse() {
             }
         }
         result += "\"}";
-    } else {
-        result += "{\"error\":\"Did not find the origin message\"}";        
+        std::cout << "Response: " << result << std::endl;
     }
     return string(result);
 };
@@ -187,10 +205,28 @@ userArgsToStr(const UserArgs_t &args) {
 void 
 RouteManager::printInQueue() {
     for ( auto &n : m_requests ) {
+        string status = "unknown";
+        switch ( n.second.status ) {
+            case RequestStatus::New:
+                status = "new";
+                break;
+            case RequestStatus::Sent:
+                status = "sent";
+                break;
+            case RequestStatus::Completed: 
+                status = "completed";
+                break;
+        }
         std::cout << n.first
                   << " queries=" << n.second.num_requests
                   << " url=" << n.second.path
                   << " args=" << userArgsToStr(n.second.args)
+                  << " send_attempts=" << n.second.done_attempts
+                  << " send_attempts_failed=" << n.second.failed_attempts
+                  << " when.received=" << n.second.when.received 
+                  << " when.scheduled=" << n.second.when.scheduled
+                  << " when.completed=" << n.second.when.completed
+                  << " status=" << status
                   << "\n";
     }
 }
@@ -208,11 +244,13 @@ getDeviceCallbackByURI(const string &path) {
 
 void
 RouteManager::loop() {
+    handleResponses();
     processRequestsQueue();
 }
 
 void
 RouteManager::processRequestsQueue() {
+    cleanUpRequestsQueue();
     request_time_t curr_time = time(NULL);
     RequestItem_t *item = nullptr;
     for ( auto &request : m_requests ) {

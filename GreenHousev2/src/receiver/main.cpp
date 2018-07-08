@@ -59,6 +59,7 @@ void ping_pong_game(AirPacket *pkt) {
                 char str[40];
                 sprintf(str, "Received time: %d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
                 Serial.print(str);
+                air.sendResponse(*pkt, true, sizeof(local_time), &local_time);
             }; break;
             case AIR_CMD_REQ_TIME:
                 struct {

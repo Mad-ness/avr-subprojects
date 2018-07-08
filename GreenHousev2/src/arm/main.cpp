@@ -74,7 +74,7 @@ void onPrint(struct evhttp_request *req, void *arg) {
  */
 static
 void processIncomingQueue( evutil_socket_t socket, short id, void *data ) {
-    air.loop();  // send responses, if any
+    // air.loop();  // send responses on standard requests like ping, if any
     route_mg.loop();
 }
 

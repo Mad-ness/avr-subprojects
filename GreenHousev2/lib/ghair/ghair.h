@@ -43,6 +43,7 @@ public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();
     AirPacket &packet();
+    uint8_t packetId() { return this->packet_id; };
     void setHandler(on_packet_handler_t handler);
     void setup();
     void loop();

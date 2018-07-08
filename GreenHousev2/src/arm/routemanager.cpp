@@ -382,6 +382,7 @@ install_callbacks() {
     addDeviceCallback( "/device/pin/getvalue",      URLParams_t({ "did" }), URLParams_t({ "1:value:int8" }), deviceapi::getPinValue );
     addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), URLParams_t({ "1:value:int8" }), deviceapi::readEEPROM );
     addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), URLParams_t({ "1:savedvalue:int8" }), deviceapi::writeEEPROM );
+    addDeviceCallback( "/device/localtime",         URLParams_t({ "did" }), URLParams_t({ "1:time:ulong" }), deviceapi::getLocalTime );
 
 }
 

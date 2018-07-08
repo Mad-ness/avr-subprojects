@@ -44,14 +44,22 @@ void ping_pong_game(AirPacket *pkt) {
                 sprintf(str, "Remote board uptime %d seconds", uptime/1000);
                 break;
             case AIR_CMD_IN_GETTIME: {
-                memcpy(&local_time, &pkt->data, sizeof(local_time));
                 char str[40];
-                sprintf(str, "%d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
+                sprintf(str, "Local time: %d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
+                Serial.print(str);
+                memcpy(&local_time, &pkt->data, sizeof(local_time));
+                sprintf(str, "Received time: %d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
                 Serial.print(str);
             }; break;
         }
     } else {
         switch ( pkt->command ) {
+            case AIR_CMD_IN_GETTIME: {
+                memcpy(&local_time, &pkt->data, sizeof(local_time));
+                char str[40];
+                sprintf(str, "Received time: %d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
+                Serial.print(str);
+            }; break;
             case AIR_CMD_REQ_TIME:
                 struct {
                     uint8_t hour = time_hour;
@@ -87,6 +95,7 @@ long long old_time = 0;
 void loop(void) {
     air.loop();
     if ( millis() % 1000 == 0 ) {
+        local_time++;
         if ( (++time_second) >= 60 ) {
             time_second = 0;
             if ( (++time_minute) >= 60 ) {
@@ -100,7 +109,7 @@ void loop(void) {
                     time_hour, time_minute, time_second);
             printlog(str);
             air.sendUptime();
-        } else if ( millis() % 11000 == 0 ) {
+        } else if ( millis() % 20000 == 0 ) {
             air.sendPacket( AIR_CMD_IN_GETTIME, 0x0, 0, 0x0, NULL );
         } else if ( millis() % 7000 == 0 ) {
            // air.sendPing();

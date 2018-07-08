@@ -71,5 +71,9 @@ bool getPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
 
 /*** working with pins (end) ***/
 
+bool getLocalTime(GHAir *air, const UserArgs_t &args, string *output) {
+    air->sendPacket( AIR_CMD_IN_GETTIME, air->packetId(), 0x0, 0x0, NULL);
+}
+
 };
 

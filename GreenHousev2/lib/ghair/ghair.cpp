@@ -212,7 +212,7 @@ bool GHAir::onGetDataStandard() {
         switch ( pkt.command ) {
 #if defined(__LINUX__)
             case AIR_CMD_IN_GETTIME: {
-                time_t t = now(); 
+                time_t t = time(NULL);
                 sendResponse(pkt, true, sizeof(t), &t);
                 }; break;
 #endif // __LINUX__

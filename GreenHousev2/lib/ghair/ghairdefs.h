@@ -31,7 +31,6 @@ typedef unsigned char byte;
 #define AIR_CMD_IN_WRITE_EEPROM         0x04
 #define AIR_CMD_IN_DATA                 0x05
 #define AIR_CMD_IN_UPTIME               0x06
-#define AIR_CMD_IN_GETTIME              0x07
 
 // These defines are used by the GHAir::sendResponse method
 #define AIR_CMD_RESP                    0x80 // 7th bit is set to 1
@@ -177,12 +176,13 @@ struct AirPacket {
 
 
 #define AIR_CMD_SET_PIN_MODE            AIR_CMD_IN_CUSTOM_01
-// #define AIR_CMD_GET_PIN_MODE            AIR_CMD_IN_CUSTOM_02
+#define AIR_CMD_IN_GETTIME              AIR_CMD_IN_CUSTOM_02
+#define AIR_CMD_IN_SETTIME              AIR_CMD_IN_CUSTOM_03
 
-#define AIR_CMD_SET_PIN_VALUE           AIR_CMD_IN_CUSTOM_03
-#define AIR_CMD_GET_PIN_VALUE           AIR_CMD_IN_CUSTOM_04
-#define AIR_CMD_SET_PWM_VALUE           AIR_CMD_IN_CUSTOM_05
-#define AIR_CMD_GET_PWM_VALUE           AIR_CMD_IN_CUSTOM_06
+#define AIR_CMD_SET_PIN_VALUE           AIR_CMD_IN_CUSTOM_04
+#define AIR_CMD_GET_PIN_VALUE           AIR_CMD_IN_CUSTOM_05
+#define AIR_CMD_SET_PWM_VALUE           AIR_CMD_IN_CUSTOM_06
+#define AIR_CMD_GET_PWM_VALUE           AIR_CMD_IN_CUSTOM_07
 
 
 #endif // __GHAIRDEFS_H__

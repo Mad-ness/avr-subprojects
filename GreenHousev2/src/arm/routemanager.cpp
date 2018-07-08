@@ -79,7 +79,7 @@ RouteManager::cleanUpRequestsQueue() {
  * Returns a JSON string enclosed in the angle brackets the
  * returned string looks like this "{"name":"value",...}"
  */
-string
+void
 RouteManager::handleResponses() {
     bool found_request = false;
     AirPacket *pkt = nullptr;
@@ -103,7 +103,6 @@ RouteManager::handleResponses() {
 
     string result;
     if ( found_request ) {
-        result += "\"{";
         // Seek for the handler which called this request "req"
         for ( auto &handler : device_callbacks ) {
             if ( handler.first == req->path ) {
@@ -118,43 +117,30 @@ RouteManager::handleResponses() {
                     vector<string> args_info = split(arg, ":");
                     string &data_type = args_info[2];
                     string &arg_name = args_info[1];
-                    // int pos = std::stoi( args_info[0] );
 
-                    result += "\""; result += arg_name; result += "\":";
                     if ( pos_shift >= pkt->length ) {
-                        result += "\"Out of bounds of the AirPacket.data buffer\""; 
                         break;
                     }
                     if ( data_type == "int8" ) {
-                        int8_t value;
+                        int8_t value = 0;
                         memcpy( &value, &pkt->data[pos_shift], sizeof(int8_t) );
                         pos_shift += sizeof( int8_t );
-                        result += std::to_string( value );
                         req->args[arg_name] = std::to_string(value);
                     } else if ( data_type == "uint8") {
-                        uint8_t value;
+                        uint8_t value = 0;
                         memcpy( &value, &pkt->data[pos_shift], sizeof(uint8_t) );
                         pos_shift += sizeof( uint8_t );
-                        result += std::to_string( value );
                         req->args[arg_name] = std::to_string(value);
                     } else if ( data_type == "ulong" ) {
-                        unsigned long value;
+                        unsigned long value = 0;
                         memcpy( &value, &pkt->data[pos_shift], sizeof(unsigned long) );
                         pos_shift += sizeof( unsigned long );
-                        result += std::to_string( value );
                         req->args[arg_name] = std::to_string(value);
-                    } else {
-                        result += "\"Unknown type of data\"";
                     }
-                    result += ",";
                 } // for loop // iterate over output params
-                result.pop_back(); // remove last comma ","
             }
         }
-        result += "\"}";
-        std::cout << "Response: " << result << std::endl;
     }
-    return string(result);
 };
 
 

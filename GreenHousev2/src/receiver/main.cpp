@@ -54,8 +54,14 @@ void ping_pong_game(AirPacket *pkt) {
         }
     } else {
         switch ( pkt->command ) {
-            case AIR_CMD_IN_GETTIME: {
+            case AIR_CMD_IN_SETTIME: {
                 memcpy(&local_time, &pkt->data, sizeof(local_time));
+                air.sendResponse(*pkt, true, sizeof(local_time), &local_time);
+                Serial.print("Configured new time as ");
+                Serial.println(local_time);
+            }; break;
+            case AIR_CMD_IN_GETTIME: {
+                memcpy(&pkt->data, &local_time, sizeof(local_time));
                 char str[40];
                 sprintf(str, "Received time: %d/%02d/%02d %02d:%02d:%02d\n", year(local_time), month(local_time), day(local_time), hour(local_time), minute(local_time), second(local_time));
                 Serial.print(str);

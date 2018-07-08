@@ -95,7 +95,7 @@ class RouteManager {
         RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
     public:
-        string handleResponses();
+        void handleResponses();
         void cleanUpRequestsQueue();
         GHAir *air;
         void accept(const char *uri, string *out_msg);

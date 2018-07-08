@@ -3,6 +3,9 @@
 #include <avr/wdt.h>
 #endif // ARDUINO
 #include <ghair.h>
+#if defined(__LINUX__)
+    #include <time.h>
+#endif // __LINUX__
 
 // void (*resetBoardVector)(void) = 0;
 #ifdef DEBUG_AIR
@@ -207,6 +210,12 @@ bool GHAir::onGetDataStandard() {
         // Handle only initiating commands (not responses)
         // pkt.command has to have bits 6 and 7 set to zero.
         switch ( pkt.command ) {
+#if defined(__LINUX__)
+            case AIR_CMD_IN_GETTIME: {
+                time_t t = now(); 
+                sendResponse(pkt, true, sizeof(t), &t);
+                }; break;
+#endif // __LINUX__
             case AIR_CMD_IN_PING:
                 this->sendPong();
                 break;
@@ -370,4 +379,12 @@ GHAir::setPacketId(const uint8_t id) {
     m_packet.request_id = id;
     packet_id = id;
 }
+
+
+#if defined(__LINUX__)
+void 
+GHAir::onGetLocalTime() {
+    
+}
+#endif // __LINUX__
 

@@ -31,6 +31,7 @@ typedef unsigned char byte;
 #define AIR_CMD_IN_WRITE_EEPROM         0x04
 #define AIR_CMD_IN_DATA                 0x05
 #define AIR_CMD_IN_UPTIME               0x06
+#define AIR_CMD_IN_GETTIME              0x07
 
 // These defines are used by the GHAir::sendResponse method
 #define AIR_CMD_RESP                    0x80 // 7th bit is set to 1

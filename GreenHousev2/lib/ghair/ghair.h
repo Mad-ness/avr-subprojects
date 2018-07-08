@@ -36,6 +36,9 @@ private:
     //void onSetPinAsInput(const uint8_t pin);
     //void onSetPinAsOutput(const uint8_t pin);
 #endif // ARDUINO
+#if defined(__LINUX__)
+    void onGetLocalTime();
+#endif // __LINUX__
 public:
     GHAir(const int ce_pin, const int csn_pin, byte *read_pipe, byte *write_pipe);
     RF24 *rf24();
@@ -72,6 +75,7 @@ public:
     
     bool sendSetPWMValue(const uint8_t pin, const uint8_t value);
     bool sendGetPWMValue(const uint8_t pin);
+
 };
 
 #endif // __GH_AIR_H__

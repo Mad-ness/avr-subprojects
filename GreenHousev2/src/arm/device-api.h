@@ -44,6 +44,8 @@ namespace deviceapi {
     bool getPinValue(GHAir *air, const UserArgs_t &args, string *output);
 
     bool getLocalTime(GHAir *air, const UserArgs_t &args, string *output);
+    bool setLocalTime(GHAir *air, const UserArgs_t &args, string *output);
+
 
 }; // namespace deviceapi
 

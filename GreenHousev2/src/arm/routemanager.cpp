@@ -13,6 +13,15 @@
 static DeviceCallbacksList_t device_callbacks;
 static ProxyCallbacksList_t proxy_callbacks;
 
+string
+encloseQuotes(const string &str) {
+    return '\"' + string( str ) + '\"';
+}
+
+string 
+keyValueToStr( const string &key, const string &value ) {
+    return encloseQuotes( key ) + ":" + encloseQuotes( value );
+}
 
 
 string
@@ -234,6 +243,28 @@ RouteManager::loop() {
     processRequestsQueue();
 }
 
+string 
+RouteManager::getDetailsByHash(const string &hashsum) {
+    string res = "";
+    try {
+        RequestItem_t &item = m_requests.at( hashsum ); 
+        res += "{";
+            res += keyValueToStr( "completed_at", std::to_string( item.when.completed ));
+            res += ",";
+            for ( auto &arg : item.args ) {
+                res += keyValueToStr( arg.first, arg.second );
+                res += ",";
+            }
+            res.pop_back();
+        res += "}";
+    } catch ( std::out_of_range ) {
+        // res += encloseQuotes( );
+        res += keyValueToStr( "msg", "No information found" );
+        // res += "{\"msg\":\"No information found\"}";
+    }
+    return string(res);
+}
+
 void
 RouteManager::processRequestsQueue() {
     cleanUpRequestsQueue();
@@ -407,6 +438,8 @@ install_callbacks() {
     addDeviceCallback( "/device/eeprom/read",       URLParams_t({ "did", "address" }), URLParams_t({ "1:value:int8" }), deviceapi::readEEPROM );
     addDeviceCallback( "/device/eeprom/write",      URLParams_t({ "did", "address", "value" }), URLParams_t({ "1:savedvalue:int8" }), deviceapi::writeEEPROM );
     addDeviceCallback( "/device/localtime",         URLParams_t({ "did" }), URLParams_t({ "1:time:ulong" }), deviceapi::getLocalTime );
+    addDeviceCallback( "/device/setlocaltime",      URLParams_t({ "did", "time" }), URLParams_t({ "1:localtime:ulong" }), deviceapi::setLocalTime );
+
 
 }
 

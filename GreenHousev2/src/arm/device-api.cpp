@@ -1,4 +1,6 @@
 #include <ghair.h>
+#include <iostream>
+#include <cstdlib>
 #include <ghairdefs.h>
 #include "device-api.h"
 
@@ -73,6 +75,13 @@ bool getPWMValue( GHAir *air, const UserArgs_t &args, string *output ) {
 
 bool getLocalTime(GHAir *air, const UserArgs_t &args, string *output) {
     air->sendPacket( AIR_CMD_IN_GETTIME, air->packetId(), 0x0, 0x0, NULL);
+}
+
+bool setLocalTime(GHAir *air, const UserArgs_t &args, string *output) {
+    unsigned long t = 0;
+    strtol(args.at("time").c_str(), NULL, 10);
+    std::cout << "Configured localtime as " << args.at("time") << "\n";
+    air->sendPacket( AIR_CMD_IN_SETTIME, air->packetId(), 0x0, sizeof(t), &t );
 }
 
 };

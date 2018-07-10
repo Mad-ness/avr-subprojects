@@ -149,6 +149,16 @@ void onPOSTRequest(struct evhttp_request *req, void *arg) {
     return;
 }
 
+
+static void
+onGetInfo(struct evhttp_request *req, void *arg) { 
+    EvHttpRequest evreq(req);
+    // evreq.output().printf("Received URI: %s\n", evreq.uriStr());
+    // const evhttp_cmd_type cmd_type = evhttp_request_get_command( req );
+ 
+    evreq.sendReply(200, "Get details");
+}
+
 static
 void onHttpRequest(struct evhttp_request *req, void *arg) {
     EvHttpRequest evreq(req);
@@ -167,15 +177,26 @@ void onHttpDefault(struct evhttp_request *req, void *arg) {
     std::cout << "Default handler:: Received URI: " << evreq.uriStr() << std::endl;
 
     string route_msg;
-    route_mg.accept(evreq.uriStr(), &route_msg);
-    // std::cout << "DEBUG: preparing to send a response to the client\n";
     string m;
+    route_mg.accept(evreq.uriStr(), &route_msg);
+
+    if ( route_mg.UrlParser().paths()[0] == "byhash" ) {
+        if ( route_mg.UrlParser().paths()[1].length() == 32*2 ) {
+            m += route_mg.getDetailsByHash( route_mg.UrlParser().paths()[1] );
+        } else {
+            m += keyValueToStr( "msg", "Specified URL has invalid format (len of the hash part)" );
+        }
+    } else {
+
+
+    // std::cout << "DEBUG: preparing to send a response to the client\n";
     m += "{\"requested_url\":\"";
     m += evreq.uriStr();
     m += "\",";
     m += "\"result\":";
     m += route_msg;
     m += "}";
+    }
     evreq.output().printf(m.c_str());
     evreq.sendReply(202, "Request accepted");
 }
@@ -269,6 +290,7 @@ int main(int argc, char **argv) {
 
     logstr("Adding routes");
     http.addRoute("/request", onHttpRequest);
+    http.addRoute("/byhash", onGetInfo);
     http.addRoute("/ping", onPing);
     http.addRoute("/print", onPrint);
     http.addRoute("/debug", onPrint);

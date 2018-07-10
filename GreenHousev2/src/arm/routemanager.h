@@ -42,6 +42,8 @@ typedef unordered_map<string, DeviceRouteItemInfo_t> DeviceCallbacksList_t;
 void addDeviceCallback( const char *path, const URLParams_t &params, const URLParams_t &ret_params, CallbackDevice_t cb);
 void addProxyCallback( const char *path, const URLParams_t &params, const URLParams_t &ret_params, CallbackProxy_t cb);
 void printHandlers();
+string encloseQuotes(const string &str); 
+string keyValueToStr(const string &key, const string &value);
 
 
 #if __ARM_ARCH == 7
@@ -95,8 +97,10 @@ class RouteManager {
         RequestItem_t *addRequestInQueue(const char *uri);
         void processRequestsQueue();
     public:
+        SUrlParser &UrlParser() { return this->parser; };
         void handleResponses();
         void cleanUpRequestsQueue();
+        string getDetailsByHash(const string &hashsum);
         GHAir *air;
         void accept(const char *uri, string *out_msg);
         const string &emsg() { return errmsg; };
